@@ -31,7 +31,7 @@ export function Sidebar() {
             </li>
             <li>
               <Link
-                to="/sales-orders/new"
+                to="/orders/new-sales-order"
                 className={base}
                 activeProps={{ className: active }}
               >
@@ -40,7 +40,7 @@ export function Sidebar() {
             </li>
             <li>
               <Link
-                to="/orders/update"
+                to="/orders/update-an-order"
                 className={base}
                 activeProps={{ className: active }}
               >
@@ -49,7 +49,7 @@ export function Sidebar() {
             </li>
             <li>
               <Link
-                to="/alterations/new"
+                to="/orders/new-alteration-order"
                 className={base}
                 activeProps={{ className: active }}
               >
@@ -58,7 +58,7 @@ export function Sidebar() {
             </li>
             <li>
               <Link
-                to="/customers"
+                to="/orders/customer-profiles-orders"
                 className={base}
                 activeProps={{ className: active }}
               >
@@ -67,7 +67,7 @@ export function Sidebar() {
             </li>
             <li>
               <Link
-                to="/showroom/orders"
+                to="/orders/orders-at-showroom"
                 className={base}
                 activeProps={{ className: active }}
               >
@@ -82,7 +82,7 @@ export function Sidebar() {
           <ul className="space-y-1">
             <li>
               <Link
-                to="/reports/stock"
+                to="/store/stock-report"
                 className={base}
                 activeProps={{ className: active }}
               >
@@ -91,7 +91,7 @@ export function Sidebar() {
             </li>
             <li>
               <Link
-                to="/receiving/deliveries"
+                to="/store/receiving-deliveries"
                 className={base}
                 activeProps={{ className: active }}
               >
@@ -100,7 +100,7 @@ export function Sidebar() {
             </li>
             <li>
               <Link
-                to="/delivery/request"
+                to="/store/request-delivery"
                 className={base}
                 activeProps={{ className: active }}
               >
@@ -109,7 +109,7 @@ export function Sidebar() {
             </li>
             <li>
               <Link
-                to="/reports/end-of-day"
+                to="/store/end-of-day-report"
                 className={base}
                 activeProps={{ className: active }}
               >

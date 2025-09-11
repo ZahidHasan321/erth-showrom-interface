@@ -11,7 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StoreStockReportRouteImport } from './routes/store/stock-report'
+import { Route as StoreRequestDeliveryRouteImport } from './routes/store/request-delivery'
+import { Route as StoreReceivingDeliveriesRouteImport } from './routes/store/receiving-deliveries'
+import { Route as StoreEndOfDayReportRouteImport } from './routes/store/end-of-day-report'
+import { Route as OrdersUpdateAnOrderRouteImport } from './routes/orders/update-an-order'
+import { Route as OrdersOrdersAtShowroomRouteImport } from './routes/orders/orders-at-showroom'
 import { Route as OrdersNewWorkOrderRouteImport } from './routes/orders/new-work-order'
+import { Route as OrdersNewSalesOrderRouteImport } from './routes/orders/new-sales-order'
+import { Route as OrdersNewAlterationOrderRouteImport } from './routes/orders/new-alteration-order'
+import { Route as OrdersCustomerProfilesOrdersRouteImport } from './routes/orders/customer-profiles-orders'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -23,40 +32,161 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StoreStockReportRoute = StoreStockReportRouteImport.update({
+  id: '/store/stock-report',
+  path: '/store/stock-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreRequestDeliveryRoute = StoreRequestDeliveryRouteImport.update({
+  id: '/store/request-delivery',
+  path: '/store/request-delivery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreReceivingDeliveriesRoute =
+  StoreReceivingDeliveriesRouteImport.update({
+    id: '/store/receiving-deliveries',
+    path: '/store/receiving-deliveries',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const StoreEndOfDayReportRoute = StoreEndOfDayReportRouteImport.update({
+  id: '/store/end-of-day-report',
+  path: '/store/end-of-day-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersUpdateAnOrderRoute = OrdersUpdateAnOrderRouteImport.update({
+  id: '/orders/update-an-order',
+  path: '/orders/update-an-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersOrdersAtShowroomRoute = OrdersOrdersAtShowroomRouteImport.update({
+  id: '/orders/orders-at-showroom',
+  path: '/orders/orders-at-showroom',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrdersNewWorkOrderRoute = OrdersNewWorkOrderRouteImport.update({
   id: '/orders/new-work-order',
   path: '/orders/new-work-order',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrdersNewSalesOrderRoute = OrdersNewSalesOrderRouteImport.update({
+  id: '/orders/new-sales-order',
+  path: '/orders/new-sales-order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersNewAlterationOrderRoute =
+  OrdersNewAlterationOrderRouteImport.update({
+    id: '/orders/new-alteration-order',
+    path: '/orders/new-alteration-order',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const OrdersCustomerProfilesOrdersRoute =
+  OrdersCustomerProfilesOrdersRouteImport.update({
+    id: '/orders/customer-profiles-orders',
+    path: '/orders/customer-profiles-orders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/orders/customer-profiles-orders': typeof OrdersCustomerProfilesOrdersRoute
+  '/orders/new-alteration-order': typeof OrdersNewAlterationOrderRoute
+  '/orders/new-sales-order': typeof OrdersNewSalesOrderRoute
   '/orders/new-work-order': typeof OrdersNewWorkOrderRoute
+  '/orders/orders-at-showroom': typeof OrdersOrdersAtShowroomRoute
+  '/orders/update-an-order': typeof OrdersUpdateAnOrderRoute
+  '/store/end-of-day-report': typeof StoreEndOfDayReportRoute
+  '/store/receiving-deliveries': typeof StoreReceivingDeliveriesRoute
+  '/store/request-delivery': typeof StoreRequestDeliveryRoute
+  '/store/stock-report': typeof StoreStockReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/orders/customer-profiles-orders': typeof OrdersCustomerProfilesOrdersRoute
+  '/orders/new-alteration-order': typeof OrdersNewAlterationOrderRoute
+  '/orders/new-sales-order': typeof OrdersNewSalesOrderRoute
   '/orders/new-work-order': typeof OrdersNewWorkOrderRoute
+  '/orders/orders-at-showroom': typeof OrdersOrdersAtShowroomRoute
+  '/orders/update-an-order': typeof OrdersUpdateAnOrderRoute
+  '/store/end-of-day-report': typeof StoreEndOfDayReportRoute
+  '/store/receiving-deliveries': typeof StoreReceivingDeliveriesRoute
+  '/store/request-delivery': typeof StoreRequestDeliveryRoute
+  '/store/stock-report': typeof StoreStockReportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/orders/customer-profiles-orders': typeof OrdersCustomerProfilesOrdersRoute
+  '/orders/new-alteration-order': typeof OrdersNewAlterationOrderRoute
+  '/orders/new-sales-order': typeof OrdersNewSalesOrderRoute
   '/orders/new-work-order': typeof OrdersNewWorkOrderRoute
+  '/orders/orders-at-showroom': typeof OrdersOrdersAtShowroomRoute
+  '/orders/update-an-order': typeof OrdersUpdateAnOrderRoute
+  '/store/end-of-day-report': typeof StoreEndOfDayReportRoute
+  '/store/receiving-deliveries': typeof StoreReceivingDeliveriesRoute
+  '/store/request-delivery': typeof StoreRequestDeliveryRoute
+  '/store/stock-report': typeof StoreStockReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/orders/new-work-order'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/orders/customer-profiles-orders'
+    | '/orders/new-alteration-order'
+    | '/orders/new-sales-order'
+    | '/orders/new-work-order'
+    | '/orders/orders-at-showroom'
+    | '/orders/update-an-order'
+    | '/store/end-of-day-report'
+    | '/store/receiving-deliveries'
+    | '/store/request-delivery'
+    | '/store/stock-report'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/orders/new-work-order'
-  id: '__root__' | '/' | '/about' | '/orders/new-work-order'
+  to:
+    | '/'
+    | '/about'
+    | '/orders/customer-profiles-orders'
+    | '/orders/new-alteration-order'
+    | '/orders/new-sales-order'
+    | '/orders/new-work-order'
+    | '/orders/orders-at-showroom'
+    | '/orders/update-an-order'
+    | '/store/end-of-day-report'
+    | '/store/receiving-deliveries'
+    | '/store/request-delivery'
+    | '/store/stock-report'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/orders/customer-profiles-orders'
+    | '/orders/new-alteration-order'
+    | '/orders/new-sales-order'
+    | '/orders/new-work-order'
+    | '/orders/orders-at-showroom'
+    | '/orders/update-an-order'
+    | '/store/end-of-day-report'
+    | '/store/receiving-deliveries'
+    | '/store/request-delivery'
+    | '/store/stock-report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  OrdersCustomerProfilesOrdersRoute: typeof OrdersCustomerProfilesOrdersRoute
+  OrdersNewAlterationOrderRoute: typeof OrdersNewAlterationOrderRoute
+  OrdersNewSalesOrderRoute: typeof OrdersNewSalesOrderRoute
   OrdersNewWorkOrderRoute: typeof OrdersNewWorkOrderRoute
+  OrdersOrdersAtShowroomRoute: typeof OrdersOrdersAtShowroomRoute
+  OrdersUpdateAnOrderRoute: typeof OrdersUpdateAnOrderRoute
+  StoreEndOfDayReportRoute: typeof StoreEndOfDayReportRoute
+  StoreReceivingDeliveriesRoute: typeof StoreReceivingDeliveriesRoute
+  StoreRequestDeliveryRoute: typeof StoreRequestDeliveryRoute
+  StoreStockReportRoute: typeof StoreStockReportRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +205,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/store/stock-report': {
+      id: '/store/stock-report'
+      path: '/store/stock-report'
+      fullPath: '/store/stock-report'
+      preLoaderRoute: typeof StoreStockReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store/request-delivery': {
+      id: '/store/request-delivery'
+      path: '/store/request-delivery'
+      fullPath: '/store/request-delivery'
+      preLoaderRoute: typeof StoreRequestDeliveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store/receiving-deliveries': {
+      id: '/store/receiving-deliveries'
+      path: '/store/receiving-deliveries'
+      fullPath: '/store/receiving-deliveries'
+      preLoaderRoute: typeof StoreReceivingDeliveriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store/end-of-day-report': {
+      id: '/store/end-of-day-report'
+      path: '/store/end-of-day-report'
+      fullPath: '/store/end-of-day-report'
+      preLoaderRoute: typeof StoreEndOfDayReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/update-an-order': {
+      id: '/orders/update-an-order'
+      path: '/orders/update-an-order'
+      fullPath: '/orders/update-an-order'
+      preLoaderRoute: typeof OrdersUpdateAnOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/orders-at-showroom': {
+      id: '/orders/orders-at-showroom'
+      path: '/orders/orders-at-showroom'
+      fullPath: '/orders/orders-at-showroom'
+      preLoaderRoute: typeof OrdersOrdersAtShowroomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/orders/new-work-order': {
       id: '/orders/new-work-order'
       path: '/orders/new-work-order'
       fullPath: '/orders/new-work-order'
       preLoaderRoute: typeof OrdersNewWorkOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/new-sales-order': {
+      id: '/orders/new-sales-order'
+      path: '/orders/new-sales-order'
+      fullPath: '/orders/new-sales-order'
+      preLoaderRoute: typeof OrdersNewSalesOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/new-alteration-order': {
+      id: '/orders/new-alteration-order'
+      path: '/orders/new-alteration-order'
+      fullPath: '/orders/new-alteration-order'
+      preLoaderRoute: typeof OrdersNewAlterationOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/customer-profiles-orders': {
+      id: '/orders/customer-profiles-orders'
+      path: '/orders/customer-profiles-orders'
+      fullPath: '/orders/customer-profiles-orders'
+      preLoaderRoute: typeof OrdersCustomerProfilesOrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +281,16 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  OrdersCustomerProfilesOrdersRoute: OrdersCustomerProfilesOrdersRoute,
+  OrdersNewAlterationOrderRoute: OrdersNewAlterationOrderRoute,
+  OrdersNewSalesOrderRoute: OrdersNewSalesOrderRoute,
   OrdersNewWorkOrderRoute: OrdersNewWorkOrderRoute,
+  OrdersOrdersAtShowroomRoute: OrdersOrdersAtShowroomRoute,
+  OrdersUpdateAnOrderRoute: OrdersUpdateAnOrderRoute,
+  StoreEndOfDayReportRoute: StoreEndOfDayReportRoute,
+  StoreReceivingDeliveriesRoute: StoreReceivingDeliveriesRoute,
+  StoreRequestDeliveryRoute: StoreRequestDeliveryRoute,
+  StoreStockReportRoute: StoreStockReportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
