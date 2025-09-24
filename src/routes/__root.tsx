@@ -1,7 +1,8 @@
 // src/routes/__root.tsx
-import { Outlet, createRootRoute } from "@tanstack/react-router";
-import { Sidebar } from "../components/global/sidebar";
-import { Header } from "../components/global/header";
+import {createRootRoute, Outlet} from "@tanstack/react-router";
+import {AppSidebar} from "@/components/app-sidebar"
+import {Separator} from "@/components/ui/separator"
+import {SidebarInset, SidebarProvider, SidebarTrigger,} from "@/components/ui/sidebar"
 
 export const Route = createRootRoute({
   component: RootLayout,
@@ -9,16 +10,20 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   return (
-    <div className="min-h-screen  text-gray-900">
-      <Header />
-      <div className="flex flex-1">
-        <aside className="w-72 shrink-0 bg-gray-200">
-          <Sidebar />
-        </aside>
+    <SidebarProvider>
+      <AppSidebar/>
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1"/>
+          <Separator
+            orientation="vertical"
+            className="mr-2 data-[orientation=vertical]:h-4"
+          />
+        </header>
         <main className="flex-1 p-6 justify-start">
-          <Outlet />
+          <Outlet/>
         </main>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
