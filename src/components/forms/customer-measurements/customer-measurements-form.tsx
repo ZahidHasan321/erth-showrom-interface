@@ -17,30 +17,18 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {customerMeasurementsSchema} from "./schema";
 import MyImg from "../../../assets/image.png";
 
-export function CustomerMeasurementsForm() {
-  const form = useForm<z.infer<typeof customerMeasurementsSchema>>({
-    resolver: zodResolver(customerMeasurementsSchema),
-    defaultValues: {
-      measurementType: "Body / Dishdasha",
-      measurementID: "",
-      measurementReference: "Winter",
-      fabricReferenceNo: "",
-      notes: "",
-      collar: {width: 0, height: 0},
-      shoulder: 0,
-      armhole: 0,
-      chest: {upper: 0, half: 0, full: 0},
-      sleeve: 0,
-      elbow: 0,
-      topPocket: {length: 0, width: 0},
-      sidePocket: {length: 0, width: 0},
-      waist: {front: 0, back: 0},
-      length: {front: 0, back: 0},
-      bottom: 0,
-    },
-  });
+import { type UseFormReturn } from "react-hook-form";
+import { useCurrentWorkOrderStore } from "@/store/current-work-order";
+
+interface CustomerMeasurementsFormProps {
+  form: UseFormReturn<z.infer<typeof customerMeasurementsSchema>>;
+}
+
+export function CustomerMeasurementsForm({ form }: CustomerMeasurementsFormProps) {
+  const { setCustomerMeasurements } = useCurrentWorkOrderStore();
 
   function onSubmit(values: z.infer<typeof customerMeasurementsSchema>) {
+    setCustomerMeasurements(values);
     console.log(values);
   }
 

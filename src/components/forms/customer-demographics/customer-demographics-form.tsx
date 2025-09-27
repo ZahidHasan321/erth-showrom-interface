@@ -10,28 +10,18 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import {DatePicker} from "@/components/ui/date-picker";
 import {customerDemographicsSchema} from "./schema";
 
-export function CustomerDemographicsForm() {
-  const form = useForm<z.infer<typeof customerDemographicsSchema>>({
-    resolver: zodResolver(customerDemographicsSchema),
-    defaultValues: {
-      name: "",
-      nickName: "",
-      mobileNumber: "",
-      instaId: "",
-      email: "",
-      address: {
-        governorate: "",
-        block: "",
-        street: "",
-        houseBuildingNo: "",
-        floor: "",
-        aptNo: "",
-        landmark: "",
-      },
-    },
-  });
+import { type UseFormReturn } from "react-hook-form";
+import { useCurrentWorkOrderStore } from "@/store/current-work-order";
+
+interface CustomerDemographicsFormProps {
+  form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
+}
+
+export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps) {
+  const { setCustomerDemographics } = useCurrentWorkOrderStore();
 
   function onSubmit(values: z.infer<typeof customerDemographicsSchema>) {
+    setCustomerDemographics(values);
     console.log(values);
   }
 
@@ -58,8 +48,8 @@ export function CustomerDemographicsForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="new">New</SelectItem>
-                      <SelectItem value="existing">Existing</SelectItem>
+                      <SelectItem value="New">New</SelectItem>
+                      <SelectItem value="Existing">Existing</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -306,8 +296,8 @@ export function CustomerDemographicsForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="regular">Regular</SelectItem>
-                    <SelectItem value="vip">VIP</SelectItem>
+                    <SelectItem value="Regular">Regular</SelectItem>
+                    <SelectItem value="VIP">VIP</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -327,11 +317,11 @@ export function CustomerDemographicsForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="kuwaiti">Kuwaiti</SelectItem>
-                    <SelectItem value="saudi">Saudi</SelectItem>
-                    <SelectItem value="bahraini">Bahraini</SelectItem>
-                    <SelectItem value="qatari">Qatari</SelectItem>
-                    <SelectItem value="emirati">Emirati</SelectItem>
+                    <SelectItem value="Kuwaiti">Kuwaiti</SelectItem>
+                    <SelectItem value="Saudi">Saudi</SelectItem>
+                    <SelectItem value="Bahraini">Bahraini</SelectItem>
+                    <SelectItem value="Qatari">Qatari</SelectItem>
+                    <SelectItem value="Emirati">Emirati</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
