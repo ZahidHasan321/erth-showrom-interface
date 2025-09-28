@@ -1,5 +1,4 @@
-import {zodResolver} from "@hookform/resolvers/zod";
-import {useForm} from "react-hook-form";
+import {type UseFormReturn} from "react-hook-form";
 import {z} from "zod";
 
 import {Button} from "@/components/ui/button";
@@ -9,9 +8,7 @@ import {Input} from "@/components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {DatePicker} from "@/components/ui/date-picker";
 import {customerDemographicsSchema} from "./schema";
-
-import { type UseFormReturn } from "react-hook-form";
-import { useCurrentWorkOrderStore } from "@/store/current-work-order";
+import {useCurrentWorkOrderStore} from "@/store/current-work-order";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;

@@ -1,15 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
-import { CustomerMeasurementsForm } from "@/components/forms/customer-measurements";
-import { Stepper } from "@/components/ui/stepper";
-import { Button } from "@/components/ui/button";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { customerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
-import { customerMeasurementsSchema } from "@/components/forms/customer-measurements/schema";
-import { useCurrentWorkOrderStore } from "@/store/current-work-order";
-import { z } from "zod";
+import {createFileRoute} from "@tanstack/react-router";
+import {CustomerDemographicsForm} from "@/components/forms/customer-demographics";
+import {CustomerMeasurementsForm} from "@/components/forms/customer-measurements";
+import {Stepper} from "@/components/ui/stepper";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {customerDemographicsSchema} from "@/components/forms/customer-demographics/schema";
+import {customerMeasurementsSchema} from "@/components/forms/customer-measurements/schema";
+import {useCurrentWorkOrderStore} from "@/store/current-work-order";
+import {z} from "zod";
 
 export const Route = createFileRoute("/orders/new-work-order")({
   component: NewWorkOrder,
