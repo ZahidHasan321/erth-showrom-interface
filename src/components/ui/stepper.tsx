@@ -44,15 +44,28 @@ interface StepperProps {
   currentStep: number;
   completedSteps: number[];
   onStepChange: (step: number) => void;
+  canNavigateToStep?: (currentStep: number, targetStep: number) => boolean;
 }
 
-export function Stepper({ steps, currentStep, completedSteps, onStepChange }: StepperProps) {
+export function Stepper({ steps, currentStep, completedSteps, onStepChange, canNavigateToStep }: StepperProps) {
+  const attemptStepChange = (targetStep: number) => {
+    if (targetStep < 0 || targetStep >= steps.length || targetStep === currentStep) {
+      return;
+    }
+
+    if (canNavigateToStep && !canNavigateToStep(currentStep, targetStep)) {
+      return;
+    }
+
+    onStepChange(targetStep);
+  };
+
   return (
     <div className="w-full mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         {steps.map((step, index) => (
           <React.Fragment key={step.title}>
-            <div onClick={() => onStepChange(index)} className="cursor-pointer">
+            <div onClick={() => attemptStepChange(index)} className="cursor-pointer">
               <Step
                 title={step.title}
                 description={step.description}
@@ -65,10 +78,10 @@ export function Stepper({ steps, currentStep, completedSteps, onStepChange }: St
         ))}
       </div>
       <div className="flex justify-between">
-        <Button variant="outline" onClick={() => onStepChange(currentStep - 1)} disabled={currentStep === 0}>
+        <Button variant="outline" onClick={() => attemptStepChange(currentStep - 1)} disabled={currentStep === 0}>
           Previous
         </Button>
-        <Button onClick={() => onStepChange(currentStep + 1)} disabled={currentStep === steps.length - 1}>
+        <Button onClick={() => attemptStepChange(currentStep + 1)} disabled={currentStep === steps.length - 1}>
           {currentStep === steps.length - 1 ? "Finish" : "Next"}
         </Button>
       </div>

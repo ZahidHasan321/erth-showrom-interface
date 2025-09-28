@@ -15,10 +15,12 @@ interface CustomerMeasurementsFormProps {
 }
 
 export function CustomerMeasurementsForm({ form }: CustomerMeasurementsFormProps) {
-  const { setCustomerMeasurements } = useCurrentWorkOrderStore();
+  const { setCustomerMeasurements, markStepSaved } = useCurrentWorkOrderStore();
 
   function onSubmit(values: z.infer<typeof customerMeasurementsSchema>) {
     setCustomerMeasurements(values);
+    markStepSaved(1);
+    form.reset(values);
     console.log(values);
   }
 

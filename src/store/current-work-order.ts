@@ -11,9 +11,11 @@ interface CurrentWorkOrderState {
   customerDemographics: Partial<CustomerDemographics>;
   customerMeasurements: Partial<CustomerMeasurements>;
   currentStep: number;
+  savedSteps: number[];
   setCustomerDemographics: (data: Partial<CustomerDemographics>) => void;
   setCustomerMeasurements: (data: Partial<CustomerMeasurements>) => void;
   setCurrentStep: (step: number) => void;
+  markStepSaved: (step: number) => void;
 }
 
 export const useCurrentWorkOrderStore = create<CurrentWorkOrderState>()(
@@ -22,11 +24,18 @@ export const useCurrentWorkOrderStore = create<CurrentWorkOrderState>()(
       customerDemographics: {},
       customerMeasurements: {},
       currentStep: 0,
+      savedSteps: [],
       setCustomerDemographics: (data) =>
         set((state) => ({ customerDemographics: { ...state.customerDemographics, ...data } })),
       setCustomerMeasurements: (data) =>
         set((state) => ({ customerMeasurements: { ...state.customerMeasurements, ...data } })),
       setCurrentStep: (step) => set({ currentStep: step }),
+      markStepSaved: (step) =>
+        set((state) =>
+          state.savedSteps.includes(step)
+            ? {}
+            : { savedSteps: [...state.savedSteps, step].sort((a, b) => a - b) },
+        ),
     }),
     { name: 'current-work-order' }
   )

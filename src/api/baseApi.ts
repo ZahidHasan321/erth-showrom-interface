@@ -1,7 +1,6 @@
 import type { ApiResponse, ApiSearchResponse } from '../types/api';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 /**
  * Fetches all records from a given Airtable table.
  * @param tableName The name of the table to fetch records from.

@@ -3,6 +3,7 @@ import {createRootRoute, Outlet} from "@tanstack/react-router";
 import {AppSidebar} from "@/components/app-sidebar"
 import {Separator} from "@/components/ui/separator"
 import {SidebarInset, SidebarProvider, SidebarTrigger,} from "@/components/ui/sidebar"
+import { Toaster } from "sonner";
 
 export const Route = createRootRoute({
   component: RootLayout,
@@ -22,6 +23,7 @@ function RootLayout() {
         </header>
         <main className="flex-1 p-6 justify-start">
           <Outlet/>
+          <Toaster position="top-center" richColors closeButton/>
         </main>
       </SidebarInset>
     </SidebarProvider>

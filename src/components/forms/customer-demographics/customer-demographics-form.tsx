@@ -25,13 +25,14 @@ import {
 import { customerDemographicsSchema } from "./schema";
 import {useCurrentWorkOrderStore} from "@/store/current-work-order";
 import type { UseFormReturn } from "react-hook-form";
+import { SearchIcon } from "lucide-react";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
 }
 
 export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps) {
-  const { setCustomerDemographics } = useCurrentWorkOrderStore();
+  const { setCustomerDemographics, markStepSaved } = useCurrentWorkOrderStore();
 
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [searchPhone, setSearchPhone] = useState<string | null>(null);
@@ -68,6 +69,8 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
 
   function onSubmit(values: z.infer<typeof customerDemographicsSchema>) {
     setCustomerDemographics(values);
+    markStepSaved(0);
+    form.reset(values);
     console.log(values);
   }
 
@@ -152,7 +155,8 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   </FormItem>
                 )}
               />
-              <Button type="button" onClick={handleSearch} disabled={isFetching}>
+              <Button type="button" className="w-fit" onClick={handleSearch} disabled={isFetching}>
+                <SearchIcon className="w-4 h-4 mr-2" />
                 {isFetching ? "Searching..." : "Search Customer Info."}
               </Button>
             </div>
