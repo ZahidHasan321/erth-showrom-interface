@@ -23,7 +23,10 @@ function NewWorkOrder() {
 
   const demographicsForm = useForm<z.infer<typeof customerDemographicsSchema>>({
     resolver: zodResolver(customerDemographicsSchema),
-    defaultValues: customerDemographics,
+    defaultValues: {
+      ...customerDemographics,
+      customerType: "New",
+    },
   });
 
   const measurementsForm = useForm<z.infer<typeof customerMeasurementsSchema>>({

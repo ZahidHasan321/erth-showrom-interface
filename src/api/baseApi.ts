@@ -1,4 +1,4 @@
-import type { ApiResponse } from '../types/api';
+import type { ApiResponse, ApiSearchResponse } from '../types/api';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -35,4 +35,30 @@ export const getRecordById = async <T>(tableName: string, recordId: string): Pro
 
   const data = await response.json();
   return data as T;
+};
+
+/**
+ * Searches for records in a table based on a query.
+ * @param tableName The name of the table to search in.
+ * @param query The search query object.
+ * @returns A promise that resolves to the search result.
+ */
+export const searchRecords = async <T>(
+  tableName: string,
+  query: object,
+): Promise<ApiSearchResponse<T>> => {
+  const response = await fetch(`${BASE_URL}/airtable/${tableName}/search`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(query),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to search in table ${tableName} with query ${JSON.stringify(query)}`);
+  }
+
+  const data = await response.json();
+  return data as ApiSearchResponse<T>;
 };

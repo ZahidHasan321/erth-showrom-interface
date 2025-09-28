@@ -1,11 +1,15 @@
 import type { Customer } from '../types/customer';
-import { getRecords, getRecordById } from './baseApi';
+import { getRecords, getRecordById, searchRecords } from './baseApi';
 
 const TABLE_NAME = 'CUSTOMER';
 
 export const getCustomers = () => getRecords<Customer>(TABLE_NAME);
 
 export const getCustomerById = (id: string) => getRecordById<Customer>(TABLE_NAME, id);
+
+export const searchCustomerByPhone = (phone: string) => {
+  return searchRecords<Customer>(TABLE_NAME, { PHONE: phone });
+};
 
 // getCustomers result
 // {

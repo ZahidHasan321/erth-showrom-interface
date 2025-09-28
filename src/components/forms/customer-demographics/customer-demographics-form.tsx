@@ -1,14 +1,30 @@
-import {type UseFormReturn} from "react-hook-form";
-import {z} from "zod";
+import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
+import { useState, useEffect } from "react";
 
-import {Button} from "@/components/ui/button";
-import {Checkbox} from "@/components/ui/checkbox";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
-import {Input} from "@/components/ui/input";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {DatePicker} from "@/components/ui/date-picker";
-import {customerDemographicsSchema} from "./schema";
+import { searchCustomerByPhone } from "@/api/customers";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/ui/date-picker";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { customerDemographicsSchema } from "./schema";
 import {useCurrentWorkOrderStore} from "@/store/current-work-order";
+import type { UseFormReturn } from "react-hook-form";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
@@ -16,6 +32,39 @@ interface CustomerDemographicsFormProps {
 
 export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps) {
   const { setCustomerDemographics } = useCurrentWorkOrderStore();
+
+  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [searchPhone, setSearchPhone] = useState<string | null>(null);
+
+  const { data, isFetching, isSuccess, isError, error } = useQuery({
+    queryKey: ["customer", searchPhone],
+    queryFn: () => searchCustomerByPhone(searchPhone!),
+    enabled: !!searchPhone,
+  });
+
+  useEffect(() => {
+    if (isSuccess && data) {
+      form.setValue("name", data.record.fields.NAME);
+      setIsReadOnly(true);
+    }
+  }, [isSuccess, data, form]);
+
+  useEffect(() => {
+    if (isError && error) {
+      console.error("Error searching for customer:", error);
+    }
+  }, [isError, error]);
+
+  const customerType = form.watch("customerType");
+
+  async function handleSearch() {
+    const phone = form.getValues("searchMobileNumber");
+    if (!phone) {
+      console.log("Please enter a phone number to search.");
+      return;
+    }
+    setSearchPhone(phone);
+  }
 
   function onSubmit(values: z.infer<typeof customerDemographicsSchema>) {
     setCustomerDemographics(values);
@@ -25,9 +74,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <h1 className="text-2xl font-bold mb-4">
-          Customer Demographics
-        </h1>
+        <h1 className="text-2xl font-bold mb-4">Customer Demographics</h1>
 
         {/* Customer Type with Search Button */}
         <div className="flex flex-row justify-between items-center">
@@ -38,7 +85,18 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Customer Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      if (value === "New") {
+                        setIsReadOnly(false);
+                        form.reset();
+                      } else if (value === "Existing") {
+                        setIsReadOnly(true);
+                      }
+                    }}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger className="bg-white">
                         <SelectValue placeholder="New / Existing" />
@@ -54,60 +112,52 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
               )}
             />
           </div>
-          <Button type="button">Search Customer Info.</Button>
         </div>
 
         {/* Search Customer Inputs */}
-        <div className="bg-muted p-4 rounded-lg space-y-4">
-          <h2 className={"text-xl font-semibold"}>Search Customer</h2>
-          <div className={"grid grid-cols-1 md:grid-cols-3 gap-4"}>
-            <FormField
-              control={form.control}
-              name="searchMobileNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Mobile Number" {...field} className="bg-white" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="searchOrderNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Order Number" {...field} className="bg-white" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="searchCustomerId"
-              render={({ field }) => (
-                <FormItem>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+        {customerType === "Existing" && (
+          <div className="bg-muted p-4 rounded-lg space-y-4">
+            <h2 className={"text-xl font-semibold"}>Search Customer</h2>
+            <div className={"grid grid-cols-1 md:grid-cols-3 gap-4"}>
+              <FormField
+                control={form.control}
+                name="searchMobileNumber"
+                render={({ field }) => (
+                  <FormItem>
                     <FormControl>
-                      <SelectTrigger className="bg-white">
-                        <SelectValue placeholder="Customer ID" />
-                      </SelectTrigger>
+                      <Input
+                        placeholder="Mobile Number"
+                        {...field}
+                        value={field.value ?? ""}
+                        className="bg-white"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {/* Add customer IDs here */}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="searchOrderNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        placeholder="Order Number"
+                        {...field}
+                        className="bg-white"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="button" onClick={handleSearch} disabled={isFetching}>
+                {isFetching ? "Searching..." : "Search Customer Info."}
+              </Button>
+            </div>
           </div>
-        </div>
-
-        {/* Name Section */}
+        )}
         <FormField
           control={form.control}
           name="name"
@@ -115,7 +165,12 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
             <FormItem className="bg-muted p-4 rounded-lg">
               <FormLabel className="font-bold">*Name</FormLabel>
               <FormControl>
-                <Input placeholder="Customer Full Name" {...field} className="bg-white" />
+                <Input
+                  placeholder="Customer Full Name"
+                  {...field}
+                  className="bg-white"
+                  readOnly={isReadOnly}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -131,7 +186,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                 <FormItem className={"bg-muted p-4 rounded-lg"}>
                   <FormLabel>Nick Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nick Name" {...field} className="bg-white" />
+                    <Input placeholder="Nick Name" {...field} className="bg-white" readOnly={isReadOnly} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -151,7 +206,12 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                         className="w-8 h-8"
                       />
                       <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} className="bg-white" />
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="bg-white"
+                          disabled={isReadOnly}
+                        />
                       </FormControl>
                     </div>
                   </FormItem>
@@ -164,7 +224,12 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   render={({ field }) => (
                     <FormItem className="flex items-center gap-2">
                       <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} className="bg-white" />
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="bg-white"
+                          disabled={isReadOnly}
+                        />
                       </FormControl>
                       <FormLabel>Influencer</FormLabel>
                     </FormItem>
@@ -176,7 +241,12 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input placeholder="Insta ID" {...field} className="bg-white" />
+                        <Input
+                          placeholder="Insta ID"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -198,7 +268,11 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                       name="countryCode"
                       render={({ field }) => (
                         <FormItem>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            disabled={isReadOnly}
+                          >
                             <FormControl>
                               <SelectTrigger className="bg-white">
                                 <SelectValue placeholder="Country Code" />
@@ -216,7 +290,12 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                       )}
                     />
                     <FormControl>
-                      <Input placeholder="Mobile Number" {...field} className="bg-white" />
+                      <Input
+                        placeholder="Mobile Number"
+                        {...field}
+                        className="bg-white"
+                        readOnly={isReadOnly}
+                      />
                     </FormControl>
                   </div>
                   <FormMessage />
@@ -235,7 +314,11 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                       name="alternativeCountryCode"
                       render={({ field }) => (
                         <FormItem>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            disabled={isReadOnly}
+                          >
                             <FormControl>
                               <SelectTrigger className="bg-white">
                                 <SelectValue placeholder="Country Code" />
@@ -253,7 +336,12 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                       )}
                     />
                     <FormControl>
-                      <Input placeholder="Mobile Number" {...field} className="bg-white" />
+                      <Input
+                        placeholder="Mobile Number"
+                        {...field}
+                        className="bg-white"
+                        readOnly={isReadOnly}
+                      />
                     </FormControl>
                   </div>
                   <FormMessage />
@@ -271,7 +359,12 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
             <FormItem className="bg-muted p-4 rounded-lg">
               <FormLabel>E-mail</FormLabel>
               <FormControl>
-                <Input placeholder="Customer Email ID" {...field} className="bg-white" />
+                <Input
+                  placeholder="Customer Email ID"
+                  {...field}
+                  className="bg-white"
+                  readOnly={isReadOnly}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -286,7 +379,11 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
             render={({ field }) => (
               <FormItem className="w-full bg-muted p-4 rounded-lg">
                 <FormLabel>Customer Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={isReadOnly}
+                >
                   <FormControl>
                     <SelectTrigger className="bg-white">
                       <SelectValue placeholder="Regular / VIP" />
@@ -307,7 +404,11 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
             render={({ field }) => (
               <FormItem className="w-full bg-muted p-4 rounded-lg">
                 <FormLabel>Customer Nationality</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={isReadOnly}
+                >
                   <FormControl>
                     <SelectTrigger className="bg-white">
                       <SelectValue placeholder="Kuwaiti" />
@@ -339,7 +440,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   <FormItem>
                     <FormLabel>Governorate</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-white" />
+                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -352,7 +453,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   <FormItem>
                     <FormLabel>Block</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-white" />
+                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -365,7 +466,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   <FormItem>
                     <FormLabel>Street</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-white" />
+                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -378,7 +479,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   <FormItem>
                     <FormLabel>House / Building no.</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-white" />
+                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -393,7 +494,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   <FormItem>
                     <FormLabel>Floor</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-white" />
+                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -406,7 +507,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   <FormItem>
                     <FormLabel>Apt. No</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-white" />
+                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -419,7 +520,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   <FormItem>
                     <FormLabel>Landmark</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-white" />
+                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -432,7 +533,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
                   <FormItem>
                     <FormLabel>DOB</FormLabel>
                     <FormControl>
-                      <DatePicker value={field.value} onChange={field.onChange} />
+                      <DatePicker value={field.value} onChange={field.onChange} disabled={isReadOnly} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

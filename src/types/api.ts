@@ -4,3 +4,8 @@ export interface ApiResponse<T> {
   count: number;
   records: T[];
 }
+
+export interface ApiSearchResponse<T> {
+  status: string;
+  record: T;
+}
