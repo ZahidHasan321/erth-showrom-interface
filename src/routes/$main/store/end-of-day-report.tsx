@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-export const Route = createFileRoute('/store/end-of-day-report')({
+export const Route = createFileRoute('/$main/store/end-of-day-report')({
   component: RouteComponent,
 })
 

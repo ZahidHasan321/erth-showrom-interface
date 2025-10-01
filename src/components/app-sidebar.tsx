@@ -1,5 +1,5 @@
-import { Link, useMatchRoute } from "@tanstack/react-router";
-import * as React from "react"
+import { Link, useMatchRoute, useParams } from "@tanstack/react-router";
+import * as React from "react";
 
 import {
   Sidebar,
@@ -12,11 +12,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+
 
 // This is sample data.
 const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
+  navTop: [
+    {
+      title: "Homepage",
+      url: "/",
+    },
+  ],
   navMain: [
     {
       title: "Order & Customers",
@@ -50,39 +57,41 @@ const data = {
     },
     {
       title: "Store Management",
-      url: "store",
+      url: "",
       items: [
         {
           title: "Stock Report",
-          url: "stock-report",
+          url: "store/stock-report",
         },
         {
           title: "Receiving Deliveries",
-          url: "receiving-deliveries",
+          url: "store/receiving-deliveries",
         },
         {
           title: "Request Delivery",
-          url: "request-delivery",
+          url: "store/request-delivery",
         },
         {
           title: "End of Day Report",
-          url: "end-of-day-report",
+          url: "store/end-of-day-report",
         },
       ],
     },
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentProps<typeof Sidebar> & { brandName: string, brandLogo: string }) {
+
   type SidebarLinkProps = {
     to: string;
     title: string;
     disabled?: boolean;
+    exactMatch?: boolean; // New prop
   };
 
-  const SidebarLink: React.FC<SidebarLinkProps> = ({ to, title, disabled = false }) => {
+  const SidebarLink: React.FC<SidebarLinkProps> = ({ to, title, disabled = false, exactMatch = false }) => {
     const matchRoute = useMatchRoute();
-    const match = matchRoute({ to, fuzzy: true });
+    const match = exactMatch ? matchRoute({ to }) : matchRoute({ to, fuzzy: true });
 
     return (
       <SidebarMenuItem>
@@ -95,19 +104,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     );
   };
 
+  const { main } = useParams({ strict: false }); // Get the dynamic 'main' parameter
+  const mainSegment = main ? `/${main}` : 'erth'; // Construct the main segment
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <a href="#" className={"flex flex-row items-center gap-2 px-2 py-2"}>
-          <div className="text-sidebar-primary-foreground flex aspect-square items-center justify-center rounded-lg" style={{ width: '2.5rem', height: '2.5rem' }}>
-            <img src="/Logo-03.svg" alt="Logo" className="w-8 h-8 object-contain" />
+        <Link
+          to="/$main"
+          params={{ main: main ?? "erth" }}
+          className="flex flex-row items-center gap-3 px-3 py-3"
+        >
+          <div
+            className="text-sidebar-primary-foreground flex aspect-square items-center justify-center rounded-lg"
+            style={{ width: "3.5rem", height: "3.5rem" }}
+          >
+            <img
+              src={brandLogo}
+              alt="Logo"
+              className="w-12 h-12 object-contain"
+            />
           </div>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium">Erth</span>
+          <div className="grid flex-1 text-left leading-tight">
+            <span className="truncate font-bold text-lg">{brandName}</span>
+            {/* ↑ font-bold and larger text */}
           </div>
-        </a>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
+        {/* Top-level navigation items. */}
+        <SidebarLink key="Homepage" to={mainSegment || "/"} title="Homepage" exactMatch={true} />
+
         {/* We create a SidebarGroup for each parent. */}
         {data.navMain.map((item) => (
           <SidebarGroup key={item.title}>
@@ -117,7 +144,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 {item.items.map((subItem) => (
                   <SidebarLink
                     key={subItem.title}
-                    to={`/${item.url ? `${item.url}/` : ''}${subItem.url}`}
+                    to={`${mainSegment}/${item.url ? `${item.url}/` : ''}${subItem.url}`}
                     title={subItem.title}
                     disabled={false}
                   />

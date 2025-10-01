@@ -10,21 +10,28 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as MainRouteRouteImport } from './routes/$main/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as StoreStockReportRouteImport } from './routes/store/stock-report'
-import { Route as StoreRequestDeliveryRouteImport } from './routes/store/request-delivery'
-import { Route as StoreReceivingDeliveriesRouteImport } from './routes/store/receiving-deliveries'
-import { Route as StoreEndOfDayReportRouteImport } from './routes/store/end-of-day-report'
-import { Route as OrdersUpdateAnOrderRouteImport } from './routes/orders/update-an-order'
-import { Route as OrdersOrdersAtShowroomRouteImport } from './routes/orders/orders-at-showroom'
-import { Route as OrdersNewWorkOrderRouteImport } from './routes/orders/new-work-order'
-import { Route as OrdersNewSalesOrderRouteImport } from './routes/orders/new-sales-order'
-import { Route as OrdersNewAlterationOrderRouteImport } from './routes/orders/new-alteration-order'
-import { Route as OrdersCustomerProfilesOrdersRouteImport } from './routes/orders/customer-profiles-orders'
+import { Route as MainIndexRouteImport } from './routes/$main/index'
+import { Route as MainStoreStockReportRouteImport } from './routes/$main/store/stock-report'
+import { Route as MainStoreRequestDeliveryRouteImport } from './routes/$main/store/request-delivery'
+import { Route as MainStoreReceivingDeliveriesRouteImport } from './routes/$main/store/receiving-deliveries'
+import { Route as MainStoreEndOfDayReportRouteImport } from './routes/$main/store/end-of-day-report'
+import { Route as MainOrdersUpdateAnOrderRouteImport } from './routes/$main/orders/update-an-order'
+import { Route as MainOrdersOrdersAtShowroomRouteImport } from './routes/$main/orders/orders-at-showroom'
+import { Route as MainOrdersNewWorkOrderRouteImport } from './routes/$main/orders/new-work-order'
+import { Route as MainOrdersNewSalesOrderRouteImport } from './routes/$main/orders/new-sales-order'
+import { Route as MainOrdersNewAlterationOrderRouteImport } from './routes/$main/orders/new-alteration-order'
+import { Route as MainOrdersCustomerProfilesOrdersRouteImport } from './routes/$main/orders/customer-profiles-orders'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MainRouteRoute = MainRouteRouteImport.update({
+  id: '/$main',
+  path: '/$main',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -32,161 +39,169 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StoreStockReportRoute = StoreStockReportRouteImport.update({
+const MainIndexRoute = MainIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainRouteRoute,
+} as any)
+const MainStoreStockReportRoute = MainStoreStockReportRouteImport.update({
   id: '/store/stock-report',
   path: '/store/stock-report',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => MainRouteRoute,
 } as any)
-const StoreRequestDeliveryRoute = StoreRequestDeliveryRouteImport.update({
-  id: '/store/request-delivery',
-  path: '/store/request-delivery',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StoreReceivingDeliveriesRoute =
-  StoreReceivingDeliveriesRouteImport.update({
+const MainStoreRequestDeliveryRoute =
+  MainStoreRequestDeliveryRouteImport.update({
+    id: '/store/request-delivery',
+    path: '/store/request-delivery',
+    getParentRoute: () => MainRouteRoute,
+  } as any)
+const MainStoreReceivingDeliveriesRoute =
+  MainStoreReceivingDeliveriesRouteImport.update({
     id: '/store/receiving-deliveries',
     path: '/store/receiving-deliveries',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => MainRouteRoute,
   } as any)
-const StoreEndOfDayReportRoute = StoreEndOfDayReportRouteImport.update({
+const MainStoreEndOfDayReportRoute = MainStoreEndOfDayReportRouteImport.update({
   id: '/store/end-of-day-report',
   path: '/store/end-of-day-report',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => MainRouteRoute,
 } as any)
-const OrdersUpdateAnOrderRoute = OrdersUpdateAnOrderRouteImport.update({
+const MainOrdersUpdateAnOrderRoute = MainOrdersUpdateAnOrderRouteImport.update({
   id: '/orders/update-an-order',
   path: '/orders/update-an-order',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => MainRouteRoute,
 } as any)
-const OrdersOrdersAtShowroomRoute = OrdersOrdersAtShowroomRouteImport.update({
-  id: '/orders/orders-at-showroom',
-  path: '/orders/orders-at-showroom',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrdersNewWorkOrderRoute = OrdersNewWorkOrderRouteImport.update({
+const MainOrdersOrdersAtShowroomRoute =
+  MainOrdersOrdersAtShowroomRouteImport.update({
+    id: '/orders/orders-at-showroom',
+    path: '/orders/orders-at-showroom',
+    getParentRoute: () => MainRouteRoute,
+  } as any)
+const MainOrdersNewWorkOrderRoute = MainOrdersNewWorkOrderRouteImport.update({
   id: '/orders/new-work-order',
   path: '/orders/new-work-order',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => MainRouteRoute,
 } as any)
-const OrdersNewSalesOrderRoute = OrdersNewSalesOrderRouteImport.update({
+const MainOrdersNewSalesOrderRoute = MainOrdersNewSalesOrderRouteImport.update({
   id: '/orders/new-sales-order',
   path: '/orders/new-sales-order',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => MainRouteRoute,
 } as any)
-const OrdersNewAlterationOrderRoute =
-  OrdersNewAlterationOrderRouteImport.update({
+const MainOrdersNewAlterationOrderRoute =
+  MainOrdersNewAlterationOrderRouteImport.update({
     id: '/orders/new-alteration-order',
     path: '/orders/new-alteration-order',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => MainRouteRoute,
   } as any)
-const OrdersCustomerProfilesOrdersRoute =
-  OrdersCustomerProfilesOrdersRouteImport.update({
+const MainOrdersCustomerProfilesOrdersRoute =
+  MainOrdersCustomerProfilesOrdersRouteImport.update({
     id: '/orders/customer-profiles-orders',
     path: '/orders/customer-profiles-orders',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => MainRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$main': typeof MainRouteRouteWithChildren
   '/about': typeof AboutRoute
-  '/orders/customer-profiles-orders': typeof OrdersCustomerProfilesOrdersRoute
-  '/orders/new-alteration-order': typeof OrdersNewAlterationOrderRoute
-  '/orders/new-sales-order': typeof OrdersNewSalesOrderRoute
-  '/orders/new-work-order': typeof OrdersNewWorkOrderRoute
-  '/orders/orders-at-showroom': typeof OrdersOrdersAtShowroomRoute
-  '/orders/update-an-order': typeof OrdersUpdateAnOrderRoute
-  '/store/end-of-day-report': typeof StoreEndOfDayReportRoute
-  '/store/receiving-deliveries': typeof StoreReceivingDeliveriesRoute
-  '/store/request-delivery': typeof StoreRequestDeliveryRoute
-  '/store/stock-report': typeof StoreStockReportRoute
+  '/$main/': typeof MainIndexRoute
+  '/$main/orders/customer-profiles-orders': typeof MainOrdersCustomerProfilesOrdersRoute
+  '/$main/orders/new-alteration-order': typeof MainOrdersNewAlterationOrderRoute
+  '/$main/orders/new-sales-order': typeof MainOrdersNewSalesOrderRoute
+  '/$main/orders/new-work-order': typeof MainOrdersNewWorkOrderRoute
+  '/$main/orders/orders-at-showroom': typeof MainOrdersOrdersAtShowroomRoute
+  '/$main/orders/update-an-order': typeof MainOrdersUpdateAnOrderRoute
+  '/$main/store/end-of-day-report': typeof MainStoreEndOfDayReportRoute
+  '/$main/store/receiving-deliveries': typeof MainStoreReceivingDeliveriesRoute
+  '/$main/store/request-delivery': typeof MainStoreRequestDeliveryRoute
+  '/$main/store/stock-report': typeof MainStoreStockReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/orders/customer-profiles-orders': typeof OrdersCustomerProfilesOrdersRoute
-  '/orders/new-alteration-order': typeof OrdersNewAlterationOrderRoute
-  '/orders/new-sales-order': typeof OrdersNewSalesOrderRoute
-  '/orders/new-work-order': typeof OrdersNewWorkOrderRoute
-  '/orders/orders-at-showroom': typeof OrdersOrdersAtShowroomRoute
-  '/orders/update-an-order': typeof OrdersUpdateAnOrderRoute
-  '/store/end-of-day-report': typeof StoreEndOfDayReportRoute
-  '/store/receiving-deliveries': typeof StoreReceivingDeliveriesRoute
-  '/store/request-delivery': typeof StoreRequestDeliveryRoute
-  '/store/stock-report': typeof StoreStockReportRoute
+  '/$main': typeof MainIndexRoute
+  '/$main/orders/customer-profiles-orders': typeof MainOrdersCustomerProfilesOrdersRoute
+  '/$main/orders/new-alteration-order': typeof MainOrdersNewAlterationOrderRoute
+  '/$main/orders/new-sales-order': typeof MainOrdersNewSalesOrderRoute
+  '/$main/orders/new-work-order': typeof MainOrdersNewWorkOrderRoute
+  '/$main/orders/orders-at-showroom': typeof MainOrdersOrdersAtShowroomRoute
+  '/$main/orders/update-an-order': typeof MainOrdersUpdateAnOrderRoute
+  '/$main/store/end-of-day-report': typeof MainStoreEndOfDayReportRoute
+  '/$main/store/receiving-deliveries': typeof MainStoreReceivingDeliveriesRoute
+  '/$main/store/request-delivery': typeof MainStoreRequestDeliveryRoute
+  '/$main/store/stock-report': typeof MainStoreStockReportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$main': typeof MainRouteRouteWithChildren
   '/about': typeof AboutRoute
-  '/orders/customer-profiles-orders': typeof OrdersCustomerProfilesOrdersRoute
-  '/orders/new-alteration-order': typeof OrdersNewAlterationOrderRoute
-  '/orders/new-sales-order': typeof OrdersNewSalesOrderRoute
-  '/orders/new-work-order': typeof OrdersNewWorkOrderRoute
-  '/orders/orders-at-showroom': typeof OrdersOrdersAtShowroomRoute
-  '/orders/update-an-order': typeof OrdersUpdateAnOrderRoute
-  '/store/end-of-day-report': typeof StoreEndOfDayReportRoute
-  '/store/receiving-deliveries': typeof StoreReceivingDeliveriesRoute
-  '/store/request-delivery': typeof StoreRequestDeliveryRoute
-  '/store/stock-report': typeof StoreStockReportRoute
+  '/$main/': typeof MainIndexRoute
+  '/$main/orders/customer-profiles-orders': typeof MainOrdersCustomerProfilesOrdersRoute
+  '/$main/orders/new-alteration-order': typeof MainOrdersNewAlterationOrderRoute
+  '/$main/orders/new-sales-order': typeof MainOrdersNewSalesOrderRoute
+  '/$main/orders/new-work-order': typeof MainOrdersNewWorkOrderRoute
+  '/$main/orders/orders-at-showroom': typeof MainOrdersOrdersAtShowroomRoute
+  '/$main/orders/update-an-order': typeof MainOrdersUpdateAnOrderRoute
+  '/$main/store/end-of-day-report': typeof MainStoreEndOfDayReportRoute
+  '/$main/store/receiving-deliveries': typeof MainStoreReceivingDeliveriesRoute
+  '/$main/store/request-delivery': typeof MainStoreRequestDeliveryRoute
+  '/$main/store/stock-report': typeof MainStoreStockReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$main'
     | '/about'
-    | '/orders/customer-profiles-orders'
-    | '/orders/new-alteration-order'
-    | '/orders/new-sales-order'
-    | '/orders/new-work-order'
-    | '/orders/orders-at-showroom'
-    | '/orders/update-an-order'
-    | '/store/end-of-day-report'
-    | '/store/receiving-deliveries'
-    | '/store/request-delivery'
-    | '/store/stock-report'
+    | '/$main/'
+    | '/$main/orders/customer-profiles-orders'
+    | '/$main/orders/new-alteration-order'
+    | '/$main/orders/new-sales-order'
+    | '/$main/orders/new-work-order'
+    | '/$main/orders/orders-at-showroom'
+    | '/$main/orders/update-an-order'
+    | '/$main/store/end-of-day-report'
+    | '/$main/store/receiving-deliveries'
+    | '/$main/store/request-delivery'
+    | '/$main/store/stock-report'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
-    | '/orders/customer-profiles-orders'
-    | '/orders/new-alteration-order'
-    | '/orders/new-sales-order'
-    | '/orders/new-work-order'
-    | '/orders/orders-at-showroom'
-    | '/orders/update-an-order'
-    | '/store/end-of-day-report'
-    | '/store/receiving-deliveries'
-    | '/store/request-delivery'
-    | '/store/stock-report'
+    | '/$main'
+    | '/$main/orders/customer-profiles-orders'
+    | '/$main/orders/new-alteration-order'
+    | '/$main/orders/new-sales-order'
+    | '/$main/orders/new-work-order'
+    | '/$main/orders/orders-at-showroom'
+    | '/$main/orders/update-an-order'
+    | '/$main/store/end-of-day-report'
+    | '/$main/store/receiving-deliveries'
+    | '/$main/store/request-delivery'
+    | '/$main/store/stock-report'
   id:
     | '__root__'
     | '/'
+    | '/$main'
     | '/about'
-    | '/orders/customer-profiles-orders'
-    | '/orders/new-alteration-order'
-    | '/orders/new-sales-order'
-    | '/orders/new-work-order'
-    | '/orders/orders-at-showroom'
-    | '/orders/update-an-order'
-    | '/store/end-of-day-report'
-    | '/store/receiving-deliveries'
-    | '/store/request-delivery'
-    | '/store/stock-report'
+    | '/$main/'
+    | '/$main/orders/customer-profiles-orders'
+    | '/$main/orders/new-alteration-order'
+    | '/$main/orders/new-sales-order'
+    | '/$main/orders/new-work-order'
+    | '/$main/orders/orders-at-showroom'
+    | '/$main/orders/update-an-order'
+    | '/$main/store/end-of-day-report'
+    | '/$main/store/receiving-deliveries'
+    | '/$main/store/request-delivery'
+    | '/$main/store/stock-report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MainRouteRoute: typeof MainRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
-  OrdersCustomerProfilesOrdersRoute: typeof OrdersCustomerProfilesOrdersRoute
-  OrdersNewAlterationOrderRoute: typeof OrdersNewAlterationOrderRoute
-  OrdersNewSalesOrderRoute: typeof OrdersNewSalesOrderRoute
-  OrdersNewWorkOrderRoute: typeof OrdersNewWorkOrderRoute
-  OrdersOrdersAtShowroomRoute: typeof OrdersOrdersAtShowroomRoute
-  OrdersUpdateAnOrderRoute: typeof OrdersUpdateAnOrderRoute
-  StoreEndOfDayReportRoute: typeof StoreEndOfDayReportRoute
-  StoreReceivingDeliveriesRoute: typeof StoreReceivingDeliveriesRoute
-  StoreRequestDeliveryRoute: typeof StoreRequestDeliveryRoute
-  StoreStockReportRoute: typeof StoreStockReportRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -198,6 +213,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$main': {
+      id: '/$main'
+      path: '/$main'
+      fullPath: '/$main'
+      preLoaderRoute: typeof MainRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -205,92 +227,122 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/store/stock-report': {
-      id: '/store/stock-report'
+    '/$main/': {
+      id: '/$main/'
+      path: '/'
+      fullPath: '/$main/'
+      preLoaderRoute: typeof MainIndexRouteImport
+      parentRoute: typeof MainRouteRoute
+    }
+    '/$main/store/stock-report': {
+      id: '/$main/store/stock-report'
       path: '/store/stock-report'
-      fullPath: '/store/stock-report'
-      preLoaderRoute: typeof StoreStockReportRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$main/store/stock-report'
+      preLoaderRoute: typeof MainStoreStockReportRouteImport
+      parentRoute: typeof MainRouteRoute
     }
-    '/store/request-delivery': {
-      id: '/store/request-delivery'
+    '/$main/store/request-delivery': {
+      id: '/$main/store/request-delivery'
       path: '/store/request-delivery'
-      fullPath: '/store/request-delivery'
-      preLoaderRoute: typeof StoreRequestDeliveryRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$main/store/request-delivery'
+      preLoaderRoute: typeof MainStoreRequestDeliveryRouteImport
+      parentRoute: typeof MainRouteRoute
     }
-    '/store/receiving-deliveries': {
-      id: '/store/receiving-deliveries'
+    '/$main/store/receiving-deliveries': {
+      id: '/$main/store/receiving-deliveries'
       path: '/store/receiving-deliveries'
-      fullPath: '/store/receiving-deliveries'
-      preLoaderRoute: typeof StoreReceivingDeliveriesRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$main/store/receiving-deliveries'
+      preLoaderRoute: typeof MainStoreReceivingDeliveriesRouteImport
+      parentRoute: typeof MainRouteRoute
     }
-    '/store/end-of-day-report': {
-      id: '/store/end-of-day-report'
+    '/$main/store/end-of-day-report': {
+      id: '/$main/store/end-of-day-report'
       path: '/store/end-of-day-report'
-      fullPath: '/store/end-of-day-report'
-      preLoaderRoute: typeof StoreEndOfDayReportRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$main/store/end-of-day-report'
+      preLoaderRoute: typeof MainStoreEndOfDayReportRouteImport
+      parentRoute: typeof MainRouteRoute
     }
-    '/orders/update-an-order': {
-      id: '/orders/update-an-order'
+    '/$main/orders/update-an-order': {
+      id: '/$main/orders/update-an-order'
       path: '/orders/update-an-order'
-      fullPath: '/orders/update-an-order'
-      preLoaderRoute: typeof OrdersUpdateAnOrderRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$main/orders/update-an-order'
+      preLoaderRoute: typeof MainOrdersUpdateAnOrderRouteImport
+      parentRoute: typeof MainRouteRoute
     }
-    '/orders/orders-at-showroom': {
-      id: '/orders/orders-at-showroom'
+    '/$main/orders/orders-at-showroom': {
+      id: '/$main/orders/orders-at-showroom'
       path: '/orders/orders-at-showroom'
-      fullPath: '/orders/orders-at-showroom'
-      preLoaderRoute: typeof OrdersOrdersAtShowroomRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$main/orders/orders-at-showroom'
+      preLoaderRoute: typeof MainOrdersOrdersAtShowroomRouteImport
+      parentRoute: typeof MainRouteRoute
     }
-    '/orders/new-work-order': {
-      id: '/orders/new-work-order'
+    '/$main/orders/new-work-order': {
+      id: '/$main/orders/new-work-order'
       path: '/orders/new-work-order'
-      fullPath: '/orders/new-work-order'
-      preLoaderRoute: typeof OrdersNewWorkOrderRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$main/orders/new-work-order'
+      preLoaderRoute: typeof MainOrdersNewWorkOrderRouteImport
+      parentRoute: typeof MainRouteRoute
     }
-    '/orders/new-sales-order': {
-      id: '/orders/new-sales-order'
+    '/$main/orders/new-sales-order': {
+      id: '/$main/orders/new-sales-order'
       path: '/orders/new-sales-order'
-      fullPath: '/orders/new-sales-order'
-      preLoaderRoute: typeof OrdersNewSalesOrderRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$main/orders/new-sales-order'
+      preLoaderRoute: typeof MainOrdersNewSalesOrderRouteImport
+      parentRoute: typeof MainRouteRoute
     }
-    '/orders/new-alteration-order': {
-      id: '/orders/new-alteration-order'
+    '/$main/orders/new-alteration-order': {
+      id: '/$main/orders/new-alteration-order'
       path: '/orders/new-alteration-order'
-      fullPath: '/orders/new-alteration-order'
-      preLoaderRoute: typeof OrdersNewAlterationOrderRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$main/orders/new-alteration-order'
+      preLoaderRoute: typeof MainOrdersNewAlterationOrderRouteImport
+      parentRoute: typeof MainRouteRoute
     }
-    '/orders/customer-profiles-orders': {
-      id: '/orders/customer-profiles-orders'
+    '/$main/orders/customer-profiles-orders': {
+      id: '/$main/orders/customer-profiles-orders'
       path: '/orders/customer-profiles-orders'
-      fullPath: '/orders/customer-profiles-orders'
-      preLoaderRoute: typeof OrdersCustomerProfilesOrdersRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/$main/orders/customer-profiles-orders'
+      preLoaderRoute: typeof MainOrdersCustomerProfilesOrdersRouteImport
+      parentRoute: typeof MainRouteRoute
     }
   }
 }
 
+interface MainRouteRouteChildren {
+  MainIndexRoute: typeof MainIndexRoute
+  MainOrdersCustomerProfilesOrdersRoute: typeof MainOrdersCustomerProfilesOrdersRoute
+  MainOrdersNewAlterationOrderRoute: typeof MainOrdersNewAlterationOrderRoute
+  MainOrdersNewSalesOrderRoute: typeof MainOrdersNewSalesOrderRoute
+  MainOrdersNewWorkOrderRoute: typeof MainOrdersNewWorkOrderRoute
+  MainOrdersOrdersAtShowroomRoute: typeof MainOrdersOrdersAtShowroomRoute
+  MainOrdersUpdateAnOrderRoute: typeof MainOrdersUpdateAnOrderRoute
+  MainStoreEndOfDayReportRoute: typeof MainStoreEndOfDayReportRoute
+  MainStoreReceivingDeliveriesRoute: typeof MainStoreReceivingDeliveriesRoute
+  MainStoreRequestDeliveryRoute: typeof MainStoreRequestDeliveryRoute
+  MainStoreStockReportRoute: typeof MainStoreStockReportRoute
+}
+
+const MainRouteRouteChildren: MainRouteRouteChildren = {
+  MainIndexRoute: MainIndexRoute,
+  MainOrdersCustomerProfilesOrdersRoute: MainOrdersCustomerProfilesOrdersRoute,
+  MainOrdersNewAlterationOrderRoute: MainOrdersNewAlterationOrderRoute,
+  MainOrdersNewSalesOrderRoute: MainOrdersNewSalesOrderRoute,
+  MainOrdersNewWorkOrderRoute: MainOrdersNewWorkOrderRoute,
+  MainOrdersOrdersAtShowroomRoute: MainOrdersOrdersAtShowroomRoute,
+  MainOrdersUpdateAnOrderRoute: MainOrdersUpdateAnOrderRoute,
+  MainStoreEndOfDayReportRoute: MainStoreEndOfDayReportRoute,
+  MainStoreReceivingDeliveriesRoute: MainStoreReceivingDeliveriesRoute,
+  MainStoreRequestDeliveryRoute: MainStoreRequestDeliveryRoute,
+  MainStoreStockReportRoute: MainStoreStockReportRoute,
+}
+
+const MainRouteRouteWithChildren = MainRouteRoute._addFileChildren(
+  MainRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MainRouteRoute: MainRouteRouteWithChildren,
   AboutRoute: AboutRoute,
-  OrdersCustomerProfilesOrdersRoute: OrdersCustomerProfilesOrdersRoute,
-  OrdersNewAlterationOrderRoute: OrdersNewAlterationOrderRoute,
-  OrdersNewSalesOrderRoute: OrdersNewSalesOrderRoute,
-  OrdersNewWorkOrderRoute: OrdersNewWorkOrderRoute,
-  OrdersOrdersAtShowroomRoute: OrdersOrdersAtShowroomRoute,
-  OrdersUpdateAnOrderRoute: OrdersUpdateAnOrderRoute,
-  StoreEndOfDayReportRoute: StoreEndOfDayReportRoute,
-  StoreReceivingDeliveriesRoute: StoreReceivingDeliveriesRoute,
-  StoreRequestDeliveryRoute: StoreRequestDeliveryRoute,
-  StoreStockReportRoute: StoreStockReportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

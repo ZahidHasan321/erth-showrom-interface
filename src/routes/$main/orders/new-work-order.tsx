@@ -11,7 +11,7 @@ import {useCurrentWorkOrderStore} from "@/store/current-work-order";
 import {z} from "zod";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/orders/new-work-order")({
+export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
 });
 
