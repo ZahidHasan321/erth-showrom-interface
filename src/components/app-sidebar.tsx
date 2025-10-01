@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { BRAND_NAMES } from "@/lib/constants";
 
 
 // This is sample data.
@@ -105,14 +106,14 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
   };
 
   const { main } = useParams({ strict: false }); // Get the dynamic 'main' parameter
-  const mainSegment = main ? `/${main}` : 'erth'; // Construct the main segment
+  const mainSegment = main ? `/${main}` : BRAND_NAMES.showroom; // Construct the main segment
 
   return (
     <Sidebar {...props}>
       <SidebarHeader>
         <Link
           to="/$main"
-          params={{ main: main ?? "erth" }}
+          params={{ main: main ?? BRAND_NAMES.showroom }}
           className="flex flex-row items-center gap-3 px-3 py-3"
         >
           <div

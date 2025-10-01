@@ -13,6 +13,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as MainRouteRouteImport } from './routes/$main/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MainIndexRouteImport } from './routes/$main/index'
+import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as MainStoreStockReportRouteImport } from './routes/$main/store/stock-report'
 import { Route as MainStoreRequestDeliveryRouteImport } from './routes/$main/store/request-delivery'
 import { Route as MainStoreReceivingDeliveriesRouteImport } from './routes/$main/store/receiving-deliveries'
@@ -43,6 +44,11 @@ const MainIndexRoute = MainIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => MainRouteRoute,
+} as any)
+const authLoginRoute = authLoginRouteImport.update({
+  id: '/(auth)/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const MainStoreStockReportRoute = MainStoreStockReportRouteImport.update({
   id: '/store/stock-report',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$main': typeof MainRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/login': typeof authLoginRoute
   '/$main/': typeof MainIndexRoute
   '/$main/orders/customer-profiles-orders': typeof MainOrdersCustomerProfilesOrdersRoute
   '/$main/orders/new-alteration-order': typeof MainOrdersNewAlterationOrderRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/login': typeof authLoginRoute
   '/$main': typeof MainIndexRoute
   '/$main/orders/customer-profiles-orders': typeof MainOrdersCustomerProfilesOrdersRoute
   '/$main/orders/new-alteration-order': typeof MainOrdersNewAlterationOrderRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$main': typeof MainRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/(auth)/login': typeof authLoginRoute
   '/$main/': typeof MainIndexRoute
   '/$main/orders/customer-profiles-orders': typeof MainOrdersCustomerProfilesOrdersRoute
   '/$main/orders/new-alteration-order': typeof MainOrdersNewAlterationOrderRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$main'
     | '/about'
+    | '/login'
     | '/$main/'
     | '/$main/orders/customer-profiles-orders'
     | '/$main/orders/new-alteration-order'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/login'
     | '/$main'
     | '/$main/orders/customer-profiles-orders'
     | '/$main/orders/new-alteration-order'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$main'
     | '/about'
+    | '/(auth)/login'
     | '/$main/'
     | '/$main/orders/customer-profiles-orders'
     | '/$main/orders/new-alteration-order'
@@ -202,6 +214,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MainRouteRoute: typeof MainRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
+  authLoginRoute: typeof authLoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$main/'
       preLoaderRoute: typeof MainIndexRouteImport
       parentRoute: typeof MainRouteRoute
+    }
+    '/(auth)/login': {
+      id: '/(auth)/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof authLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$main/store/stock-report': {
       id: '/$main/store/stock-report'
@@ -343,6 +363,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MainRouteRoute: MainRouteRouteWithChildren,
   AboutRoute: AboutRoute,
+  authLoginRoute: authLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

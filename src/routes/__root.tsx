@@ -1,9 +1,15 @@
 // src/routes/__root.tsx
 import { NotFoundPage } from "@/components/not-found-page";
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import type { AuthContext } from "@/context/auth";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 
-export const Route = createRootRoute({
+interface MyRouterContext {
+  auth: AuthContext
+}
+
+
+export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: RootLayout,
   notFoundComponent: NotFoundPage
 });
@@ -11,7 +17,7 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   return (
-    <div className="flex-1 p-6 justify-start">
+    <div>
       <Outlet />
       <Toaster position="top-center" richColors closeButton />
     </div>
