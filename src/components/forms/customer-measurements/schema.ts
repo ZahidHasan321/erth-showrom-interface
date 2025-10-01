@@ -1,7 +1,47 @@
 import { z } from "zod";
 
+export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
+  measurementType: "Body",
+  measurementID: "",
+  measurementReference: "Other", // fallback
+  fabricReferenceNo: "",
+  notes: "",
+  collar: {
+    width: 0,
+    height: 0,
+  },
+  shoulder: 0,
+  armhole: 0,
+  chest: {
+    upper: 0,
+    half: 0,
+    full: 0,
+  },
+  sleeve: 0,
+  elbow: 0,
+  topPocket: {
+    length: 0,
+    width: 0,
+    distance: 0,
+  },
+  sidePocket: {
+    length: 0,
+    width: 0,
+    distance: 0,
+    opening: 0,
+  },
+  waist: {
+    front: 0,
+    back: 0,
+  },
+  length: {
+    front: 0,
+    back: 0,
+  },
+  bottom: 0,
+};
 export const customerMeasurementsSchema = z.object({
-  measurementType: z.enum(["Body / Dishdasha"]),
+  measurementType: z.enum(["Body", "Dishdasha"]),
   measurementID: z.string(),
   measurementReference: z.enum(["Winter", "Summer", "Eid", "Occasion", "Other"]),
   fabricReferenceNo: z.string(),

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { z } from "zod";
-import { useState, useEffect } from "react";
 
 import { searchCustomerByPhone } from "@/api/customers";
 import { Button } from "@/components/ui/button";
@@ -22,17 +22,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { customerDemographicsSchema } from "./schema";
-import {useCurrentWorkOrderStore} from "@/store/current-work-order";
 import type { UseFormReturn } from "react-hook-form";
+import { customerDemographicsSchema } from "./schema";
 import { SearchIcon } from "lucide-react";
+import { Combobox } from "@/components/ui/combobox";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
+  onSubmit: (values: z.infer<typeof customerDemographicsSchema>) => void;  // <-- Accept `onSubmit` as prop
 }
 
-export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps) {
-  const { setCustomerDemographics, markStepSaved } = useCurrentWorkOrderStore();
+export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographicsFormProps) {
 
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [searchPhone, setSearchPhone] = useState<string | null>(null);
@@ -56,7 +56,7 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
     }
   }, [isError, error]);
 
-  const customerType = form.watch("customerType");
+  // const customerType = form.watch("customerType");
 
   async function handleSearch() {
     const phone = form.getValues("searchMobileNumber");
@@ -67,12 +67,6 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
     setSearchPhone(phone);
   }
 
-  function onSubmit(values: z.infer<typeof customerDemographicsSchema>) {
-    setCustomerDemographics(values);
-    markStepSaved(0);
-    form.reset(values);
-    console.log(values);
-  }
 
   return (
     <Form {...form}>
@@ -118,50 +112,69 @@ export function CustomerDemographicsForm({ form }: CustomerDemographicsFormProps
         </div>
 
         {/* Search Customer Inputs */}
-        {customerType === "Existing" && (
-          <div className="bg-muted p-4 rounded-lg space-y-4">
-            <h2 className={"text-xl font-semibold"}>Search Customer</h2>
-            <div className={"grid grid-cols-1 md:grid-cols-3 gap-4"}>
-              <FormField
-                control={form.control}
-                name="searchMobileNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        placeholder="Mobile Number"
-                        {...field}
-                        value={field.value ?? ""}
-                        className="bg-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="searchOrderNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input
-                        placeholder="Order Number"
-                        {...field}
-                        className="bg-white"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="button" className="w-fit" onClick={handleSearch} disabled={isFetching}>
-                <SearchIcon className="w-4 h-4 mr-2" />
-                {isFetching ? "Searching..." : "Search Customer Info."}
-              </Button>
-            </div>
+        <div className="bg-muted p-4 rounded-lg space-y-4">
+          <h2 className={"text-xl font-semibold"}>Search Customer</h2>
+          <div className={"grid grid-cols-1 md:grid-cols-3 gap-4"}>
+            <FormField
+              control={form.control}
+              name="searchMobileNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      placeholder="Mobile Number"
+                      {...field}
+                      value={field.value ?? ""}
+                      className="bg-white"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="searchOrderNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      placeholder="Order Number"
+                      {...field}
+                      className="bg-white"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="searchCustomerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Combobox
+                      options={[
+                        { value: "1", label: "CUS-001" },
+                        { value: "2", label: "CUS-002" },
+                        { value: "3", label: "CUS-003" },
+                      ]}
+                      value={field.value??""}
+                      onChange={field.onChange}
+                      placeholder="Select a customer ID..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="button" className="w-fit" onClick={handleSearch} disabled={isFetching}>
+              <SearchIcon className="w-4 h-4 mr-2" />
+              {isFetching ? "Searching..." : "Search Customer Info."}
+            </Button>
           </div>
-        )}
+        </div>
         <FormField
           control={form.control}
           name="name"

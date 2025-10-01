@@ -129,7 +129,7 @@ function LoginComponent() {
               className="border rounded-md p-2 w-full"
               value={userType}
               onChange={(e) =>
-                setUserType(e.target.value as 'erth' | 'sakthba')
+                setUserType(e.target.value as typeof BRAND_NAMES[keyof typeof BRAND_NAMES])
               }
             >
               <option value={BRAND_NAMES.showroom}>{BRAND_NAMES.showroom}</option>

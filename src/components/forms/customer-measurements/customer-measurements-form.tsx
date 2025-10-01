@@ -8,21 +8,13 @@ import {Textarea} from "@/components/ui/textarea";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {customerMeasurementsSchema} from "./schema";
 import MyImg from "../../../assets/image.png";
-import {useCurrentWorkOrderStore} from "@/store/current-work-order";
 
 interface CustomerMeasurementsFormProps {
   form: UseFormReturn<z.infer<typeof customerMeasurementsSchema>>;
+  onSubmit: (values: z.infer<typeof customerMeasurementsSchema>) => void;  // <-- Accept `onSubmit` as prop
 }
 
-export function CustomerMeasurementsForm({ form }: CustomerMeasurementsFormProps) {
-  const { setCustomerMeasurements, markStepSaved } = useCurrentWorkOrderStore();
-
-  function onSubmit(values: z.infer<typeof customerMeasurementsSchema>) {
-    setCustomerMeasurements(values);
-    markStepSaved(1);
-    form.reset(values);
-    console.log(values);
-  }
+export function CustomerMeasurementsForm({ form,  onSubmit}: CustomerMeasurementsFormProps) {
 
   return (
     <Form {...form}>
@@ -51,7 +43,8 @@ export function CustomerMeasurementsForm({ form }: CustomerMeasurementsFormProps
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Body / Dishdasha">Body / Dishdasha</SelectItem>
+                      <SelectItem value="Body">Body</SelectItem>
+                      <SelectItem value="Dishdasha">Dishdasha</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage/>
@@ -221,7 +214,7 @@ export function CustomerMeasurementsForm({ form }: CustomerMeasurementsFormProps
           </div>
 
           {/* Sleeve */}
-          <div className="absolute top-[60%] left-[10%] flex flex gap-2 bg-muted p-2 rounded-lg">
+          <div className="absolute top-[60%] left-[10%] flex gap-2 bg-muted p-2 rounded-lg">
               <FormLabel>Sleeve</FormLabel>
               <FormField
                 control={form.control}

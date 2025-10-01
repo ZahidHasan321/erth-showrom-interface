@@ -1,5 +1,35 @@
 import { z } from "zod";
 
+
+export const customerDemographicsDefaults: CustomerDemographicsSchema = {
+  customerType: "New", // defaulting to New
+  searchMobileNumber: "",
+  searchOrderNumber: "",
+  searchCustomerId: "",
+  name: "",
+  nickName: "",
+  countryCode: "+965", // pick one as default
+  mobileNumber: "",
+  alternativeCountryCode: "+965",
+  alternativeMobileNumber: "",
+  whatsApp: false,
+  influencer: false,
+  instaId: "",
+  email: "",
+  customerTypeRegularVip: "Regular", // sensible default
+  customerNationality: "Kuwaiti", // choose one as default
+  address: {
+    governorate: "",
+    block: "",
+    street: "",
+    houseBuildingNo: "",
+    floor: "",
+    aptNo: "",
+    landmark: "",
+    dob: undefined,
+  },
+};
+
 export const customerDemographicsSchema = z.object({
   customerType: z.enum(["New", "Existing"]),
   searchMobileNumber: z.string().optional(),
