@@ -12,6 +12,8 @@ import { createWorkOrderStore } from "@/store/current-work-order";
 import { z } from "zod";
 import { toast } from "sonner";
 import { VerticalStepper } from "@/components/ui/vertical-stepper";
+import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
@@ -102,67 +104,83 @@ function NewWorkOrder() {
 
   const completedSteps = savedSteps;
 
+  const isMobile = useIsMobile();
+
   return (
-    <div className="flex gap-8 max-w-6xl">
-      {/* Left Sidebar Stepper with scroll */}
-      <div className="w-64 sticky top-10 self-start">
-        <div className="max-h-[80vh] overflow-y-auto pr-2">
-          <VerticalStepper
-            steps={steps}
-            currentStep={currentStep}
-            completedSteps={completedSteps}
-            onStepChange={(i) =>
-              sectionRefs[i].current?.scrollIntoView({ behavior: "smooth" })
-            }
-          />
-        </div>
-      </div>
+    <div className="w-full">
+      {isMobile && (
+        <HorizontalStepper
+          steps={steps}
+          currentStep={currentStep}
+          completedSteps={completedSteps}
+          onStepChange={(i) =>
+            sectionRefs[i].current?.scrollIntoView({ behavior: "smooth" })
+          }
+        />
+      )}
 
-      {/* Right Side Content */}
-      <div className="flex-1 space-y-20">
-        {/* Step 0: Demographics */}
-        <div ref={sectionRefs[0]}>
-          <CustomerDemographicsForm
-            form={demographicsForm}
-            onSubmit={(data) => {
-              setCustomerDemographics(data);
-              addSavedStep(0);
-              toast.success("Customer Demographics saved ✅");
-            }}
-          />
-        </div>
+      <div className="flex flex-col md:flex-row md:gap-8 w-full md:max-w-6xl">
+        {!isMobile && (
+          <div className="w-64 sticky top-10 self-start">
+            <div className="max-h-[80vh] overflow-y-auto pr-2">
+              <VerticalStepper
+                steps={steps}
+                currentStep={currentStep}
+                completedSteps={completedSteps}
+                onStepChange={(i) =>
+                  sectionRefs[i].current?.scrollIntoView({ behavior: "smooth" })
+                }
+              />
+            </div>
+          </div>
+        )}
 
-        {/* Step 1: Measurements */}
-        <div ref={sectionRefs[1]}>
-          <CustomerMeasurementsForm
-            form={measurementsForm}
-            onSubmit={(data) => {
-              setCustomerMeasurements(data);
-              addSavedStep(1);
-              toast.success("Customer Measurements saved ✅");
-            }}
-          />
-        </div>
+        {/* Right Side Content */}
+        <div className="flex-1 space-y-20 p-4 md:p-0">
+          {/* Step 0: Demographics */}
+          <div ref={sectionRefs[0]}>
+            <CustomerDemographicsForm
+              form={demographicsForm}
+              onSubmit={(data) => {
+                setCustomerDemographics(data);
+                addSavedStep(0);
+                toast.success("Customer Demographics saved ✅");
+              }}
+            />
+          </div>
 
-        {/* Step 2+ placeholders */}
-        <div ref={sectionRefs[2]} className="min-h-screen flex items-center justify-center">
-          <div className="p-6 border rounded-lg w-full text-center">
-            Fabric Selection Form
+          {/* Step 1: Measurements */}
+          <div ref={sectionRefs[1]}>
+            <CustomerMeasurementsForm
+              form={measurementsForm}
+              onSubmit={(data) => {
+                setCustomerMeasurements(data);
+                addSavedStep(1);
+                toast.success("Customer Measurements saved ✅");
+              }}
+            />
           </div>
-        </div>
-        <div ref={sectionRefs[3]} className="min-h-screen flex items-center justify-center">
-          <div className="p-6 border rounded-lg w-full text-center">
-            Shelves Products Form
+
+          {/* Step 2+ placeholders */}
+          <div ref={sectionRefs[2]} className="min-h-screen flex items-center justify-center">
+            <div className="p-6 border rounded-lg w-full text-center">
+              Fabric Selection Form
+            </div>
           </div>
-        </div>
-        <div ref={sectionRefs[4]} className="min-h-screen flex items-center justify-center">
-          <div className="p-6 border rounded-lg w-full text-center">
-            Order & Payment Info Form
+          <div ref={sectionRefs[3]} className="min-h-screen flex items-center justify-center">
+            <div className="p-6 border rounded-lg w-full text-center">
+              Shelves Products Form
+            </div>
           </div>
-        </div>
-        <div ref={sectionRefs[5]} className="min-h-screen flex items-center justify-center">
-          <div className="p-6 border rounded-lg w-full text-center">
-            Confirmation Page
+          <div ref={sectionRefs[4]} className="min-h-screen flex items-center justify-center">
+            <div className="p-6 border rounded-lg w-full text-center">
+              Order & Payment Info Form
+            </div>
+          </div>
+          <div ref={sectionRefs[5]} className="min-h-screen flex items-center justify-center">
+            <div className="p-6 border rounded-lg w-full text-center">
+              Confirmation Page
+            </div>
           </div>
         </div>
       </div>

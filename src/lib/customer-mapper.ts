@@ -14,10 +14,10 @@ export const mapCustomerToFormValues = (customer: Customer): Partial<CustomerDem
     return "";
   };
 
-  const countryCodeOptions = customerDemographicsSchema.shape.countryCode.enum;
-  const alternativeCountryCodeOptions = customerDemographicsSchema.shape.alternativeCountryCode.enum;
-  const customerCategoryOptions = customerDemographicsSchema.shape.customerCategory.enum;
-  const nationalityOptions = customerDemographicsSchema.shape.nationality.enum;
+  const countryCodeOptions = customerDemographicsSchema.shape.countryCode.options;
+  const alternativeCountryCodeOptions = customerDemographicsSchema.shape.alternativeCountryCode.unwrap().options;
+  const customerCategoryOptions = customerDemographicsSchema.shape.customerCategory.options;
+  const nationalityOptions = customerDemographicsSchema.shape.nationality.options;
 
   return {
     name: fields.Name,
