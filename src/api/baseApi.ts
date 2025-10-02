@@ -87,3 +87,31 @@ export const createRecord = async <T>(
   const data = await response.json();
   return data as ApiResponse<T>;
 };
+
+/**
+ * Upserts multiple records in a given Airtable table.
+ * @param tableName The name of the table to upsert records in.
+ * @param records An array of records to upsert. Each record should have an optional 'id' and a 'fields' object.
+ * @param keyFields An array of field names to use for matching existing records.
+ * @returns A promise that resolves to the upserted records.
+ */
+export const upsertRecords = async <T>(
+  tableName: string,
+  records: Array<{ id?: string; fields: Partial<T> }>,
+  keyFields: string[],
+): Promise<ApiResponse<T[]>> => {
+  const response = await fetch(`${BASE_URL}/airtable/${tableName}/upsert`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ records, key_fields: keyFields }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upsert records in ${tableName}`);
+  }
+
+  const data = await response.json();
+  return data as ApiResponse<T[]>;
+};

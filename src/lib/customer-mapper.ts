@@ -16,27 +16,37 @@ export const mapCustomerToFormValues = (customer: Customer): Partial<CustomerDem
 
   const countryCodeOptions = customerDemographicsSchema.shape.countryCode.options;
   const alternativeCountryCodeOptions = customerDemographicsSchema.shape.alternativeCountryCode.unwrap().options;
-  const customerCategoryOptions = customerDemographicsSchema.shape.customerCategory.options;
+  const customerCategoryOptions = customerDemographicsSchema.shape.customerCategory.unwrap().options;
   const nationalityOptions = customerDemographicsSchema.shape.nationality.options;
 
   return {
+    customerType: "Existing", // Explicitly set to Existing when mapping a found customer
+    id: customer.id, // Top-level ID is string
     name: fields.Name,
     nickName: fields.NickName || "",
     countryCode: getValidEnumValue(fields.CountryCode, countryCodeOptions),
-    mobileNumber: String(fields.Phone),
-    alternativeCountryCode: getValidEnumValue(fields.AlternateCountryCode, alternativeCountryCodeOptions),
-    alternativeMobileNumber: fields.AlternateMobile ? String(fields.AlternateMobile) : "",
-    hasWhatsApp: fields.whatsapp || false,
-    isInfluencer: false, // Not in Customer interface, default to false
-    instagramId: fields.InstaID || "",
+    mobileNumber: fields.Phone, // No String() conversion
+    alternativeCountryCode: getValidEnumValue(fields.AlternateCountryCode, alternativeCountryCodeOptions), // Use getValidEnumValue
+    alternativeMobileNumber: fields.AlternateMobile ? String(fields.AlternateMobile) : "", // Convert to string
+    hasWhatsApp: fields.Whatsapp || false,
+    isInfluencer: fields.InstaID ? true : false,
+    instagramId: fields.InstaID ? String(fields.InstaID) : "", // Convert InstaID to string
     email: fields.Email || "",
-    customerCategory: getValidEnumValue(fields.CustomerType, customerCategoryOptions),
+    customerCategory: getValidEnumValue(
+      (() => {
+        const customerTypeName = Array.isArray(fields.CustomerType) && fields.CustomerType.length > 0
+          ? fields.CustomerType[0].name
+          : fields.CustomerType;
+        return customerTypeName === "VIP" ? "VIP" : "Regular";
+      })(),
+      customerCategoryOptions
+    ), // Re-add customerCategory mapping
     nationality: getValidEnumValue(fields.Nationality, nationalityOptions),
     address: {
       governorate: fields.Governorate || "",
       block: fields.Block || "",
       street: fields.Street || "",
-      houseNumber: fields.HouseNo ? String(fields.HouseNo) : "",
+      houseNumber: fields.HouseNo || "",
       floor: fields.Floor || "",
       aptNo: fields.AptNo || "",
       landmark: fields.Landmark || "",

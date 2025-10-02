@@ -1,4 +1,4 @@
-import { createCustomer } from "@/api/customers";
+import { upsertCustomer } from "@/api/customers";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -18,82 +18,87 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { UseFormReturn } from "react-hook-form";
-import { customerDemographicsSchema } from "./schema";
-import { toast } from "sonner";
 import { mapCustomerToFormValues } from "@/lib/customer-mapper";
-import { SearchCustomer } from "./search-customer";
 import type { Customer } from "@/types/customer";
-import type z from "zod";
+import * as React from "react";
 import { useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { toast } from "sonner";
+import type z from "zod";
+import { customerDemographicsDefaults, customerDemographicsSchema } from "./schema";
+import { SearchCustomer } from "./search-customer";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
-  onSubmit: (values: z.infer<typeof customerDemographicsSchema>) => void;  // <-- Accept `onSubmit` as prop
+  onSubmit: (values: z.infer<typeof customerDemographicsSchema>) => void;
 }
 
 export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographicsFormProps) {
-
   const [isReadOnly, setIsReadOnly] = useState(false);
-  const [displayCustomerId, setDisplayCustomerId] = useState<string | null>(null);
+  const [displayCustomerId, setDisplayCustomerId] = useState<number | null>(null);
+  const [customerRecordId, setCustomerRecordId] = useState<string|null>(null);
 
   const customerType = form.watch("customerType");
 
-  const handleCustomerFound = (customer: Customer) => {
+
+  const handleCustomerFound = React.useCallback((customer: Customer) => {
     const formValues = mapCustomerToFormValues(customer);
     form.reset(formValues);
-    setDisplayCustomerId(customer.id);
-    setIsReadOnly(true);
-  };
+    setDisplayCustomerId(customer.fields.id??null);
+    setCustomerRecordId(customer.id)
+  }, [form, setDisplayCustomerId]);
 
-  const handleClearSearch = () => {
-    form.reset();
+  const handleClearSearch = React.useCallback(() => {
+    form.reset({ ...customerDemographicsDefaults, customerType: "Existing" }); // Reset to empty but keep customerType as Existing
     setDisplayCustomerId(null);
-    setIsReadOnly(false);
-  };
+    setIsReadOnly(true); // Keep read-only
+  }, [form, setDisplayCustomerId, setIsReadOnly]);
 
   const handleFormSubmit = async (values: z.infer<typeof customerDemographicsSchema>) => {
-    if (customerType === "New") {
-      try {
-        const newCustomer = {
-          fields: {
-            Phone: values.mobileNumber,
-            Name: values.name,
-            NickName: values.nickName || undefined,
-            CountryCode: values.countryCode,
-            AlternateCountryCode: values.alternativeCountryCode || undefined,
-            AlternateMobile: values.alternativeMobileNumber || undefined,
-            whatsapp: values.hasWhatsApp || false,
-            Email: values.email || undefined,
-            CustomerType: values.customerCategory,
-            Nationality: values.nationality,
-            InstaID: values.instagramId || undefined,
-            isInfluencer: values.isInfluencer || false,
-            Governorate: values.address.governorate || undefined,
-            Floor: values.address.floor || undefined,
-            Block: values.address.block || undefined,
-            AptNo: values.address.aptNo || undefined,
-            Street: values.address.street || undefined,
-            Landmark: values.address.landmark || undefined,
-            HouseNo: values.address.houseNumber || undefined,
-            DOB: values.address.dob ? values.address.dob.toISOString().split('T')[0] : undefined,
-          }
-        };
-        const response = await createCustomer(newCustomer);
-        if (response.status === "success" && response.data) {
-          toast.success("New customer created successfully!");
-          const newCustomerData = response.data as Customer;
-          setDisplayCustomerId(newCustomerData.id);
-        } else {
-          toast.error(response.message || "Failed to create new customer.");
-        }
-      } catch (error) {
-        toast.error("Failed to create new customer.");
-        console.error("Error creating customer:", error);
+    const customerToUpsert: { id?: string; fields: Partial<Customer['fields']> } = {
+      id: customerRecordId || undefined,
+      fields: {
+        Phone: values.mobileNumber,
+        Name: values.name,
+        NickName: values.nickName || undefined,
+        CountryCode: values.countryCode,
+        AlternateCountryCode: values.alternativeCountryCode,
+        AlternateMobile: values.alternativeMobileNumber !== "" ? Number(values.alternativeMobileNumber) : undefined,
+        Whatsapp: values.hasWhatsApp || false,
+        Email: values.email || undefined,
+        Nationality: values.nationality,
+        InstaID: values.instagramId ? Number(values.instagramId) : undefined,
+        Governorate: values.address.governorate || undefined,
+        Floor: values.address.floor || undefined,
+        Block: values.address.block || undefined,
+        AptNo: values.address.aptNo || undefined,
+        Street: values.address.street || undefined,
+        Landmark: values.address.landmark || undefined,
+        HouseNo: values.address.houseNumber,
+        DOB: values.address.dob ? values.address.dob.toISOString().split('T')[0] : undefined
       }
-    } else {
-      // Handle existing customer update logic here
-      toast.info("Existing customer update logic not yet implemented.");
+    };
+
+    try {
+      const response = await upsertCustomer([customerToUpsert], [ "Phone"]);
+      if (response.status === "success" && response.data) {
+        const wasNewCustomer = displayCustomerId === undefined || displayCustomerId === null; // Check before updating displayCustomerId
+        toast.success(`Customer ${wasNewCustomer ? "created" : "updated"} successfully!`);
+        const upsertedCustomerData = response.data.records.at(0) as Customer;
+        setDisplayCustomerId(upsertedCustomerData.fields.id??null); // Update displayCustomerId with the new ID
+
+        setIsReadOnly(true); // Set form to read-only
+
+        if (wasNewCustomer) {
+          form.setValue('customerType', 'Existing'); // Change customerType to Existing
+        }
+        console.log("customer demo form -> ", response)
+      } else {
+        toast.error(response.message || `Failed to ${displayCustomerId ? "update" : "create"} customer.`);
+      }
+    } catch (error) {
+      toast.error(`Failed to ${displayCustomerId ? "update" : "create"} customer.`);
+      console.error("Error upserting customer:", error);
     }
     onSubmit(values);
   };
@@ -101,7 +106,10 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
+          <form
+            onSubmit={form.handleSubmit(handleFormSubmit)}
+            className="space-y-8"
+          >
         <div className="flex justify-between items-start">
           <h1 className="text-2xl font-bold mb-4">Customer Demographics</h1>
           {displayCustomerId && (
@@ -111,7 +119,6 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
           )}
         </div>
 
-        {/* Customer Type with Search Button */}
         <div className="flex flex-row justify-between items-center">
           <div className="p-4 rounded-lg">
             <FormField
@@ -124,8 +131,9 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
                     onValueChange={(value) => {
                       field.onChange(value);
                       if (value === "New") {
+                        setDisplayCustomerId(null);
+                        form.reset(customerDemographicsDefaults)
                         setIsReadOnly(false);
-                        form.reset();
                       } else if (value === "Existing") {
                         setIsReadOnly(true);
                       }
@@ -149,11 +157,13 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
           </div>
         </div>
 
-        <SearchCustomer
-          onCustomerFound={handleCustomerFound}
-          onClearSearch={handleClearSearch}
-          customerType={customerType}
-        />
+        {customerType === "Existing" && (
+          <SearchCustomer
+            onCustomerFound={handleCustomerFound}
+            onClearSearch={handleClearSearch}
+            customerType={customerType}
+          />
+        )}
 
         <FormField
           control={form.control}
@@ -190,66 +200,66 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
               )}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <FormField
-                            control={form.control}
-                            name="hasWhatsApp"
-                            render={({ field }) => (
-                              <FormItem className="bg-muted p-4 rounded-lg">
-                                <FormLabel>WhatsApp</FormLabel>
-                                <div className="flex items-center gap-2">
-                                  <img
-                                    alt="WhatsApp"
-                                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                                    className="w-8 h-8"
-                                  />
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value}
-                                      onCheckedChange={field.onChange}
-                                      className="bg-white"
-                                      disabled={isReadOnly}
-                                    />
-                                  </FormControl>
-                                </div>
-                              </FormItem>
-                            )}
-                          />
-                            <div className="flex flex-col gap-4 bg-muted p-4 rounded-lg">
-                              <FormField
-                                control={form.control}
-                                name="isInfluencer"
-                                render={({ field }) => (
-                                  <FormItem className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                        className="bg-white"
-                                        disabled={isReadOnly}
-                                      />
-                                    </FormControl>
-                                    <FormLabel>Influencer</FormLabel>
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name="instagramId"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormControl>
-                                      <Input
-                                        placeholder="Insta ID"
-                                        {...field}
-                                        className="bg-white"
-                                        readOnly={isReadOnly}
-                                      />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>            </div>
+              <FormField
+                control={form.control}
+                name="hasWhatsApp"
+                render={({ field }) => (
+                  <FormItem className="bg-muted p-4 rounded-lg">
+                    <FormLabel>WhatsApp</FormLabel>
+                    <div className="flex items-center gap-2">
+                      <img
+                        alt="WhatsApp"
+                        src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                        className="w-8 h-8"
+                      />
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="bg-white"
+                          disabled={isReadOnly}
+                        />
+                      </FormControl>
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <div className="flex flex-col gap-4 bg-muted p-4 rounded-lg">
+                <FormField
+                  control={form.control}
+                  name="isInfluencer"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="bg-white"
+                          disabled={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormLabel>Influencer</FormLabel>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="instagramId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          placeholder="Insta ID"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>            </div>
           </div>
           <div className="space-y-4 bg-muted p-4 rounded-lg">
             <FormField
@@ -266,12 +276,12 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
                         <FormItem>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                             disabled={isReadOnly}
                           >
                             <FormControl>
                               <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="Country Code" />
+                                <SelectValue placeholder="Country Code">{field.value}</SelectValue>
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -312,12 +322,12 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
                         <FormItem>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                             disabled={isReadOnly}
                           >
                             <FormControl>
                               <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="Country Code" />
+                                <SelectValue placeholder="Country Code">{field.value}</SelectValue>
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -377,12 +387,12 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
                 <FormLabel>Customer Type</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   disabled={isReadOnly}
                 >
                   <FormControl>
                     <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Regular / VIP" />
+                      <SelectValue placeholder="Regular / VIP">{field.value}</SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -402,12 +412,12 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
                 <FormLabel>Customer Nationality</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   disabled={isReadOnly}
                 >
                   <FormControl>
                     <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Kuwaiti" />
+                      <SelectValue placeholder="Kuwaiti">{field.value}</SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -541,9 +551,9 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
 
         {/* Buttons Section */}
         <div className="flex gap-6 justify-center">
-          <Button type="button" variant="outline" onClick={() => setIsReadOnly(false)}>
+          { displayCustomerId !== null && customerType === "Existing" && <Button type="button" variant="outline" onClick={() => setIsReadOnly(false)}>
             Edit
-          </Button>
+          </Button> }
           <Button type="submit">Save</Button>
         </div>
       </form>

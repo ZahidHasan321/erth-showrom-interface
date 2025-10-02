@@ -2,6 +2,7 @@ import { z } from "zod";
 
 
 export const customerDemographicsDefaults: CustomerDemographicsSchema = {
+  id: undefined,
   customerType: "New", // defaulting to New
   name: "",
   nickName: "",
@@ -28,6 +29,7 @@ export const customerDemographicsDefaults: CustomerDemographicsSchema = {
 };
 
 export const customerDemographicsSchema = z.object({
+  id:  z.string().optional(),
   customerType: z.enum(["New", "Existing"]),
   name: z.string("Invalid Name").min(1, "Name is required"),
   nickName: z.string().optional(),
@@ -35,11 +37,11 @@ export const customerDemographicsSchema = z.object({
   mobileNumber: z.string("Invalid Mobile Number").min(1, "Mobile number is required"),
   alternativeCountryCode: z.enum(["","+91", "+1", "+44", "+965"]).optional(),
   alternativeMobileNumber: z.string().optional(),
-  hasWhatsApp: z.boolean().optional(),
+  hasWhatsApp: z.boolean(),
   isInfluencer: z.boolean().optional(),
   instagramId: z.string().optional(),
   email: z.email("Invalid email address").optional(),
-  customerCategory: z.enum(["Regular", "VIP"]),
+  customerCategory: z.enum(["", "Regular", "VIP"]).optional(),
   nationality: z.enum(["","Kuwaiti", "Saudi", "Bahraini", "Qatari", "Emirati"]),
   address: z.object({
     governorate: z.string().optional(),

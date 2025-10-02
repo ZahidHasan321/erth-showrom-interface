@@ -1,8 +1,8 @@
 "use client"
 
-import * as React from "react"
-import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Check } from "lucide-react"
+import * as React from "react"
 
 interface StepProps {
   title: string
@@ -12,7 +12,7 @@ interface StepProps {
   onClick?: () => void
 }
 
-const Step: React.FC<StepProps> = ({ title, description, isCompleted, isActive, onClick }) => {
+const Step: React.FC<StepProps> = ({ title, isCompleted, isActive, onClick }) => {
   return (
     <div
       className="flex flex-col items-center cursor-pointer p-2 rounded-md transition-colors group hover:bg-muted"
