@@ -1,4 +1,4 @@
-import type { ApiResponse, ApiSearchResponse } from '../types/api';
+import type { ApiResponse } from '../types/api';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 /**
@@ -8,7 +8,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
  */
 export const getRecords = async <T>(
   tableName: string,
-): Promise<ApiResponse<T>> => {
+): Promise<ApiResponse<T[]>> => {
   const response = await fetch(`${BASE_URL}/airtable/${tableName}/records`);
 
   if (!response.ok) {
@@ -16,7 +16,7 @@ export const getRecords = async <T>(
   }
 
   const data = await response.json();
-  return data as ApiResponse<T>;
+  return data as ApiResponse<T[]>;
 };
 
 /**
@@ -25,7 +25,7 @@ export const getRecords = async <T>(
  * @param recordId The ID of the record to fetch.
  * @returns A promise that resolves to the fetched record.
  */
-export const getRecordById = async <T>(tableName: string, recordId: string): Promise<T> => {
+export const getRecordById = async <T>(tableName: string, recordId: string): Promise<ApiResponse<T>> => {
   const response = await fetch(`${BASE_URL}/airtable/${tableName}/records/${recordId}`);
 
   if (!response.ok) {
@@ -33,7 +33,7 @@ export const getRecordById = async <T>(tableName: string, recordId: string): Pro
   }
 
   const data = await response.json();
-  return data as T;
+  return data as ApiResponse<T>;
 };
 
 /**
@@ -45,7 +45,7 @@ export const getRecordById = async <T>(tableName: string, recordId: string): Pro
 export const searchRecords = async <T>(
   tableName: string,
   query: object,
-): Promise<ApiSearchResponse<T>> => {
+): Promise<ApiResponse<T>> => {
   const response = await fetch(`${BASE_URL}/airtable/${tableName}/search`, {
     method: 'POST',
     headers: {
@@ -59,5 +59,31 @@ export const searchRecords = async <T>(
   }
 
   const data = await response.json();
-  return data as ApiSearchResponse<T>;
+  return data as ApiResponse<T>;
+};
+
+/**
+ * Creates a new record in a given Airtable table.
+ * @param tableName The name of the table to create the record in.
+ * @param record The record data to create.
+ * @returns A promise that resolves to the created record.
+ */
+export const createRecord = async <T>(
+  tableName: string,
+  record: Partial<T>,
+): Promise<ApiResponse<T>> => {
+  const response = await fetch(`${BASE_URL}/airtable/${tableName}/records`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(record),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create record in ${tableName}`);
+  }
+
+  const data = await response.json();
+  return data as ApiResponse<T>;
 };

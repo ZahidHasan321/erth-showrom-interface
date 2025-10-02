@@ -25,7 +25,7 @@ interface CurrentWorkOrderState {
   resetWorkOrder: () => void;
 }
 
-export const useCurrentWorkOrderStore = create<CurrentWorkOrderState>()(
+export const createWorkOrderStore = (name: string) => create<CurrentWorkOrderState>()(
   devtools(
     (set) => ({
       customerDemographics: {},
@@ -60,6 +60,6 @@ export const useCurrentWorkOrderStore = create<CurrentWorkOrderState>()(
           savedSteps: [],
         }),
     }),
-    { name: 'current-work-order' }
+    { name: `work-order-${name}` }
   )
 );

@@ -2,15 +2,24 @@ export interface Customer {
   id: string;
   createdTime: string;
   fields: {
-    PHONE: string;
-    NAME: string;
-    ORDERS?: string[];
-    ID: number;
-    "ID GARMENT"?: string[];
-    "1 ST LETTER": string;
-    "ID MEAS"?: string[];
-    "NBRE OF PIECES": number;
-    "NBRE OF PIECES copy"?: string[];
-    "NBRE OF FATOURA": number;
+    Phone: string;
+    Name: string;
+    NickName?: string;
+    CountryCode: string;
+    AlternateCountryCode?: string;
+    AlternateMobile?: string;
+    whatsapp?: boolean;
+    Email?: string;
+    CustomerType: string;
+    Nationality: string;
+    InstaID?: string;
+    Governorate?: string;
+    Floor?: string;
+    Block?: string;
+    AptNo?: string;
+    Street?: string;
+    Landmark?: string;
+    HouseNo?: string;
+    DOB?: string; // Assuming date will be sent as a string
   };
 }

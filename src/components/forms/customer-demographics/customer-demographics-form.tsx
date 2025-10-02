@@ -1,8 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { z } from "zod";
-
-import { searchCustomerByPhone } from "@/api/customers";
+import { createCustomer } from "@/api/customers";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -24,8 +20,12 @@ import {
 } from "@/components/ui/select";
 import type { UseFormReturn } from "react-hook-form";
 import { customerDemographicsSchema } from "./schema";
-import { SearchIcon } from "lucide-react";
-import { Combobox } from "@/components/ui/combobox";
+import { toast } from "sonner";
+import { mapCustomerToFormValues } from "@/lib/customer-mapper";
+import { SearchCustomer } from "./search-customer";
+import type { Customer } from "@/types/customer";
+import type z from "zod";
+import { useState } from "react";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
@@ -35,43 +35,81 @@ interface CustomerDemographicsFormProps {
 export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographicsFormProps) {
 
   const [isReadOnly, setIsReadOnly] = useState(false);
-  const [searchPhone, setSearchPhone] = useState<string | null>(null);
+  const [displayCustomerId, setDisplayCustomerId] = useState<string | null>(null);
 
-  const { data, isFetching, isSuccess, isError, error } = useQuery({
-    queryKey: ["customer", searchPhone],
-    queryFn: () => searchCustomerByPhone(searchPhone!),
-    enabled: !!searchPhone,
-  });
+  const customerType = form.watch("customerType");
 
-  useEffect(() => {
-    if (isSuccess && data) {
-      form.setValue("name", data.record.fields.NAME);
-      setIsReadOnly(true);
+  const handleCustomerFound = (customer: Customer) => {
+    const formValues = mapCustomerToFormValues(customer);
+    form.reset(formValues);
+    setDisplayCustomerId(customer.id);
+    setIsReadOnly(true);
+  };
+
+  const handleClearSearch = () => {
+    form.reset();
+    setDisplayCustomerId(null);
+    setIsReadOnly(false);
+  };
+
+  const handleFormSubmit = async (values: z.infer<typeof customerDemographicsSchema>) => {
+    if (customerType === "New") {
+      try {
+        const newCustomer = {
+          fields: {
+            Phone: values.mobileNumber,
+            Name: values.name,
+            NickName: values.nickName || undefined,
+            CountryCode: values.countryCode,
+            AlternateCountryCode: values.alternativeCountryCode || undefined,
+            AlternateMobile: values.alternativeMobileNumber || undefined,
+            whatsapp: values.hasWhatsApp || false,
+            Email: values.email || undefined,
+            CustomerType: values.customerCategory,
+            Nationality: values.nationality,
+            InstaID: values.instagramId || undefined,
+            isInfluencer: values.isInfluencer || false,
+            Governorate: values.address.governorate || undefined,
+            Floor: values.address.floor || undefined,
+            Block: values.address.block || undefined,
+            AptNo: values.address.aptNo || undefined,
+            Street: values.address.street || undefined,
+            Landmark: values.address.landmark || undefined,
+            HouseNo: values.address.houseNumber || undefined,
+            DOB: values.address.dob ? values.address.dob.toISOString().split('T')[0] : undefined,
+          }
+        };
+        const response = await createCustomer(newCustomer);
+        if (response.status === "success" && response.data) {
+          toast.success("New customer created successfully!");
+          const newCustomerData = response.data as Customer;
+          setDisplayCustomerId(newCustomerData.id);
+        } else {
+          toast.error(response.message || "Failed to create new customer.");
+        }
+      } catch (error) {
+        toast.error("Failed to create new customer.");
+        console.error("Error creating customer:", error);
+      }
+    } else {
+      // Handle existing customer update logic here
+      toast.info("Existing customer update logic not yet implemented.");
     }
-  }, [isSuccess, data, form]);
-
-  useEffect(() => {
-    if (isError && error) {
-      console.error("Error searching for customer:", error);
-    }
-  }, [isError, error]);
-
-  // const customerType = form.watch("customerType");
-
-  async function handleSearch() {
-    const phone = form.getValues("searchMobileNumber");
-    if (!phone) {
-      console.log("Please enter a phone number to search.");
-      return;
-    }
-    setSearchPhone(phone);
-  }
+    onSubmit(values);
+  };
 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <h1 className="text-2xl font-bold mb-4">Customer Demographics</h1>
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
+        <div className="flex justify-between items-start">
+          <h1 className="text-2xl font-bold mb-4">Customer Demographics</h1>
+          {displayCustomerId && (
+            <div className="text-lg font-semibold p-2 bg-muted rounded-md">
+              Customer ID: <span className="font-mono text-primary">{displayCustomerId}</span>
+            </div>
+          )}
+        </div>
 
         {/* Customer Type with Search Button */}
         <div className="flex flex-row justify-between items-center">
@@ -111,70 +149,12 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
           </div>
         </div>
 
-        {/* Search Customer Inputs */}
-        <div className="bg-muted p-4 rounded-lg space-y-4">
-          <h2 className={"text-xl font-semibold"}>Search Customer</h2>
-          <div className={"grid grid-cols-1 md:grid-cols-3 gap-4"}>
-            <FormField
-              control={form.control}
-              name="searchMobileNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      placeholder="Mobile Number"
-                      {...field}
-                      value={field.value ?? ""}
-                      className="bg-white"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="searchOrderNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      placeholder="Order Number"
-                      {...field}
-                      className="bg-white"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="searchCustomerId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Combobox
-                      options={[
-                        { value: "1", label: "CUS-001" },
-                        { value: "2", label: "CUS-002" },
-                        { value: "3", label: "CUS-003" },
-                      ]}
-                      value={field.value??""}
-                      onChange={field.onChange}
-                      placeholder="Select a customer ID..."
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="button" className="w-fit" onClick={handleSearch} disabled={isFetching}>
-              <SearchIcon className="w-4 h-4 mr-2" />
-              {isFetching ? "Searching..." : "Search Customer Info."}
-            </Button>
-          </div>
-        </div>
+        <SearchCustomer
+          onCustomerFound={handleCustomerFound}
+          onClearSearch={handleClearSearch}
+          customerType={customerType}
+        />
+
         <FormField
           control={form.control}
           name="name"
@@ -210,67 +190,66 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
               )}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="whatsApp"
-                render={({ field }) => (
-                  <FormItem className="bg-muted p-4 rounded-lg">
-                    <FormLabel>WhatsApp</FormLabel>
-                    <div className="flex items-center gap-2">
-                      <img
-                        alt="WhatsApp"
-                        src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                        className="w-8 h-8"
-                      />
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="bg-white"
-                          disabled={isReadOnly}
-                        />
-                      </FormControl>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <div className="flex flex-col gap-4 bg-muted p-4 rounded-lg">
-                <FormField
-                  control={form.control}
-                  name="influencer"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="bg-white"
-                          disabled={isReadOnly}
-                        />
-                      </FormControl>
-                      <FormLabel>Influencer</FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="instaId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          placeholder="Insta ID"
-                          {...field}
-                          className="bg-white"
-                          readOnly={isReadOnly}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+                          <FormField
+                            control={form.control}
+                            name="hasWhatsApp"
+                            render={({ field }) => (
+                              <FormItem className="bg-muted p-4 rounded-lg">
+                                <FormLabel>WhatsApp</FormLabel>
+                                <div className="flex items-center gap-2">
+                                  <img
+                                    alt="WhatsApp"
+                                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                                    className="w-8 h-8"
+                                  />
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                      className="bg-white"
+                                      disabled={isReadOnly}
+                                    />
+                                  </FormControl>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                            <div className="flex flex-col gap-4 bg-muted p-4 rounded-lg">
+                              <FormField
+                                control={form.control}
+                                name="isInfluencer"
+                                render={({ field }) => (
+                                  <FormItem className="flex items-center gap-2">
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                        className="bg-white"
+                                        disabled={isReadOnly}
+                                      />
+                                    </FormControl>
+                                    <FormLabel>Influencer</FormLabel>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="instagramId"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Insta ID"
+                                        {...field}
+                                        className="bg-white"
+                                        readOnly={isReadOnly}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>            </div>
           </div>
           <div className="space-y-4 bg-muted p-4 rounded-lg">
             <FormField
@@ -392,7 +371,7 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
-            name="customerTypeRegularVip"
+            name="customerCategory"
             render={({ field }) => (
               <FormItem className="w-full bg-muted p-4 rounded-lg">
                 <FormLabel>Customer Type</FormLabel>
@@ -417,7 +396,7 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
           />
           <FormField
             control={form.control}
-            name="customerNationality"
+            name="nationality"
             render={({ field }) => (
               <FormItem className="w-full bg-muted p-4 rounded-lg">
                 <FormLabel>Customer Nationality</FormLabel>
@@ -491,7 +470,7 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
               />
               <FormField
                 control={form.control}
-                name="address.houseBuildingNo"
+                name="address.houseNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>House / Building no.</FormLabel>
@@ -562,10 +541,7 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
 
         {/* Buttons Section */}
         <div className="flex gap-6 justify-center">
-          <Button type="button" variant="outline">
-            Save Draft
-          </Button>
-          <Button type="button" variant="outline">
+          <Button type="button" variant="outline" onClick={() => setIsReadOnly(false)}>
             Edit
           </Button>
           <Button type="submit">Save</Button>

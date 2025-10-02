@@ -6,7 +6,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger, } from "@/components/ui/
 import { useAuth } from "@/context/auth";
 import { BRAND_NAMES } from "@/lib/constants";
 import { router } from "@/router";
-import { createFileRoute, notFound, Outlet, redirect } from '@tanstack/react-router'; // Added Link
+import { createFileRoute, notFound, Outlet, redirect, rootRouteId } from '@tanstack/react-router'; // Added Link
 import ErthLogo from "../../assets/Logo-03.svg"; // Import Erth Logo
 import SakhtbaLogo from "../../assets/vite.svg"; // Import Sakhtba Logo
 
@@ -16,18 +16,18 @@ export const Route = createFileRoute('/$main')<{
   params: { main: MainParam }
 }>({
   component: RouteComponent,
-  params: {
-    parse: (params) => {
-      if (params.main !== 'erth' && params.main !== 'sakthba') {
-        throw notFound();
-      }
-      return { main: params.main as MainParam };
-    },
-    stringify: (params) => ({ main: params.main }),
-  },
+  // params: {
+  //   parse: (params) => {
+  //     return { main: params.main as MainParam };
+  //   },
+  //   stringify: (params) => ({ main: params.main }),
+  // },
   loader: async ({ params, context }) => {
     const { auth } = context
 
+      if (params.main !== BRAND_NAMES.showroom && params.main !== BRAND_NAMES.fromHome) {
+        throw notFound({routeId: rootRouteId});
+      }
 
     if (auth?.user?.userType !== params.main) {
       throw redirect({
@@ -45,7 +45,7 @@ export const Route = createFileRoute('/$main')<{
       })
     }
   },
-  notFoundComponent: NotFoundPage
+  notFoundComponent: NotFoundPage,
 })
 
 

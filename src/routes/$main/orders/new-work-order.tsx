@@ -8,16 +8,19 @@ import { customerDemographicsSchema } from "@/components/forms/customer-demograp
 import { customerMeasurementsSchema } from "@/components/forms/customer-measurements/schema";
 import { customerDemographicsDefaults } from "@/components/forms/customer-demographics/schema";
 import { customerMeasurementsDefaults } from "@/components/forms/customer-measurements/schema";
-import { useCurrentWorkOrderStore } from "@/store/current-work-order";
+import { createWorkOrderStore } from "@/store/current-work-order";
 import { z } from "zod";
-import { VerticalStepper } from "@/components/ui/vertical-stepper";
 import { toast } from "sonner";
+import { VerticalStepper } from "@/components/ui/vertical-stepper";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
 });
 
 function NewWorkOrder() {
+  const { main } = Route.useParams();
+  const useCurrentWorkOrderStore = React.useMemo(() => createWorkOrderStore(main), [main]);
+
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const {
     currentStep,
@@ -31,11 +34,8 @@ function NewWorkOrder() {
   // Forms
   const demographicsForm = useForm<z.infer<typeof customerDemographicsSchema>>({
     resolver: zodResolver(customerDemographicsSchema),
-    defaultValues: {
-      ...customerDemographicsDefaults,
-      customerType: "New",
-    },
-  });
+    defaultValues: customerDemographicsDefaults
+});
 
   const measurementsForm = useForm<z.infer<typeof customerMeasurementsSchema>>({
     resolver: zodResolver(customerMeasurementsSchema),
