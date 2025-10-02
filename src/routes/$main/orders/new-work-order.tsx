@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { VerticalStepper } from "@/components/ui/vertical-stepper";
 import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { FabricSelectionForm } from "@/components/forms/fabric-selection-and-options";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
@@ -164,10 +165,8 @@ function NewWorkOrder() {
           </div>
 
           {/* Step 2+ placeholders */}
-          <div ref={sectionRefs[2]} className="min-h-screen flex items-center justify-center">
-            <div className="p-6 border rounded-lg w-full text-center">
-              Fabric Selection Form
-            </div>
+          <div ref={sectionRefs[2]}>
+            <FabricSelectionForm/>
           </div>
           <div ref={sectionRefs[3]} className="min-h-screen flex items-center justify-center">
             <div className="p-6 border rounded-lg w-full text-center">
