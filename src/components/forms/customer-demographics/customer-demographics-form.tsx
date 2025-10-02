@@ -63,7 +63,7 @@ export function CustomerDemographicsForm({ form, onSubmit }: CustomerDemographic
         NickName: values.nickName || undefined,
         CountryCode: values.countryCode,
         AlternateCountryCode: values.alternativeCountryCode,
-        AlternateMobile: values.alternativeMobileNumber !== "" ? Number(values.alternativeMobileNumber) : undefined,
+        AlternateMobile: values.alternativeMobileNumber,
         Whatsapp: values.hasWhatsApp || false,
         Email: values.email || undefined,
         Nationality: values.nationality,

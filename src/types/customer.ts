@@ -8,7 +8,7 @@ export interface Customer {
     NickName?: string;
     CountryCode: string;
     AlternateCountryCode?: string;
-    AlternateMobile?: number;
+    AlternateMobile?: string;
     Whatsapp?: boolean;
     Email?: string;
     CustomerType?: string | Array<{ id: string; name: string; }>;

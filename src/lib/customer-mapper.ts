@@ -27,7 +27,7 @@ export const mapCustomerToFormValues = (customer: Customer): Partial<CustomerDem
     countryCode: getValidEnumValue(fields.CountryCode, countryCodeOptions),
     mobileNumber: fields.Phone, // No String() conversion
     alternativeCountryCode: getValidEnumValue(fields.AlternateCountryCode, alternativeCountryCodeOptions), // Use getValidEnumValue
-    alternativeMobileNumber: fields.AlternateMobile ? String(fields.AlternateMobile) : "", // Convert to string
+    alternativeMobileNumber: fields.AlternateMobile, // Convert to string
     hasWhatsApp: fields.Whatsapp || false,
     isInfluencer: fields.InstaID ? true : false,
     instagramId: fields.InstaID ? String(fields.InstaID) : "", // Convert InstaID to string
