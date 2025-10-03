@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useScrollSpy } from "@/hooks/use-scrollspy";
 import { Stepper } from "@/components/ui/stepper";
 import { FabricSelectionForm } from "@/components/forms/fabric-selection-and-options";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
@@ -33,6 +34,7 @@ function NewWorkOrder() {
   const useCurrentWorkOrderStore = React.useMemo(() => createWorkOrderStore(main), [main]);
   const [isScrolling, setIsScrolling] = React.useState(false);
   const [customerRecordId, setCustomerRecordId] = React.useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const {
     currentStep,
@@ -48,7 +50,7 @@ function NewWorkOrder() {
   const demographicsForm = useForm<z.infer<typeof customerDemographicsSchema>>({
     resolver: zodResolver(customerDemographicsSchema),
     defaultValues: customerDemographicsDefaults
-});
+  });
 
   const measurementsForm = useForm<z.infer<typeof customerMeasurementsSchema>>({
     resolver: zodResolver(customerMeasurementsSchema),
@@ -73,30 +75,43 @@ function NewWorkOrder() {
 
   const completedSteps = savedSteps;
 
+  const handleStepChange = (i: number) => {
+    const element = document.getElementById(steps[i].id);
+    if (element) {
+      setIsScrolling(true);
+      element.scrollIntoView({ behavior: "smooth" });
+      setTimeout(() => {
+        setIsScrolling(false);
+      }, 200);
+    }
+  };
+
   return (
-    <div className={`w-full flex flex-col md:flex-row md:gap-8 md:max-w-6xl ${isScrolling ? 'pointer-events-none' : ''}`}>
-      <div className="w-64 sticky top-10 self-start">
-        <div className="max-h-[80vh] overflow-y-auto pr-2">
+    <div className={`w-full flex flex-col xl:flex-row xl:gap-8 ${isScrolling ? 'pointer-events-none' : ''}`}>
+      {isMobile ? (
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-950 shadow-md xl:hidden">
           <Stepper
             steps={steps}
             currentStep={currentStep}
             completedSteps={completedSteps}
-            onStepChange={(i) => {
-              const element = document.getElementById(steps[i].id);
-              if (element) {
-                setIsScrolling(true);
-                element.scrollIntoView({ behavior: "smooth" });
-                setTimeout(() => {
-                  setIsScrolling(false);
-                }, 200);
-              }
-            }}
+            onStepChange={handleStepChange}
           />
         </div>
-      </div>
+      ) : (
+        <div className="w-64 sticky top-10 self-start">
+          <div className="max-h-[80vh] overflow-y-auto pr-2">
+            <Stepper
+              steps={steps}
+              currentStep={currentStep}
+              completedSteps={completedSteps}
+              onStepChange={handleStepChange}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Right Side Content */}
-      <div className="flex-1 space-y-20 p-4 md:p-0">
+      <div className="flex-1 space-y-20 p-4 xl:p-0">
         {steps.map((step, index) => (
           <div key={step.id} id={step.id} ref={sectionRefs[index]}>
             {index === 0 && (
@@ -139,3 +154,5 @@ function NewWorkOrder() {
     </div>
   );
 }
+
+        

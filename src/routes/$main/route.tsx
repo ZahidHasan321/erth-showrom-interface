@@ -83,7 +83,7 @@ function RouteComponent() {
             </Button>
           </div>
         </header>
-        <main className="flex-1 p-6 justify-start">
+        <main className="flex-1 justify-start">
           <Outlet />
         </main>
       </SidebarInset>

@@ -64,13 +64,13 @@ interface StepperProps {
   canNavigateToStep?: (currentStep: number, targetStep: number) => boolean
 }
 
-export function VerticalStepper({
+export const VerticalStepper: React.FC<StepperProps> = ({
   steps,
   currentStep,
   completedSteps,
   onStepChange,
   canNavigateToStep,
-}: StepperProps) {
+}) => {
   const attemptStepChange = (targetStep: number) => {
     if (targetStep < 0 || targetStep >= steps.length || targetStep === currentStep) return
     if (canNavigateToStep && !canNavigateToStep(currentStep, targetStep)) return

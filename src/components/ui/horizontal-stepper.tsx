@@ -26,7 +26,7 @@ const Step: React.FC<StepProps> = ({ title, isCompleted, isActive, onClick }) =>
             isCompleted
               ? "border-primary bg-primary text-primary-foreground"
               : isActive
-              ? "border-primary bg-primary/20 text-primary"
+              ? "border-primary text-primary"
               : "border-muted-foreground/50"
           )}
         >
@@ -57,13 +57,13 @@ interface StepperProps {
   canNavigateToStep?: (currentStep: number, targetStep: number) => boolean
 }
 
-export function HorizontalStepper({
+export const HorizontalStepper: React.FC<StepperProps> = ({
   steps,
   currentStep,
   completedSteps,
   onStepChange,
   canNavigateToStep,
-}: StepperProps) {
+}) => {
   const attemptStepChange = (targetStep: number) => {
     if (targetStep < 0 || targetStep >= steps.length || targetStep === currentStep) return
     if (canNavigateToStep && !canNavigateToStep(currentStep, targetStep)) return
@@ -72,7 +72,7 @@ export function HorizontalStepper({
 
   return (
     <div className="w-full bg-background border-b border-muted sticky top-0 z-10">
-      <div className="flex justify-between items-center p-4 overflow-x-auto">
+      <div className="flex items-center px-4 py-2 overflow-x-auto">
         {steps.map((step, index) => (
           <React.Fragment key={step.title}>
             <Step

@@ -172,7 +172,7 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
 
   return (
     <Form {...form}>
-      <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-8">
+      <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="space-y-8 max-w-7xl">
         <ConfirmationDialog
           isOpen={confirmationDialog.isOpen}
           onClose={() => setConfirmationDialog({ ...confirmationDialog, isOpen: false })}

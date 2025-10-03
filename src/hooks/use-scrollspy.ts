@@ -22,7 +22,7 @@ export function useScrollSpy(sectionRefs: React.RefObject<HTMLDivElement | null>
             return;
           }
         }
-      }, 100);
+      }, 0);
     }, options);
 
     const { current: currentObserver } = observer;

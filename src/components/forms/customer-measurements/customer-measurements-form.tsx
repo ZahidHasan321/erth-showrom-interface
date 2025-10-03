@@ -9,6 +9,8 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import { customerMeasurementsDefaults, customerMeasurementsSchema } from "./schema";
 import MyImg from "../../../assets/image.png";
 import * as React from "react";
+import { MeasurementInput } from "./MeasurementInput";
+import { GroupedMeasurementFields } from "./GroupedMeasurementFields";
 
 const unit = "cm";
 
@@ -18,7 +20,7 @@ interface CustomerMeasurementsFormProps {
   customerId: string | null;
 }
 
-export function CustomerMeasurementsForm({ form,  onSubmit, customerId}: CustomerMeasurementsFormProps) {
+export function CustomerMeasurementsForm({ form, onSubmit, customerId }: CustomerMeasurementsFormProps) {
   const [isDisabled, setIsDisabled] = React.useState(true);
 
   React.useEffect(() => {
@@ -30,28 +32,23 @@ export function CustomerMeasurementsForm({ form,  onSubmit, customerId}: Custome
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <h1 className="text-2xl font-bold mb-4">
-          Customer Measurement
-        </h1>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto space-y-8 max-w-7xl">
+        <h1 className="text-2xl font-bold mb-4">Customer Measurement</h1>
 
-
-        <div className="relative min-w-4xl h-[1200px] pb-100 flex justify-center items-center">
-        <div className="absolute mt-200 measurement-image-container flex justify-center items-center mb-6">
-          <img src={MyImg} className="w-100 h-auto object-contain" alt="Dishdasha Measurement Guide"/>
-        </div>
-          {/* Top Left: Measurement Type and ID */}
-          <div className="absolute top-[5%] left-[5%] flex gap-6 bg-muted p-4 rounded-lg">
+        {/* ---- Top Controls ---- */}
+        <div className="flex justify-between gap-8">
+          {/* Left side: Measurement Type + ID */}
+          <div className="flex gap-6">
             <FormField
               control={form.control}
               name="measurementType"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Measurement Type</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isDisabled}>
                     <FormControl>
                       <SelectTrigger className="bg-white w-40">
-                        <SelectValue placeholder="Measurement Type"/>
+                        <SelectValue placeholder="Measurement Type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -59,20 +56,21 @@ export function CustomerMeasurementsForm({ form,  onSubmit, customerId}: Custome
                       <SelectItem value="Dishdasha">Dishdasha</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="measurementID"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Measurement ID</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isDisabled}>
                     <FormControl>
                       <SelectTrigger className="bg-white w-40">
-                        <SelectValue placeholder="Measurement ID"/>
+                        <SelectValue placeholder="Measurement ID" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -80,511 +78,227 @@ export function CustomerMeasurementsForm({ form,  onSubmit, customerId}: Custome
                       <SelectItem value="894-01">894-01</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
           </div>
 
-          {/* Top Right: Measurement Reference */}
-          <div className="absolute top-[5%] right-[5%] bg-muted p-4 rounded-lg">
-            <FormField
-              control={form.control}
-              name="measurementReference"
-              render={({field}) => (
-                <FormItem>
-                  <FormLabel>Measurement Reference</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isDisabled}>
-                    <FormControl>
-                      <SelectTrigger className="bg-white w-40">
-                        <SelectValue placeholder="Measurement Reference"/>
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Winter">Winter</SelectItem>
-                      <SelectItem value="Summer">Summer</SelectItem>
-                      <SelectItem value="Eid">Eid</SelectItem>
-                      <SelectItem value="Occasion">Occasion</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Left Side Fields */}
-          {/* Collar */}
-          <div className="absolute top-[15%] left-[35%] flex flex-col items-center gap-2 bg-muted p-2 rounded-lg">
-            <h3 className="font-semibold text-center">Collar</h3>
-            <div className={"flex flex-row gap-2"}>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Width</FormLabel>
-              <FormField
-                control={form.control}
-                name="collar.width"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Height</FormLabel>
-              <FormField
-                control={form.control}
-                name="collar.height"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-            </div>
-          </div>
-
-          {/* Armhole */}
-          <div className="absolute top-[30%] left-[20%] flex flex-col items-start gap-2 bg-muted p-2 rounded-lg">
-            <FormLabel>Armhole</FormLabel>
-            <FormField
-              control={form.control}
-              name="armhole"
-              render={({field}) => (
-                <FormItem>
+          {/* Right side: Measurement Reference */}
+          <FormField
+            control={form.control}
+            name="measurementReference"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Measurement Reference</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isDisabled}>
                   <FormControl>
-                    <div className="relative">
-                      <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                    </div>
+                    <SelectTrigger className="bg-white w-40">
+                      <SelectValue placeholder="Measurement Reference" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-          </div>
+                  <SelectContent>
+                    <SelectItem value="Winter">Winter</SelectItem>
+                    <SelectItem value="Summer">Summer</SelectItem>
+                    <SelectItem value="Eid">Eid</SelectItem>
+                    <SelectItem value="Occasion">Occasion</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-          {/* Chest */}
-          <div className="absolute top-[35%] left-[15%] flex flex-col items-center gap-2 bg-muted p-2 rounded-lg">
-            <h3 className="font-semibold text-center">Chest</h3>
-                <div className="flex flex-col items-start gap-2">
-              <FormLabel>Upper</FormLabel>
-              <FormField
-                control={form.control}
-                name="chest.upper"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Half</FormLabel>
-              <FormField
-                control={form.control}
-                name="chest.half"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Full</FormLabel>
-              <FormField
-                control={form.control}
-                name="chest.full"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Sleeve */}
-          <div className="absolute top-[60%] left-[10%] flex flex-col items-start gap-2 bg-muted p-2 rounded-lg">
-              <FormLabel>Sleeve</FormLabel>
-              <FormField
-                control={form.control}
-                name="sleeve"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="absolute top-[52%] left-[10%] flex flex-col items-start gap-2 bg-muted p-2 rounded-lg">
-              <FormLabel>Elbow</FormLabel>
-              <FormField
-                control={form.control}
-                name="elbow"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-          {/* Length */}
-          <div className="absolute top-[25%] left-[55%] flex flex-col items-center gap-2 bg-muted p-2 rounded-lg">
-            <h3 className="font-semibold text-center">Length</h3>
-            <div className={"flex flex-row gap-2"}>
-            <div className="flex flex-col items-start gap-2">
-              <FormLabel>Front</FormLabel>
-              <FormField
-                control={form.control}
-                name="length.front"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="flex flex-col items-start gap-2">
-              <FormLabel>Back</FormLabel>
-              <FormField
-                control={form.control}
-                name="length.back"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-            </div>
-          </div>
-
-          {/* Shoulder */}
-          <div className="absolute top-[37%] right-[17%] flex flex-col items-start gap-2 bg-muted p-2 rounded-lg">
-            <FormLabel>Shoulder</FormLabel>
-            <FormField
-              control={form.control}
-              name="shoulder"
-              render={({field}) => (
-                <FormItem>
-                  <FormControl>
-                    <div className="relative">
-                      <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                    </div>
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Top Pocket */}
-          <div className="absolute top-[45%] right-[15%] flex flex-col items-center gap-2 bg-muted p-2 rounded-lg">
-            <h3 className="font-semibold text-center">Top Pocket</h3>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Length</FormLabel>
-              <FormField
-                control={form.control}
-                name="topPocket.length"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Width</FormLabel>
-              <FormField
-                control={form.control}
-                name="topPocket.width"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Distance</FormLabel>
-              <FormField
-                control={form.control}
-                name="topPocket.distance"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Side Pocket */}
-          <div className="absolute top-[62%] right-[13%] flex flex-col items-center gap-2 bg-muted p-2 rounded-lg">
-            <h3 className="font-semibold text-center">Side Pocket</h3>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Length</FormLabel>
-              <FormField
-                control={form.control}
-                name="sidePocket.length"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Width</FormLabel>
-              <FormField
-                control={form.control}
-                name="sidePocket.width"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Distance</FormLabel>
-              <FormField
-                control={form.control}
-                name="sidePocket.distance"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Opening</FormLabel>
-              <FormField
-                control={form.control}
-                name="sidePocket.opening"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Waist */}
-          <div className="absolute top-[82%] right-[5%] space-y-2 bg-muted p-2 rounded-lg flex flex-col items-center">
-            <h3 className="font-semibold text-center">Waist</h3>
-            <div className={"flex flex-row gap-2"}>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Front</FormLabel>
-              <FormField
-                control={form.control}
-                name="waist.front"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-              <div className="flex flex-col items-start gap-2">
-              <FormLabel>Back</FormLabel>
-              <FormField
-                control={form.control}
-                name="waist.back"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-            </div>
-          </div>
-
-          {/* Bottom */}
-          <div className="flex flex-col items-start absolute top-[95%] right-[12%] gap-2 bg-muted p-2 rounded-lg">
-            <h3 className="font-semibold">Bottom</h3>
-            <FormField
-              control={form.control}
-              name="bottom"
-              render={({field}) => (
-                <FormItem>
-                  <FormControl>
-                    <div className="relative">
-                      <Input type="number" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} placeholder="0.0" className="bg-white w-20 pr-8" disabled={isDisabled}/>
-                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-gray-500">{unit}</span>
-                    </div>
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Fabric Reference No. and Notes */}
-          <div className="absolute bottom-[5%] left-[5%] flex flex-col gap-4 bg-muted p-4 rounded-lg w-80">
+        {/* ---- Middle Section ---- */}
+        <div className="flex flex-col-reverse 2xl:flex-row 2xl:gap-x-4 items-center 2xl:items-end pt-64 pb-20">
+          <div className="space-y-6 flex flex-col w-80">
             <FormField
               control={form.control}
               name="fabricReferenceNo"
-              render={({field}) => (
-                <FormItem>
+              render={({ field }) => (
+                <FormItem className="w-full">
                   <FormLabel>Fabric Reference No.</FormLabel>
                   <FormControl>
-                    <Input {...field} className="bg-white" disabled={isDisabled}/>
+                    <Input {...field} className="bg-white" disabled={isDisabled} />
                   </FormControl>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="notes"
-              render={({field}) => (
-                <FormItem>
+              render={({ field }) => (
+                <FormItem className="w-full">
                   <FormLabel>Notes and special requests</FormLabel>
                   <FormControl>
                     <Textarea
                       rows={5}
                       placeholder="Customer special request and notes"
-                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical transition duration-200"
+                      className="w-full bg-white border rounded-md"
                       {...field}
                       disabled={isDisabled}
                     />
                   </FormControl>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+
+          {/* Right: Image + Measurement Fields */}
+          <div className="relative flex flex-col items-center flex-grow w-full mb-40 2xl:mb-0">
+            <img src={MyImg} alt="Dishdasha Measurement Guide" className="max-w-md lg:max-w-xl 2xl:max-w-xl h-auto object-contain" />
+
+            {/* Example: Collar Overlay */}
+            <GroupedMeasurementFields
+              form={form}
+              title="Collar"
+              unit={unit}
+              isDisabled={isDisabled}
+              fields={[
+                { name: "collar.width", label: "Width" },
+                { name: "collar.height", label: "Height" },
+              ]}
+              wrapperClassName="absolute top-[-23%] right-[30%] bg-muted p-2 rounded-lg"
+            />
+            {/* Shoulder */}
+            <MeasurementInput
+              form={form}
+              name="shoulder"
+              label="Shoulder"
+              unit={unit}
+              isDisabled={isDisabled}
+              className="absolute top-[3%] right-[10%] bg-muted p-2 rounded-lg"
+            />
+            {/* Armhole */}
+            <MeasurementInput
+              form={form}
+              name="armhole"
+              label="Armhole"
+              unit={unit}
+              isDisabled={isDisabled}
+              className="absolute top-[0%] left-[12%] bg-muted p-2 rounded-lg"
+            />
+            {/* Chest */}
+            <GroupedMeasurementFields
+              form={form}
+              title="Chest"
+              unit={unit}
+              isDisabled={isDisabled}
+              fields={[
+                { name: "chest.upper", label: "Upper" },
+                { name: "chest.half", label: "Half", className: "mt-2" },
+                { name: "chest.full", label: "Full", className: "mt-2" }
+              ]}
+              wrapperClassName="absolute top-[10%] left-[6%] bg-muted p-2 rounded-lg"
+            />
+            {/* Sleeve */}
+            <MeasurementInput
+              form={form}
+              name="sleeve"
+              label="Sleeve"
+              unit={unit}
+              isDisabled={isDisabled}
+              className="absolute top-[48%] left-[4%] bg-muted p-2 rounded-lg"
+            />
+            {/* Elbow */}
+            <MeasurementInput
+              form={form}
+              name="elbow"
+              label="Elbow"
+              unit={unit}
+              isDisabled={isDisabled}
+              className="absolute top-[32%] left-[4%] bg-muted p-2 rounded-lg"
+            />
+            {/* Top Pocket */}
+            <GroupedMeasurementFields
+              form={form}
+              title="Top Pocket"
+              unit={unit}
+              isDisabled={isDisabled}
+              fields={[
+                { name: "topPocket.length", label: "Length" },
+                { name: "topPocket.width", label: "Width", className: "mt-2" },
+                { name: "topPocket.distance", label: "Distance", className: "mt-2" }
+              ]}
+              wrapperClassName="absolute top-[10%] right-[8%] bg-muted p-2 rounded-lg"
+            />
+            {/* Side Pocket */}
+            <GroupedMeasurementFields
+              form={form}
+              title="Side Pocket"
+              unit={unit}
+              isDisabled={isDisabled}
+              fields={[
+                { name: "sidePocket.length", label: "Length" },
+                { name: "sidePocket.width", label: "Width", className: "mt-2" },
+                { name: "sidePocket.distance", label: "Distance", className: "mt-2" },
+                { name: "sidePocket.opening", label: "Opening", className: "mt-2" },
+              ]}
+              wrapperClassName="absolute top-[27%] right-[6%] bg-muted p-2 rounded-lg"
+            />
+            {/* Waist */}
+            <GroupedMeasurementFields
+              form={form}
+              title="Waist"
+              unit={unit}
+              isDisabled={isDisabled}
+              fields={[
+                { name: "waist.front", label: "Front" },
+                { name: "waist.back", label: "Back" },
+              ]}
+              wrapperClassName="absolute top-[49%] right-[6%] bg-muted p-2 rounded-lg"
+              forceColumn={true}
+            />
+            {/* Length */}
+            <GroupedMeasurementFields
+              form={form}
+              title="Length"
+              unit={unit}
+              isDisabled={isDisabled}
+              fields={[
+                { name: "length.front", label: "Front" },
+                { name: "length.back", label: "Back" },
+              ]}
+              wrapperClassName="absolute top-[-12%] right-[13%] bg-muted p-2 rounded-lg"
+            />
+            {/* Bottom */}
+            <MeasurementInput
+              form={form}
+              name="bottom"
+              label="Bottom"
+              unit={unit}
+              isDisabled={isDisabled}
+              className="absolute top-[92%] right-[6%] bg-muted p-2 rounded-lg"
+            />
+          </div>
         </div>
 
-          {/* Buttons Section */}
-          <div className="flex gap-6 justify-center">
-            <Button type="submit" variant="outline" disabled={isDisabled}>
-              Save Current Measurement
-            </Button>
-            <Button type="button" variant="outline" disabled={isDisabled}>
-              Edit Existing
-            </Button>
-            <Button type="submit" disabled={isDisabled}>New Measurement</Button>
-          </div>
+        {/* ---- Buttons ---- */}
+        <div className="flex justify-center gap-6">
+          <Button
+            type="submit"
+            variant="outline"
+            disabled={isDisabled}
+          >
+            Save Current Measurement
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isDisabled}
+          >
+            Edit Existing
+          </Button>
+          <Button type="submit" disabled={isDisabled}>
+            New Measurement
+          </Button>
+        </div>
       </form>
     </Form>
-);
+  );
 }
