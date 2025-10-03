@@ -32,6 +32,7 @@ function NewWorkOrder() {
   const { main } = Route.useParams();
   const useCurrentWorkOrderStore = React.useMemo(() => createWorkOrderStore(main), [main]);
   const [isScrolling, setIsScrolling] = React.useState(false);
+  const [customerRecordId, setCustomerRecordId] = React.useState<string | null>(null);
 
   const {
     currentStep,
@@ -103,10 +104,12 @@ function NewWorkOrder() {
                 form={demographicsForm}
                 onSubmit={(data) => {
                   setCustomerDemographics(data);
+                  addSavedStep(0);
                   toast.success("Customer Demographics saved ✅");
                 }}
-                addSavedStep={addSavedStep}
-                removeSavedStep={removeSavedStep}
+                onEdit={() => removeSavedStep(0)}
+                onCancel={() => addSavedStep(0)}
+                onCustomerChange={setCustomerRecordId}
               />
             )}
             {index === 1 && (
@@ -117,6 +120,7 @@ function NewWorkOrder() {
                   addSavedStep(1);
                   toast.success("Customer Measurements saved ✅");
                 }}
+                customerId={customerRecordId??"123"}
               />
             )}
             {

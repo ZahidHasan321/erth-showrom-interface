@@ -32,11 +32,12 @@ import { SearchCustomer } from "./search-customer";
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
   onSubmit: (values: z.infer<typeof customerDemographicsSchema>) => void;
-  addSavedStep: (step: number) => void;
-  removeSavedStep: (step: number) => void;
+  onEdit?: () => void;
+  onCancel?: () => void;
+  onCustomerChange?: (customerId: string | null) => void;
 }
 
-export function CustomerDemographicsForm({ form, onSubmit, addSavedStep, removeSavedStep }: CustomerDemographicsFormProps) {
+export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onCustomerChange }: CustomerDemographicsFormProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [displayCustomerId, setDisplayCustomerId] = useState<number | null>(null);
   const [customerRecordId, setCustomerRecordId] = useState<string | null>(null);
@@ -50,13 +51,16 @@ export function CustomerDemographicsForm({ form, onSubmit, addSavedStep, removeS
   const customerType = form.watch("customerType");
 
   React.useEffect(() => {
+    onCustomerChange?.(customerRecordId);
+  }, [customerRecordId, onCustomerChange]);
+
+  React.useEffect(() => {
     if (customerType === "New") {
       setIsEditing(true);
-      removeSavedStep(0);
     } else {
       setIsEditing(false);
     }
-  }, [customerType, removeSavedStep]);
+  }, [customerType]);
 
   const handleCustomerFound = React.useCallback(
     (customer: Customer) => {
@@ -65,17 +69,17 @@ export function CustomerDemographicsForm({ form, onSubmit, addSavedStep, removeS
       setDisplayCustomerId(customer.fields.id ?? null);
       setCustomerRecordId(customer.id);
       setIsEditing(false); // Ensure editing is off when a new customer is found
-      addSavedStep(0);
+      onSubmit(form.getValues());
     },
-    [form, addSavedStep]
+    [form, onSubmit]
   );
 
   const handleClearSearch = React.useCallback(() => {
     form.reset({ ...customerDemographicsDefaults, customerType: "Existing" });
     setDisplayCustomerId(null);
     setIsEditing(false);
-    removeSavedStep(0);
-  }, [form, removeSavedStep]);
+    onCancel?.();
+  }, [form, onCancel]);
 
   const handleFormSubmit = async (values: z.infer<typeof customerDemographicsSchema>) => {
     const customerToUpsert: { id?: string; fields: Partial<Customer["fields"]> } = {
@@ -110,7 +114,6 @@ export function CustomerDemographicsForm({ form, onSubmit, addSavedStep, removeS
         const upsertedCustomerData = response.data.records.at(0) as Customer;
         setDisplayCustomerId(upsertedCustomerData.fields.id ?? null);
         setCustomerRecordId(upsertedCustomerData.id);
-        addSavedStep(0);
         if (wasNewCustomer) {
           form.setValue("customerType", "Existing");
           setTimeout(() => setIsEditing(false), 0);
@@ -134,7 +137,7 @@ export function CustomerDemographicsForm({ form, onSubmit, addSavedStep, removeS
       description: "Are you sure you want to edit this customer?",
       onConfirm: () => {
         setIsEditing(true);
-        removeSavedStep(0);
+        onEdit?.();
         setConfirmationDialog({ ...confirmationDialog, isOpen: false });
       },
     });
@@ -147,9 +150,7 @@ export function CustomerDemographicsForm({ form, onSubmit, addSavedStep, removeS
       description: "Are you sure you want to cancel? Any unsaved changes will be lost.",
       onConfirm: () => {
         setIsEditing(false);
-        if (customerRecordId) {
-          addSavedStep(0);
-        }
+        onCancel?.();
         setConfirmationDialog({ ...confirmationDialog, isOpen: false });
       },
     });
