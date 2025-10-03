@@ -29,6 +29,7 @@ function NewWorkOrder() {
     setCurrentStep,
     savedSteps,
     addSavedStep,
+    removeSavedStep,
     setCustomerDemographics,
     setCustomerMeasurements
   } = useCurrentWorkOrderStore();
@@ -143,9 +144,10 @@ function NewWorkOrder() {
               form={demographicsForm}
               onSubmit={(data) => {
                 setCustomerDemographics(data);
-                addSavedStep(0);
                 toast.success("Customer Demographics saved ✅");
               }}
+              addSavedStep={addSavedStep}
+              removeSavedStep={removeSavedStep}
             />
           </div>
 

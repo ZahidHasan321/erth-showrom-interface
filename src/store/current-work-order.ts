@@ -20,6 +20,7 @@ interface CurrentWorkOrderState {
 
   // mark step complete
   addSavedStep: (step: number) => void;
+  removeSavedStep: (step: number) => void;
 
   // reset work order
   resetWorkOrder: () => void;
@@ -51,6 +52,9 @@ export const createWorkOrderStore = (name: string) => create<CurrentWorkOrderSta
             ? state
             : { savedSteps: [...state.savedSteps, step].sort((a, b) => a - b) }
         ),
+
+      removeSavedStep: (step) =>
+        set((state) => ({ savedSteps: state.savedSteps.filter((s) => s !== step) })),
 
       resetWorkOrder: () =>
         set({

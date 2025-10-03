@@ -40,7 +40,7 @@ export const customerDemographicsSchema = z.object({
   hasWhatsApp: z.boolean(),
   isInfluencer: z.boolean().optional(),
   instagramId: z.string().optional(),
-  email: z.email("Invalid email address").optional(),
+  email: z.string().optional(),
   customerCategory: z.enum(["", "Regular", "VIP"]).optional(),
   nationality: z.enum(["","Kuwaiti", "Saudi", "Bahraini", "Qatari", "Emirati"]),
   address: z.object({

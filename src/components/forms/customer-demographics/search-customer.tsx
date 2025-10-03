@@ -75,7 +75,7 @@ export function SearchCustomer({ onCustomerFound, onClearSearch, customerType }:
   return (
     <div className="bg-muted p-4 rounded-lg space-y-4">
       <h2 className={"text-xl font-semibold"}>Search Customer</h2>
-      <div className={"grid grid-cols-1 md:grid-cols-3 gap-4 items-end"}>
+      <div className={"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end"}>
         <FormItem>
           <FormLabel>Customer ID</FormLabel>
           <FormControl>
@@ -100,13 +100,21 @@ export function SearchCustomer({ onCustomerFound, onClearSearch, customerType }:
           </FormControl>
         </FormItem>
 
-        <div className="flex gap-2">
-          <Button type="button" className="w-fit" onClick={handleSearch} disabled={isFetching}>
+        <div className="flex gap-2 flex-wrap justify-end lg:col-span-2">
+          <Button
+            type="button"
+            onClick={handleSearch}
+            disabled={isFetching}
+          >
             <SearchIcon className="w-4 h-4 mr-2" />
-            {isFetching ? "Searching..." : "Search"}
+            {isFetching ? "Searching..." : "Search Customer"}
           </Button>
-          <Button type="button" variant="outline" className="w-fit" onClick={handleClear}>
-            Clear
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClear}
+          >
+            Clear Search
           </Button>
         </div>
       </div>
