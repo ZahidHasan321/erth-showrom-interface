@@ -11,20 +11,28 @@ import { customerMeasurementsDefaults } from "@/components/forms/customer-measur
 import { createWorkOrderStore } from "@/store/current-work-order";
 import { z } from "zod";
 import { toast } from "sonner";
-import { VerticalStepper } from "@/components/ui/vertical-stepper";
-import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useScrollSpy } from "@/hooks/use-scrollspy";
+import { Stepper } from "@/components/ui/stepper";
 import { FabricSelectionForm } from "@/components/forms/fabric-selection-and-options";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
 });
 
+const steps = [
+  { title: "Customer Demographics", id: "step-0" },
+  { title: "Customer Measurement", id: "step-1" },
+  { title: "Fabric Selection", id: "step-2" },
+  { title: "Shelves Products", id: "step-3" },
+  { title: "Order & Payment Info", id: "step-4" },
+  { title: "Confirmation", id: "step-5" },
+];
+
 function NewWorkOrder() {
   const { main } = Route.useParams();
   const useCurrentWorkOrderStore = React.useMemo(() => createWorkOrderStore(main), [main]);
+  const [isScrolling, setIsScrolling] = React.useState(false);
 
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const {
     currentStep,
     setCurrentStep,
@@ -46,144 +54,83 @@ function NewWorkOrder() {
     defaultValues: customerMeasurementsDefaults,
   });
 
-  // Stepper items
-  const steps = [
-    { title: "Customer Demographics" },
-    { title: "Customer Measurement" },
-    { title: "Fabric Selection" },
-    { title: "Shelves Products" },
-    { title: "Order & Payment Info" },
-    { title: "Confirmation" },
-  ];
-
   // Refs for scroll sections
   const sectionRefs = steps.map(() => React.useRef<HTMLDivElement | null>(null));
-  const currentStepRef = React.useRef<number>(currentStep);
-  // IntersectionObserver for active step
+  const activeSection = useScrollSpy(sectionRefs, {
+    rootMargin: "0px",
+    threshold: 0.5,
+  });
+
   React.useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-
-        timeoutRef.current = setTimeout(() => {
-          let maxRatio = -1;
-          let nextStep = -1;
-
-          entries.forEach((entry) => {
-            if (entry.intersectionRatio > maxRatio) {
-              maxRatio = entry.intersectionRatio;
-              nextStep = sectionRefs.findIndex(
-                (ref) => ref.current === entry.target
-              );
-            }
-          });
-
-          if (nextStep !== -1 && nextStep !== currentStepRef.current) {
-            currentStepRef.current = nextStep;
-            setCurrentStep(nextStep);
-          }
-        }, 100); // Debounce time in ms
-      },
-      {
-        root: null,
-        threshold: [0.25, 0.5, 0.75],
+    if (activeSection) {
+      const nextStep = steps.findIndex(step => step.id === activeSection);
+      if (nextStep !== -1 && nextStep !== currentStep) {
+        setCurrentStep(nextStep);
       }
-    );
-
-    sectionRefs.forEach((ref) => {
-      if (ref.current) observer.observe(ref.current);
-    });
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      observer.disconnect();
-    };
-  }, [sectionRefs, setCurrentStep]);
+    }
+  }, [activeSection, currentStep, setCurrentStep, steps]);
 
   const completedSteps = savedSteps;
 
-  const isMobile = useIsMobile();
-
   return (
-    <div className="w-full">
-      {isMobile && (
-        <HorizontalStepper
-          steps={steps}
-          currentStep={currentStep}
-          completedSteps={completedSteps}
-          onStepChange={(i) =>
-            sectionRefs[i].current?.scrollIntoView({ behavior: "smooth" })
-          }
-        />
-      )}
-
-      <div className="flex flex-col md:flex-row md:gap-8 w-full md:max-w-6xl">
-        {!isMobile && (
-          <div className="w-64 sticky top-10 self-start">
-            <div className="max-h-[80vh] overflow-y-auto pr-2">
-              <VerticalStepper
-                steps={steps}
-                currentStep={currentStep}
-                completedSteps={completedSteps}
-                onStepChange={(i) =>
-                  sectionRefs[i].current?.scrollIntoView({ behavior: "smooth" })
-                }
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Right Side Content */}
-        <div className="flex-1 space-y-20 p-4 md:p-0">
-          {/* Step 0: Demographics */}
-          <div ref={sectionRefs[0]}>
-            <CustomerDemographicsForm
-              form={demographicsForm}
-              onSubmit={(data) => {
-                setCustomerDemographics(data);
-                toast.success("Customer Demographics saved ✅");
-              }}
-              addSavedStep={addSavedStep}
-              removeSavedStep={removeSavedStep}
-            />
-          </div>
-
-          {/* Step 1: Measurements */}
-          <div ref={sectionRefs[1]}>
-            <CustomerMeasurementsForm
-              form={measurementsForm}
-              onSubmit={(data) => {
-                setCustomerMeasurements(data);
-                addSavedStep(1);
-                toast.success("Customer Measurements saved ✅");
-              }}
-            />
-          </div>
-
-          {/* Step 2+ placeholders */}
-          <div ref={sectionRefs[2]}>
-            <FabricSelectionForm/>
-          </div>
-          <div ref={sectionRefs[3]} className="min-h-screen flex items-center justify-center">
-            <div className="p-6 border rounded-lg w-full text-center">
-              Shelves Products Form
-            </div>
-          </div>
-          <div ref={sectionRefs[4]} className="min-h-screen flex items-center justify-center">
-            <div className="p-6 border rounded-lg w-full text-center">
-              Order & Payment Info Form
-            </div>
-          </div>
-          <div ref={sectionRefs[5]} className="min-h-screen flex items-center justify-center">
-            <div className="p-6 border rounded-lg w-full text-center">
-              Confirmation Page
-            </div>
-          </div>
+    <div className={`w-full flex flex-col md:flex-row md:gap-8 md:max-w-6xl ${isScrolling ? 'pointer-events-none' : ''}`}>
+      <div className="w-64 sticky top-10 self-start">
+        <div className="max-h-[80vh] overflow-y-auto pr-2">
+          <Stepper
+            steps={steps}
+            currentStep={currentStep}
+            completedSteps={completedSteps}
+            onStepChange={(i) => {
+              const element = document.getElementById(steps[i].id);
+              if (element) {
+                setIsScrolling(true);
+                element.scrollIntoView({ behavior: "smooth" });
+                setTimeout(() => {
+                  setIsScrolling(false);
+                }, 200);
+              }
+            }}
+          />
         </div>
+      </div>
+
+      {/* Right Side Content */}
+      <div className="flex-1 space-y-20 p-4 md:p-0">
+        {steps.map((step, index) => (
+          <div key={step.id} id={step.id} ref={sectionRefs[index]}>
+            {index === 0 && (
+              <CustomerDemographicsForm
+                form={demographicsForm}
+                onSubmit={(data) => {
+                  setCustomerDemographics(data);
+                  toast.success("Customer Demographics saved ✅");
+                }}
+                addSavedStep={addSavedStep}
+                removeSavedStep={removeSavedStep}
+              />
+            )}
+            {index === 1 && (
+              <CustomerMeasurementsForm
+                form={measurementsForm}
+                onSubmit={(data) => {
+                  setCustomerMeasurements(data);
+                  addSavedStep(1);
+                  toast.success("Customer Measurements saved ✅");
+                }}
+              />
+            )}
+            {
+              index == 2 && <FabricSelectionForm />
+            }
+            {index > 2 && (
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="p-6 border rounded-lg w-full text-center">
+                  {step.title} Form
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
