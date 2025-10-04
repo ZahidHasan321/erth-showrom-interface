@@ -15,10 +15,11 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { toast } from "sonner";
 import { upsertMeasurement } from "@/api/measurements";
 
-import { useQuery } from "@tanstack/react-query";
 import { getMeasurementsByCustomerId } from "@/api/measurements";
-import { LoadingSpinner } from "@/components/global/loading-spinner";
+import { useQuery } from "@tanstack/react-query";
+import { useGlobalLoader } from "@/hooks/use-global-loader";
 import { mapFormValuesToMeasurement, mapMeasurementToFormValues } from "@/lib/measurement-mapper";
+import { type Measurement } from "@/types/customer";
 
 const unit = "cm";
 
@@ -44,17 +45,17 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
     onConfirm: () => { },
   });
 
-  
-  
+  const { setIsLoading } = useGlobalLoader();
+
     React.useEffect(() => {
         onMeasurementsChange?.(measurements);
       }, [measurements, onMeasurementsChange]);
-    
+
       React.useEffect(() => {
         setMeasurements(null);
         setSelectedMeasurementId(null);
-      }, [customerId]);  
-  const { data: measurementQuery, isLoading, isError } = useQuery({
+      }, [customerId]);
+  const { data: measurementQuery, isLoading } = useQuery({
     queryKey: ["measurements", customerId],
     queryFn: () => {
       if (!customerId) {
@@ -64,6 +65,10 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
     },
     enabled: !!customerId,
   });
+
+  React.useEffect(() => {
+    setIsLoading(isLoading);
+  }, [isLoading, setIsLoading]);
 
    React.useEffect(() => {
       if (selectedMeasurementId && measurements) {
@@ -77,7 +82,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
   React.useEffect(() => {
     if (measurementQuery?.data && measurementQuery.data.length > 0) {
       const newMeasurements = measurementQuery.data.reduce(
-        (acc, measurement) => {
+        (acc: { measurementMap: measurementMap; measurementIDs: string[] }, measurement: Measurement) => {
           acc.measurementMap[measurement.fields.MeasurementID] = mapMeasurementToFormValues(measurement);
           acc.measurementIDs.push(measurement.fields.MeasurementID);
           return acc;
@@ -98,13 +103,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
     }
   }, [measurementQuery, customerId, setSelectedMeasurementId, form]);
 
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
-  if (isError) {
-    return <div>Error loading measurements.</div>;
-  }
+  
 
   const handleSave = () => {
     setConfirmationDialog({
@@ -489,7 +488,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               name="bottom"
               label="Bottom"
               unit={unit}
-              isDisabled={isEditing}
+              isDisabled={!isEditing}
               className="absolute top-[92%] right-[6%] bg-muted p-2 rounded-lg"
             />
           </div>

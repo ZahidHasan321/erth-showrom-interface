@@ -1,6 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
 import * as React from 'react'
-import { redirect, useRouter, useRouterState } from '@tanstack/react-router'
+import { useGlobalLoader } from '@/hooks/use-global-loader';
 import { z } from 'zod'
 import sleep, { useAuth } from '@/context/auth'
 import { BRAND_NAMES } from '@/lib/constants'
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/(auth)/login')({
 function LoginComponent() {
   const auth = useAuth()
   const router = useRouter()
-  const isLoading = useRouterState({ select: (s) => s.isLoading })
+  const { setIsLoading } = useGlobalLoader();
   const navigate = Route.useNavigate()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -74,7 +74,9 @@ function LoginComponent() {
     }
   }
 
-  const isLoggingIn = isLoading || isSubmitting
+  React.useEffect(() => {
+    setIsLoading(isSubmitting);
+  }, [isSubmitting, setIsLoading]);
 
   return (
     <div className="p-2 grid gap-2 place-items-center">
@@ -89,7 +91,7 @@ function LoginComponent() {
       )}
 
       <form className="mt-4 max-w-lg" onSubmit={onFormSubmit}>
-        <fieldset disabled={isLoggingIn} className="w-full grid gap-4">
+        <fieldset disabled={isSubmitting} className="w-full grid gap-4">
           <div className="grid gap-2 items-center min-w-[300px]">
             <label htmlFor="username-input" className="text-sm font-medium">
               Username or User ID
@@ -141,7 +143,7 @@ function LoginComponent() {
             type="submit"
             className="bg-blue-500 text-white py-2 px-4 rounded-md w-full disabled:bg-gray-300 disabled:text-gray-500"
           >
-            {isLoggingIn ? 'Loading...' : 'Login'}
+            {isSubmitting ? 'Loading...' : 'Login'}
           </button>
         </fieldset>
       </form>

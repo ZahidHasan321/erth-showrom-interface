@@ -1,28 +1,29 @@
 // src/routes/__root.tsx
 import { ErrorBoundary } from "@/components/global/error-boundary";
-import { LoadingSpinner } from "@/components/global/loading-spinner";
+import { GlobalLoader } from "@/components/global/global-loader";
 import { NotFoundPage } from "@/components/not-found-page";
 import type { AuthContext } from "@/context/auth";
+import { LoaderProvider } from "@/context/loader";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 
 interface MyRouterContext {
-  auth: AuthContext
+  auth: AuthContext;
 }
-
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: RootLayout,
   notFoundComponent: NotFoundPage,
-  pendingComponent: LoadingSpinner,
 });
-
 
 function RootLayout() {
   return (
     <ErrorBoundary>
-      <Outlet />
-      <Toaster position="top-center" richColors closeButton />
+      <LoaderProvider>
+        <GlobalLoader />
+        <Outlet />
+        <Toaster position="top-center" richColors closeButton />
+      </LoaderProvider>
     </ErrorBoundary>
   );
 }
