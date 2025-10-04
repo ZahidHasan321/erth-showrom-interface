@@ -39,7 +39,10 @@ export function DatePicker({ value, onChange, ...props }: DatePickerProps) {
             onChange(date ?? null)
             setOpen(false)
           }}
-          initialFocus
+          autoFocus
+          captionLayout="dropdown"
+          startMonth={new Date(1950, 0)}         // Jan 1950
+          endMonth={new Date(2035, 11)}        // Dec 2035
           {...props}
         />
       </PopoverContent>
