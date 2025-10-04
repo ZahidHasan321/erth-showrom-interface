@@ -85,6 +85,7 @@ function NewWorkOrder() {
 
   React.useEffect(()=>{
     if(customerRecordId !== null && customerRecordId != "") addSavedStep(0);
+    else removeSavedStep(0)
   },[customerRecordId])
 
   const completedSteps = savedSteps;
