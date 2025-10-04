@@ -11,5 +11,5 @@ export const Route = createFileRoute('/$main/')({
 })
 
 function RouteComponent() {
-    return <div>Hello "/$main/"!</div>
+    return <div>Dashboard</div>
 }

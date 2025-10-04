@@ -7,8 +7,8 @@ import { useAuth } from "@/context/auth";
 import { BRAND_NAMES } from "@/lib/constants";
 import { router } from "@/router";
 import { createFileRoute, notFound, Outlet, redirect, rootRouteId } from '@tanstack/react-router'; // Added Link
-import ErthLogo from "../../assets/Logo-03.svg"; // Import Erth Logo
-import SakhtbaLogo from "../../assets/vite.svg"; // Import Sakhtba Logo
+import ErthLogo from "../../assets/erth.svg"; // Import Erth Logo
+import SakhtbaLogo from "../../assets/sakbba.svg"; // Import Sakhtba Logo
 
 type MainParam = typeof BRAND_NAMES[keyof typeof BRAND_NAMES]
 
@@ -16,12 +16,6 @@ export const Route = createFileRoute('/$main')<{
   params: { main: MainParam }
 }>({
   component: RouteComponent,
-  // params: {
-  //   parse: (params) => {
-  //     return { main: params.main as MainParam };
-  //   },
-  //   stringify: (params) => ({ main: params.main }),
-  // },
   loader: async ({ params, context }) => {
     const { auth } = context
 
@@ -49,7 +43,13 @@ export const Route = createFileRoute('/$main')<{
   head: ({ params }) => ({
     meta: [{
       title: params.main,
-    }]
+    }
+  ],
+  links:[{
+    rel:'icon',
+    type:"image/svg+xml",
+    href: params.main === 'erth' ? "/erth.svg" :"/sakbba.svg"
+  }]
   }),
 })
 
