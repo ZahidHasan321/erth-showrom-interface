@@ -32,13 +32,8 @@ interface CustomerMeasurementsFormProps {
 type measurementMap = Record<string, CustomerMeasurementsSchema>
 
 export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasurementsChange }: CustomerMeasurementsFormProps) {
-  const [isDisabled, setIsDisabled] = React.useState(true);
-  const [isInitialLoad, setIsInitialLoad] = React.useState(true);
+  const [isEditing, setIsEditing] = React.useState(false);
   const [measurements, setMeasurements] = React.useState<measurementMap | null>(null)
-
-  React.useEffect(() => {
-    onMeasurementsChange?.(measurements);
-  }, [measurements, onMeasurementsChange]);
   const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<string | null>(null);
   const [isCreatingNew, setIsCreatingNew] = React.useState(false);
   const [previousMeasurementId, setPreviousMeasurementId] = React.useState<string | null>(null);
@@ -49,6 +44,16 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
     onConfirm: () => { },
   });
 
+  
+  
+    React.useEffect(() => {
+        onMeasurementsChange?.(measurements);
+      }, [measurements, onMeasurementsChange]);
+    
+      React.useEffect(() => {
+        setMeasurements(null);
+        setSelectedMeasurementId(null);
+      }, [customerId]);  
   const { data: measurementQuery, isLoading, isError } = useQuery({
     queryKey: ["measurements", customerId],
     queryFn: () => {
@@ -60,17 +65,14 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
     enabled: !!customerId,
   });
 
-  React.useEffect(() => {
-    if (!isInitialLoad) {
+   React.useEffect(() => {
       if (selectedMeasurementId && measurements) {
         const selectedMeasurement = measurements[selectedMeasurementId];
         if (selectedMeasurement) {
           form.reset(selectedMeasurement);
-          setIsDisabled(true);
         }
       }
-    }
-  }, [selectedMeasurementId, measurements, form, isInitialLoad]);
+  }, [selectedMeasurementId, measurements, form]);
 
   React.useEffect(() => {
     if (measurementQuery?.data && measurementQuery.data.length > 0) {
@@ -88,12 +90,11 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
         const firstMeasurementId = newMeasurements.measurementIDs[0];
         setSelectedMeasurementId(firstMeasurementId);
         form.setValue("measurementID", firstMeasurementId);
-        setIsInitialLoad(false);
       }
     } else if (measurementQuery?.data?.length === 0) {
       // No measurements found, initialize a new form
       form.reset(customerMeasurementsDefaults);
-      setIsDisabled(false);
+      setIsEditing(false);
     }
   }, [measurementQuery, customerId, setSelectedMeasurementId, form]);
 
@@ -125,7 +126,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
       onConfirm: () => {
         setPreviousMeasurementId(selectedMeasurementId); // Save the current measurement id
         setIsCreatingNew(true);
-        setIsDisabled(false);
+        setIsEditing(true);
 
         const existingMeasurementIds = measurements ? Object.keys(measurements) : [];
         let nextMeasurementNumber = 1;
@@ -162,10 +163,34 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
     });
   };
 
-  
+  const handleCancelNew = () => {
+    setIsCreatingNew(false);
+
+    // Remove the new measurement from the measurements state
+    setMeasurements(prev => {
+      const newMeasurements = { ...prev };
+      delete newMeasurements[form.getValues("measurementID")];
+      return newMeasurements;
+    });
+
+    setSelectedMeasurementId(previousMeasurementId);
+    // if (previousMeasurementId && measurements) {
+    //   form.reset(measurements[previousMeasurementId]);
+    // } else {
+    //   form.reset(customerMeasurementsDefaults);
+    // }
+    setIsEditing(false);
+  };
 
   const handleEdit = () => {
-    setIsDisabled(false); // Enable editing
+    setIsEditing(true); // Enable editing
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    if (selectedMeasurementId && measurements) {
+      form.reset(measurements[selectedMeasurementId]);
+    }
   };
 
 
@@ -184,9 +209,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
 
       if (response.status === "success" && response.data) {
 
-        toast.success("Measurement saved successfully!");
-
-        setIsDisabled(true);
+        setIsEditing(false);
 
         if (isCreatingNew) {
           setIsCreatingNew(false);
@@ -211,29 +234,6 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
     onSubmit(values); // Call the original onSubmit prop
   };
 
-  const handleCancelNew = () => {
-    setIsCreatingNew(false);
-
-    // Remove the new measurement from the measurements state
-    setMeasurements(prev => {
-      const newMeasurements = { ...prev };
-      delete newMeasurements[form.getValues("measurementID")];
-      return newMeasurements;
-    });
-
-    setSelectedMeasurementId(previousMeasurementId);
-    if (previousMeasurementId && measurements) {
-      form.reset(measurements[previousMeasurementId]);
-    } else {
-      form.reset(customerMeasurementsDefaults);
-    }
-    setIsDisabled(true);
-    toast.info("New measurement cancelled.");
-  };
-
-
-  
-
   return (
     <Form {...form}>
       <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="mx-auto space-y-8 max-w-7xl">
@@ -251,27 +251,26 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
           {/* Left side: Measurement Type + ID */}
           <div className="flex gap-6 bg-muted p-4 rounded-lg">
             <FormField
-              control={form.control}
-              name="measurementType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Measurement Type</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isDisabled}>
-                    <FormControl>
-                      <SelectTrigger className="bg-white w-auto">
-                        <SelectValue placeholder="Measurement Type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Body">Body</SelectItem>
-                      <SelectItem value="Dishdasha">Dishdasha</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+                          control={form.control}
+                          name="measurementType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Measurement Type</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value} disabled={!isEditing}>
+                                <FormControl>
+                                  <SelectTrigger className="bg-white w-auto">
+                                    <SelectValue placeholder="Measurement Type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Body">Body</SelectItem>
+                                  <SelectItem value="Dishdasha">Dishdasha</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
             <FormField
               control={form.control}
               name="measurementID"
@@ -281,10 +280,11 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
                   <Select
                     onValueChange={(value) => {
                       field.onChange(value);
-                      setSelectedMeasurementId(value);
+                      if(value != "")
+                        setSelectedMeasurementId(value);
                     }}
                     value={field.value}
-                    disabled={!customerId}
+                    disabled={!customerId || isCreatingNew}
                   >
                     <FormControl>
                       <SelectTrigger className="bg-white w-auto">
@@ -314,7 +314,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Measurement Reference</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isDisabled}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={!isEditing}>
                     <FormControl>
                       <SelectTrigger className="bg-white w-auto">
                         <SelectValue placeholder="Measurement Reference" />
@@ -342,7 +342,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               form={form}
               name="fabricReferenceNo"
               label="Fabric Reference No."
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
             />
 
             <FormField
@@ -357,11 +357,11 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
                       placeholder="Customer special request and notes"
                       className="w-full bg-white border rounded-md"
                       {...field}
-                      disabled={isDisabled}
+                      disabled={!isEditing}
                     />
                   </FormControl>
                   <FormMessage />
-                </FormItem>
+                 </FormItem>
               )}
             />
           </div>
@@ -375,7 +375,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               form={form}
               title="Collar"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
               fields={[
                 { name: "collar.width", label: "Width" },
                 { name: "collar.height", label: "Height" },
@@ -388,7 +388,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               name="shoulder"
               label="Shoulder"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
               className="absolute top-[3%] right-[10%] bg-muted p-2 rounded-lg"
             />
             {/* Armhole */}
@@ -397,7 +397,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               name="armhole"
               label="Armhole"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
               className="absolute top-[0%] left-[12%] bg-muted p-2 rounded-lg"
             />
             {/* Chest */}
@@ -405,7 +405,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               form={form}
               title="Chest"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
               fields={[
                 { name: "chest.upper", label: "Upper" },
                 { name: "chest.half", label: "Half", className: "mt-2" },
@@ -419,7 +419,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               name="sleeve"
               label="Sleeve"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
               className="absolute top-[48%] left-[4%] bg-muted p-2 rounded-lg"
             />
             {/* Elbow */}
@@ -428,7 +428,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               name="elbow"
               label="Elbow"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
               className="absolute top-[32%] left-[4%] bg-muted p-2 rounded-lg"
             />
             {/* Top Pocket */}
@@ -436,7 +436,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               form={form}
               title="Top Pocket"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
               fields={[
                 { name: "topPocket.length", label: "Length" },
                 { name: "topPocket.width", label: "Width", className: "mt-2" },
@@ -449,7 +449,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               form={form}
               title="Side Pocket"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
               fields={[
                 { name: "sidePocket.length", label: "Length" },
                 { name: "sidePocket.width", label: "Width", className: "mt-2" },
@@ -463,7 +463,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               form={form}
               title="Waist"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
               fields={[
                 { name: "waist.front", label: "Front" },
                 { name: "waist.back", label: "Back" },
@@ -476,7 +476,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               form={form}
               title="Length"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={!isEditing}
               fields={[
                 { name: "length.front", label: "Front" },
                 { name: "length.back", label: "Back" },
@@ -489,7 +489,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
               name="bottom"
               label="Bottom"
               unit={unit}
-              isDisabled={isDisabled}
+              isDisabled={isEditing}
               className="absolute top-[92%] right-[6%] bg-muted p-2 rounded-lg"
             />
           </div>
@@ -497,11 +497,11 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
 
         {/* ---- Buttons ---- */}
         <div className="flex justify-center gap-6">
-          {isCreatingNew && (
+          {(isCreatingNew || isEditing) && (
             <Button
               type="button"
               variant="destructive"
-              onClick={handleCancelNew}
+              onClick={isCreatingNew ? handleCancelNew : handleCancelEdit}
             >
               Cancel
             </Button>
@@ -509,7 +509,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
           <Button
             type="submit"
             variant="outline"
-            disabled={isDisabled}
+            disabled={!isEditing}
           >
             Save Current Measurement
           </Button>
@@ -517,17 +517,17 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
             type="button"
             variant="outline"
             onClick={handleEdit}
-            disabled={!selectedMeasurementId || !isDisabled} // Disable if no measurement is selected or if already editing
+            disabled={!selectedMeasurementId || isEditing}
           >
             Edit Existing
           </Button>
-          <Button
+          {!isEditing && <Button
             type="button"
             onClick={handleNewMeasurement}
             disabled={!customerId || isCreatingNew}
           >
             New Measurement
-          </Button>
+          </Button>}
         </div>
       </form>
     </Form>

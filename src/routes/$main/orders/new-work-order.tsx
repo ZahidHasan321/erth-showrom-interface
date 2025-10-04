@@ -83,6 +83,10 @@ function NewWorkOrder() {
     }
   }, [measurements, addSavedStep, removeSavedStep]);
 
+  React.useEffect(()=>{
+    if(customerRecordId !== null && customerRecordId != "") addSavedStep(0);
+  },[customerRecordId])
+
   const completedSteps = savedSteps;
 
   const handleStepChange = (i: number) => {
@@ -129,7 +133,6 @@ function NewWorkOrder() {
                 form={demographicsForm}
                 onSubmit={(data) => {
                   setCustomerDemographics(data);
-                  addSavedStep(0);
                   toast.success("Customer Demographics saved ✅");
                 }}
                 onEdit={() => removeSavedStep(0)}
