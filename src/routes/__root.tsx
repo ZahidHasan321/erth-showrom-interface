@@ -4,7 +4,7 @@ import { GlobalLoader } from "@/components/global/global-loader";
 import { NotFoundPage } from "@/components/not-found-page";
 import type { AuthContext } from "@/context/auth";
 import { LoaderProvider } from "@/context/loader";
-import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
+import { createRootRouteWithContext, HeadContent, Outlet } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 
 interface MyRouterContext {
@@ -21,6 +21,9 @@ function RootLayout() {
     <ErrorBoundary>
       <LoaderProvider>
         <GlobalLoader />
+        <head>
+          <HeadContent />
+        </head>
         <Outlet />
         <Toaster position="top-center" richColors closeButton />
       </LoaderProvider>

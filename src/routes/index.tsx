@@ -8,6 +8,11 @@ import { BRAND_NAMES } from "@/lib/constants";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
+  head: () => ({
+    meta: [{
+      title: "Welcome",
+    }]
+  }),
 });
 
 function LandingPage() {

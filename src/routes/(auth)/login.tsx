@@ -17,6 +17,11 @@ export const Route = createFileRoute('/(auth)/login')({
     }
   },
   component: LoginComponent,
+  head: () => ({
+    meta: [{
+      title: "Login",
+    }]
+  }),
 })
 
 function LoginComponent() {

@@ -2,6 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/about")({
   component: About,
+  head: () => ({
+    meta: [{
+      title: "About Us",
+    }]
+  }),
 });
 
 function About() {

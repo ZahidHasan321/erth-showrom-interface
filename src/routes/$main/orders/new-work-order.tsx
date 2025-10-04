@@ -17,6 +17,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
+  head: () => ({
+    meta: [{
+      title: "New Work Order",
+    }]
+  }),
 });
 
 const steps = [

@@ -46,6 +46,11 @@ export const Route = createFileRoute('/$main')<{
     }
   },
   notFoundComponent: NotFoundPage,
+  head: ({ params }) => ({
+    meta: [{
+      title: params.main,
+    }]
+  }),
 })
 
 
