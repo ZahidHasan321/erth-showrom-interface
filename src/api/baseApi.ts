@@ -63,6 +63,33 @@ export const searchRecords = async <T>(
 };
 
 /**
+ * Searches for all records in a table that match a set of fields.
+ * @param tableName The name of the table to search in.
+ * @param searchFields An object containing key-value pairs to search for.
+ * @returns A promise that resolves to the search result.
+ */
+export const searchAllRecords = async <T>(
+  tableName: string,
+  searchFields: object,
+): Promise<ApiResponse<T>> => {
+  const response = await fetch(`${BASE_URL}/airtable/${tableName}/search-all`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(searchFields),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json();
+    throw new Error(errorBody.detail || `Failed to search in table ${tableName} with query ${JSON.stringify(searchFields)}`);
+  }
+
+  const data = await response.json();
+  return data as ApiResponse<T>;
+};
+
+/**
  * Creates a new record in a given Airtable table.
  * @param tableName The name of the table to create the record in.
  * @param record The record data to create.
@@ -97,7 +124,7 @@ export const createRecord = async <T>(
  */
 export const upsertRecords = async <T>(
   tableName: string,
-  records: Array<{ id?: string; fields: Partial<T> }>,
+  records: Array<{ id?: string; fields: any }>,
   keyFields: string[],
 ): Promise<ApiResponse<T[]>> => {
   const response = await fetch(`${BASE_URL}/airtable/${tableName}/upsert`, {

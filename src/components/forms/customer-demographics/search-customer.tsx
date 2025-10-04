@@ -10,11 +10,10 @@ import { toast } from "sonner";
 
 interface SearchCustomerProps {
   onCustomerFound: (customer: Customer) => void;
-  onClearSearch: () => void;
   customerType: "New" | "Existing";
 }
 
-export function SearchCustomer({ onCustomerFound, onClearSearch, customerType }: SearchCustomerProps) {
+export function SearchCustomer({ onCustomerFound, customerType }: SearchCustomerProps) {
   const [searchMobile, setSearchMobile] = useState("");
   const [searchCustomerId, setSearchCustomerId] = useState("");
   const [submittedSearch, setSubmittedSearch] = useState<{ term: string; type: "phone" | "id" } | null>(null);
@@ -65,7 +64,6 @@ export function SearchCustomer({ onCustomerFound, onClearSearch, customerType }:
     setSearchMobile("");
     setSearchCustomerId("");
     setSubmittedSearch(null);
-    onClearSearch();
   };
 
   if (customerType !== "Existing") {

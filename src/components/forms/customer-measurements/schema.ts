@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
-  measurementType: "Body",
   measurementID: "",
+  measurementType: "Body",
   measurementReference: "Other", // fallback
-  fabricReferenceNo: "",
+  fabricReferenceNo: [],
   notes: "",
   collar: {
     width: 0,
@@ -41,12 +41,11 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
   bottom: 0,
 };
 export const customerMeasurementsSchema = z.object({
-  measurementType: z.enum(["Body", "Dishdasha"]),
   measurementID: z.string(),
+  measurementType: z.enum(["Body", "Dishdasha"]),
   measurementReference: z.enum(["Winter", "Summer", "Eid", "Occasion", "Other"]),
-  fabricReferenceNo: z.string(),
+  fabricReferenceNo: z.array(z.string()).optional(),
   notes: z.string().optional(),
-  // Measurements
   collar: z.object({
     width: z.number("Invalid number").positive("InValid Collar Width"),
     height: z.number("Invalid number").positive("InValid Collar Height"),
@@ -83,3 +82,4 @@ export const customerMeasurementsSchema = z.object({
 });
 
 export type CustomerMeasurementsSchema = z.infer<typeof customerMeasurementsSchema>;
+

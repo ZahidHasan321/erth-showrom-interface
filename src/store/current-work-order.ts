@@ -10,12 +10,14 @@ type CustomerMeasurements = z.infer<typeof customerMeasurementsSchema>;
 interface CurrentWorkOrderState {
   customerDemographics: Partial<CustomerDemographics>;
   customerMeasurements: Partial<CustomerMeasurements>;
+  measurementId: string | null;
   currentStep: number;
   savedSteps: number[];
 
   // setters
   setCustomerDemographics: (data: Partial<CustomerDemographics>) => void;
   setCustomerMeasurements: (data: Partial<CustomerMeasurements>) => void;
+  setMeasurementId: (id: string | null) => void;
   setCurrentStep: (step: number) => void;
 
   // mark step complete
@@ -31,6 +33,7 @@ export const createWorkOrderStore = (name: string) => create<CurrentWorkOrderSta
     (set) => ({
       customerDemographics: {},
       customerMeasurements: {},
+      measurementId: null,
       currentStep: 0,
       savedSteps: [],
 
@@ -43,6 +46,8 @@ export const createWorkOrderStore = (name: string) => create<CurrentWorkOrderSta
         set((state) => ({
           customerMeasurements: { ...state.customerMeasurements, ...data },
         })),
+
+      setMeasurementId: (id) => set({ measurementId: id }),
 
       setCurrentStep: (step) => set({ currentStep: step }),
 
@@ -60,6 +65,7 @@ export const createWorkOrderStore = (name: string) => create<CurrentWorkOrderSta
         set({
           customerDemographics: {},
           customerMeasurements: {},
+          measurementId: null,
           currentStep: 0,
           savedSteps: [],
         }),

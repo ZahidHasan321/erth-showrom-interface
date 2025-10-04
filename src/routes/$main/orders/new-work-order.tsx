@@ -5,9 +5,8 @@ import { CustomerMeasurementsForm } from "@/components/forms/customer-measuremen
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { customerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
-import { customerMeasurementsSchema } from "@/components/forms/customer-measurements/schema";
+import { customerMeasurementsSchema, customerMeasurementsDefaults } from "@/components/forms/customer-measurements/schema";
 import { customerDemographicsDefaults } from "@/components/forms/customer-demographics/schema";
-import { customerMeasurementsDefaults } from "@/components/forms/customer-measurements/schema";
 import { createWorkOrderStore } from "@/store/current-work-order";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -34,6 +33,7 @@ function NewWorkOrder() {
   const useCurrentWorkOrderStore = React.useMemo(() => createWorkOrderStore(main), [main]);
   const [isScrolling, setIsScrolling] = React.useState(false);
   const [customerRecordId, setCustomerRecordId] = React.useState<string | null>(null);
+  const [measurements, setMeasurements] = React.useState<any | null>(null);
   const isMobile = useIsMobile();
 
   const {
@@ -43,8 +43,10 @@ function NewWorkOrder() {
     addSavedStep,
     removeSavedStep,
     setCustomerDemographics,
-    setCustomerMeasurements
+    setCustomerMeasurements,
   } = useCurrentWorkOrderStore();
+
+
 
   // Forms
   const demographicsForm = useForm<z.infer<typeof customerDemographicsSchema>>({
@@ -72,6 +74,14 @@ function NewWorkOrder() {
       }
     }
   }, [activeSection, currentStep, setCurrentStep, steps]);
+
+  React.useEffect(() => {
+    if (measurements && Object.keys(measurements).length > 0) {
+      addSavedStep(1);
+    } else {
+      removeSavedStep(1);
+    }
+  }, [measurements, addSavedStep, removeSavedStep]);
 
   const completedSteps = savedSteps;
 
@@ -132,10 +142,10 @@ function NewWorkOrder() {
                 form={measurementsForm}
                 onSubmit={(data) => {
                   setCustomerMeasurements(data);
-                  addSavedStep(1);
                   toast.success("Customer Measurements saved ✅");
                 }}
-                customerId={customerRecordId??"123"}
+                customerId={customerRecordId}
+                onMeasurementsChange={setMeasurements}
               />
             )}
             {

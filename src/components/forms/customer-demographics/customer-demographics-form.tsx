@@ -51,8 +51,8 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
   const customerType = form.watch("customerType");
 
   React.useEffect(() => {
-    onCustomerChange?.(customerRecordId);
-  }, [customerRecordId, onCustomerChange]);
+    onCustomerChange?.(displayCustomerId ? String(displayCustomerId) : null);
+  }, [displayCustomerId, onCustomerChange]);
 
   React.useEffect(() => {
     if (customerType === "New") {
@@ -69,17 +69,11 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
       setDisplayCustomerId(customer.fields.id ?? null);
       setCustomerRecordId(customer.id);
       setIsEditing(false); // Ensure editing is off when a new customer is found
-      onSubmit(form.getValues());
     },
-    [form, onSubmit]
+    [form]
   );
 
-  const handleClearSearch = React.useCallback(() => {
-    form.reset({ ...customerDemographicsDefaults, customerType: "Existing" });
-    setDisplayCustomerId(null);
-    setIsEditing(false);
-    onCancel?.();
-  }, [form, onCancel]);
+
 
   const handleFormSubmit = async (values: z.infer<typeof customerDemographicsSchema>) => {
     const customerToUpsert: { id?: string; fields: Partial<Customer["fields"]> } = {
@@ -200,14 +194,30 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
                   <Select
                     value={field.value}
                     onValueChange={(value) => {
-                      field.onChange(value);
-                      if (value === "New") {
-                        setDisplayCustomerId(null);
-                        setCustomerRecordId(null);
-                        form.reset(customerDemographicsDefaults);
-                        setIsEditing(true);
-                      } else if (value === "Existing") {
-                        setIsEditing(false);
+                      if (value === "New" && customerRecordId) {
+                        setConfirmationDialog({
+                          isOpen: true,
+                          title: "Confirm Change to New Customer",
+                          description: "Are you sure you want to change to a new customer? All unsaved changes for the current customer will be lost.",
+                          onConfirm: () => {
+                            field.onChange(value);
+                            setDisplayCustomerId(null);
+                            setCustomerRecordId(null);
+                            form.reset(customerDemographicsDefaults);
+                            setIsEditing(true);
+                            setConfirmationDialog({ ...confirmationDialog, isOpen: false });
+                          },
+                        });
+                      } else {
+                        field.onChange(value);
+                        if (value === "New") {
+                          setDisplayCustomerId(null);
+                          setCustomerRecordId(null);
+                          form.reset(customerDemographicsDefaults);
+                          setIsEditing(true);
+                        } else if (value === "Existing") {
+                          setIsEditing(false);
+                        }
                       }
                     }}
                   >
@@ -231,7 +241,6 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
         {customerType === "Existing" && (
           <SearchCustomer
             onCustomerFound={handleCustomerFound}
-            onClearSearch={handleClearSearch}
             customerType={customerType}
           />
         )}
