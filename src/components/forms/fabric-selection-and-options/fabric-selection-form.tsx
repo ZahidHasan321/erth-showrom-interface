@@ -3,29 +3,41 @@
 import { columns } from './columns'
 import { DataTable } from './data-table'
 import { useState } from 'react'
-import { type FabricSelection } from './columns'
+import { type FabricSelection } from '@/types/fabric'
 import { Button } from '@/components/ui/button'
 
 const initialData: FabricSelection[] = [
   {
-    id: '1',
+    id: "1",
     copyPrevious: false,
-    garmentId: '',
+    garmentId: "",
     brova: false,
-    fabricSource: '',
-    fabricCode: '',
-    fabricLength: '',
-    measurementId: '',
+    fabricSource: "",
+    fabricCode: "",
+    fabricLength: "",
+    measurementId: "",
     customize: false,
-    styleOptionId: '',
-    style: '',
+    styleOptionId: "",
+    style: "",
     line1: false,
     line2: false,
-    collarType: '',
-    collarButton: '',
+    collarType: "",
+    collarButton: "",
     smallTabaggi: false,
+    jabzour1: "",
+    jabzour2: "",
+    jabzour_thickness: "",
+    top_pocket_type: "",
+    top_pocket_thickness: "",
+    pen_holder: false,
+    side_pocket_phone: false,
+    side_pocket_wallet: false,
+    sleeves_type: "",
+    sleeves_thickness: "",
+    total_amount: 0,
+    special_request: "",
   },
-]
+];
 
 export function FabricSelectionForm() {
   const [data, setData] = useState<FabricSelection[]>(initialData)
@@ -48,21 +60,33 @@ export function FabricSelectionForm() {
     const newRow: FabricSelection = {
       id: `${data.length + 1}`,
       copyPrevious: false,
-      garmentId: '',
+      garmentId: "",
       brova: false,
-      fabricSource: '',
-      fabricCode: '',
-      fabricLength: '',
-      measurementId: '',
+      fabricSource: "",
+      fabricCode: "",
+      fabricLength: "",
+      measurementId: "",
       customize: false,
-      styleOptionId: '',
-      style: '',
+      styleOptionId: "",
+      style: "",
       line1: false,
       line2: false,
-      collarType: '',
-      collarButton: '',
+      collarType: "",
+      collarButton: "",
       smallTabaggi: false,
-    }
+      jabzour1: "",
+      jabzour2: "",
+      jabzour_thickness: "",
+      top_pocket_type: "",
+      top_pocket_thickness: "",
+      pen_holder: false,
+      side_pocket_phone: false,
+      side_pocket_wallet: false,
+      sleeves_type: "",
+      sleeves_thickness: "",
+      total_amount: 0,
+      special_request: "",
+    };
     setData([...data, newRow])
   }
 
