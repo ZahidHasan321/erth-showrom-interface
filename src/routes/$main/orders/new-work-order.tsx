@@ -13,7 +13,9 @@ import { toast } from "sonner";
 import { useScrollSpy } from "@/hooks/use-scrollspy";
 import { Stepper } from "@/components/ui/stepper";
 import { FabricSelectionForm } from "@/components/forms/fabric-selection-and-options";
+import { ShelvedProductsForm } from "@/components/forms/shelved-products";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
@@ -37,18 +39,20 @@ function NewWorkOrder() {
   const { main } = Route.useParams();
   const useCurrentWorkOrderStore = React.useMemo(() => createWorkOrderStore(main), [main]);
   const [isScrolling, setIsScrolling] = React.useState(false);
-  const [customerRecordId, setCustomerRecordId] = React.useState<string | null>(null);
-  const [measurements, setMeasurements] = React.useState<any | null>(null);
   const isMobile = useIsMobile();
 
   const {
     currentStep,
     setCurrentStep,
     savedSteps,
+    resetWorkOrder,
     addSavedStep,
     removeSavedStep,
+    customerId,
+    setCustomerId,
     setCustomerDemographics,
     setCustomerMeasurements,
+    setShelvedProducts,
   } = useCurrentWorkOrderStore();
 
 
@@ -72,6 +76,10 @@ function NewWorkOrder() {
   });
 
   React.useEffect(() => {
+    if(customerId == null) resetWorkOrder;
+  },[customerId])
+
+  React.useEffect(() => {
     if (activeSection) {
       const nextStep = steps.findIndex(step => step.id === activeSection);
       if (nextStep !== -1 && nextStep !== currentStep) {
@@ -79,19 +87,6 @@ function NewWorkOrder() {
       }
     }
   }, [activeSection, currentStep, setCurrentStep, steps]);
-
-  React.useEffect(() => {
-    if (measurements && Object.keys(measurements).length > 0) {
-      addSavedStep(1);
-    } else {
-      removeSavedStep(1);
-    }
-  }, [measurements, addSavedStep, removeSavedStep]);
-
-  React.useEffect(()=>{
-    if(customerRecordId !== null && customerRecordId != "") addSavedStep(0);
-    else removeSavedStep(0)
-  },[customerRecordId])
 
   const completedSteps = savedSteps;
 
@@ -105,6 +100,10 @@ function NewWorkOrder() {
       }, 200);
     }
   };
+
+  const handleProceed = React.useCallback((step: number) => {
+    addSavedStep(step);
+  }, [addSavedStep]);
 
   return (
     <div className={`w-full flex flex-col xl:flex-row xl:gap-8 ${isScrolling ? 'pointer-events-none' : ''}`}>
@@ -143,7 +142,8 @@ function NewWorkOrder() {
                 }}
                 onEdit={() => removeSavedStep(0)}
                 onCancel={() => addSavedStep(0)}
-                onCustomerChange={setCustomerRecordId}
+                onCustomerChange={setCustomerId}
+                onProceed={() => handleProceed(0)}
               />
             )}
             {index === 1 && (
@@ -153,14 +153,24 @@ function NewWorkOrder() {
                   setCustomerMeasurements(data);
                   toast.success("Customer Measurements saved ✅");
                 }}
-                customerId={customerRecordId}
-                onMeasurementsChange={setMeasurements}
+                customerId={customerId}
+                onMeasurementsChange={(measurements) => {
+                  if (measurements && Object.keys(measurements).length > 0) {
+                    addSavedStep(1);
+                  } else {
+                    removeSavedStep(1);
+                  }
+                }}
+                onProceed={() => handleProceed(1)}
               />
             )}
             {
-              index == 2 && <FabricSelectionForm useCurrentWorkOrderStore={useCurrentWorkOrderStore} customerId={customerRecordId} />
+              index == 2 && <FabricSelectionForm useCurrentWorkOrderStore={useCurrentWorkOrderStore} customerId={customerId} />
             }
-            {index > 2 && (
+            {
+              index == 3 && <ShelvedProductsForm setFormData={setShelvedProducts} onProceed={() => handleProceed(3)} />
+            }
+            {index > 3 && (
               <div className="min-h-screen flex items-center justify-center">
                 <div className="p-6 border rounded-lg w-full text-center">
                   {step.title} Form
@@ -173,5 +183,3 @@ function NewWorkOrder() {
     </div>
   );
 }
-
-        

@@ -2,6 +2,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { type FabricSelectionSchema } from "../schema";
+import {Trash2} from "lucide-react";
 
 export const deleteActionColumn: ColumnDef<FabricSelectionSchema>[] = [
   {
@@ -12,8 +13,8 @@ export const deleteActionColumn: ColumnDef<FabricSelectionSchema>[] = [
       };
 
       return (
-        <Button variant="destructive" size="sm" onClick={handleDelete}>
-          Delete
+        <Button variant="ghost" size="sm" onClick={handleDelete}>
+          <Trash2 className={"w-10 h-10"}/>
         </Button>
       );
     },

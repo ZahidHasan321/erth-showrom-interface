@@ -31,7 +31,7 @@ export const measurementsColumn: ColumnDef<FabricSelectionSchema>[] = [
                     <SelectValue placeholder="Select ID" />
                   </SelectTrigger>
                   <SelectContent>
-                    {table.options.meta?.measurementIDs.map((id) => (
+                    {table.options.meta?.measurementIDs?.map((id) => (
                       <SelectItem key={id} value={id}>
                         {id}
                       </SelectItem>

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import ErthLogo from "../assets/erth.svg"; // Import Erth Logo
-import SakhtbaLogo from "../assets/sakbba.svg"; // Import Sakhtba Logo
+import SakhtbaLogo from "../assets/Sakkba.png"; // Import Sakhtba Logo
 import { BRAND_NAMES } from "@/lib/constants";
 
 export const Route = createFileRoute("/")({
@@ -47,10 +47,10 @@ function LandingPage() {
               </CardHeader>
               <CardContent className="p-0 text-center flex-grow">
                 <CardDescription className="text-lg text-gray-600 mb-8">
-                  Access the Showroom and comprehensive management tools.
+                  Access from Showroom and comprehensive management tools.
                 </CardDescription>
                 <Button className="w-full py-3 text-lg bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-md transition-colors duration-200">
-                  Enter Showroom
+                  Enter Erth
                 </Button>
               </CardContent>
             </Card>
@@ -71,10 +71,10 @@ function LandingPage() {
               </CardHeader>
               <CardContent className="p-0 text-center flex-grow">
                 <CardDescription className="text-lg text-gray-600 mb-8">
-                  Explore the From Home and operational features.
+                    Access from homes to manage orders.
                 </CardDescription>
                 <Button className="w-full py-3 text-lg bg-green-600 hover:bg-green-700 text-white rounded-md shadow-md transition-colors duration-200">
-                  Enter From Home
+                  Enter Sakkba
                 </Button>
               </CardContent>
             </Card>

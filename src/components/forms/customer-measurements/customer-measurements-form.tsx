@@ -28,11 +28,12 @@ interface CustomerMeasurementsFormProps {
   onSubmit: (values: z.infer<typeof customerMeasurementsSchema>) => void;  // <-- Accept `onSubmit` as prop
   customerId: string | null;
   onMeasurementsChange?: (measurements: measurementMap | null) => void;
+  onProceed?: () => void;
 }
 
 type measurementMap = Record<string, CustomerMeasurementsSchema>
 
-export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasurementsChange }: CustomerMeasurementsFormProps) {
+export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed }: CustomerMeasurementsFormProps) {
   const [isEditing, setIsEditing] = React.useState(false);
   const [measurements, setMeasurements] = React.useState<measurementMap | null>(null)
   const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<string | null>(null);
@@ -47,14 +48,12 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
 
   const { setIsLoading } = useGlobalLoader();
 
-    React.useEffect(() => {
-        onMeasurementsChange?.(measurements);
-      }, [measurements, onMeasurementsChange]);
 
       React.useEffect(() => {
         setMeasurements(null);
         setSelectedMeasurementId(null);
       }, [customerId]);
+
   const { data: measurementQuery, isLoading } = useQuery({
     queryKey: ["measurements", customerId],
     queryFn: () => {
@@ -527,6 +526,13 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onMeasure
           >
             New Measurement
           </Button>}
+          <Button
+            type="button"
+            onClick={onProceed}
+            disabled={measurements == null || Object.keys(measurements).length == 0} 
+          >
+            Proceed
+          </Button>
         </div>
       </form>
     </Form>

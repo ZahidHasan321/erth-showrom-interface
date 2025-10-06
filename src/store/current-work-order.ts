@@ -2,18 +2,22 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { customerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
 import { customerMeasurementsSchema } from "@/components/forms/customer-measurements/schema";
+import { shelvedProductsSchema } from '@/components/forms/shelved-products/schema';
 import { z } from "zod";
 import type { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/schema";
 
 type CustomerDemographics = z.infer<typeof customerDemographicsSchema>;
 type CustomerMeasurements = z.infer<typeof customerMeasurementsSchema>;
 type FabricSelection = z.infer<typeof fabricSelectionSchema>;
+type ShelvedProducts = z.infer<typeof shelvedProductsSchema>;
 
 interface CurrentWorkOrderState {
   customerDemographics: Partial<CustomerDemographics>;
   customerMeasurements: Partial<CustomerMeasurements>;
   fabricSelections: FabricSelection[];
   measurementId: string | null;
+  shelvedProducts: ShelvedProducts;
+  customerId: string | null;
   currentStep: number;
   savedSteps: number[];
 
@@ -25,6 +29,8 @@ interface CurrentWorkOrderState {
   updateFabricSelection: (data: FabricSelection) => void;
   removeFabricSelection: (id: string) => void;
   setMeasurementId: (id: string | null) => void;
+  setShelvedProducts: (data: ShelvedProducts) => void;
+  setCustomerId: (id: string | null) => void;
   setCurrentStep: (step: number) => void;
 
   // mark step complete
@@ -42,6 +48,7 @@ export const createWorkOrderStore = (name: string) =>
         customerDemographics: {},
         customerMeasurements: {},
         fabricSelections: [],
+        shelvedProducts: [],
         measurementId: null,
         currentStep: 0,
         savedSteps: [],
@@ -78,6 +85,9 @@ export const createWorkOrderStore = (name: string) =>
           })),
 
         setMeasurementId: (id) => set({ measurementId: id }),
+      setShelvedProducts: (data) => set({ shelvedProducts: data }),
+
+      setCustomerId: (id) => set({ customerId: id }),
 
         setCurrentStep: (step) => set({ currentStep: step }),
 
@@ -100,6 +110,8 @@ export const createWorkOrderStore = (name: string) =>
             customerDemographics: {},
             customerMeasurements: {},
             fabricSelections: [],
+            shelvedProducts: [],
+            customerId: null,
             measurementId: null,
             currentStep: 0,
             savedSteps: [],

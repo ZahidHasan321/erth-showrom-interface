@@ -97,6 +97,13 @@ export function FabricSelectionForm({
     remove(rowIndex);
   };
 
+  const updateData = (rowIndex: number, columnId: string, value: unknown) => {
+    methods.setValue(
+      `fabricSelections.${rowIndex}.${columnId}` as any,
+      value
+    );
+  };
+
   return (
     <FormProvider {...methods}>
       <div className="p-4 max-w-6xl overflow-x-auto">
@@ -108,6 +115,7 @@ export function FabricSelectionForm({
           data={fields}
           removeRow={removeRow}
           measurementIDs={measurementIDs}
+          updateData={updateData}
         />
         <Button
           onClick={addRow}
