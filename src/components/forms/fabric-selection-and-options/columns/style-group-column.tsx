@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { type FabricSelection } from "@/types/fabric";
+import { type FabricSelectionSchema } from "../schema";
 import {
   collarButtons,
   collarTypes,
@@ -20,609 +20,636 @@ import {
   topPocketTypes,
   walletIcon,
 } from "../constants";
+import { useFormContext, Controller } from "react-hook-form";
 
-export const styleGroupColumn: ColumnDef<FabricSelection>[] = [
+export const styleGroupColumn: ColumnDef<FabricSelectionSchema>[] = [
   {
     header: "Style",
     id: "style-group",
     meta: { className: "bg-gray-100 px-4" },
     columns: [
       {
-        accessorKey: "styleOptionId",
+        accessorKey: "style.styleOptionId",
         header: "Style Option ID",
-        cell: ({ row, table, column }) => (
-          <div className="relative">
-            {row.original.customize ? (
-              <Select
-                disabled={!row.original.customize}
-                onValueChange={(value) =>
-                  table.options.meta?.updateData(row.index, column.id, value)
-                }
-                value={row.original.styleOptionId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select ID" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="s1">S-01</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="rounded-md bg-muted w-full h-10" />
-            )}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const { control, watch } = useFormContext();
+          const customize = watch(`fabricSelections.${row.index}.customize`);
+          return (
+            <div className="relative">
+              {customize ? (
+                <Controller
+                  name={`fabricSelections.${row.index}.style.styleOptionId`}
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select ID" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="s1">S-01</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              ) : (
+                <div className="rounded-md bg-muted w-full h-10" />
+              )}
+            </div>
+          );
+        },
       },
       {
-        accessorKey: "style",
+        accessorKey: "style.style",
         header: "Style",
-        cell: ({ row, table, column }) => (
-          <div className="relative">
-            {row.original.customize ? (
-              <Select
-                disabled={!row.original.customize}
-                onValueChange={(value) =>
-                  table.options.meta?.updateData(row.index, column.id, value)
-                }
-                value={row.original.style}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Style" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="kuwaiti">Kuwaiti</SelectItem>
-                  <SelectItem value="saudi">Saudi</SelectItem>
-                  <SelectItem value="bahraini">Bahraini</SelectItem>
-                  <SelectItem value="fashion">Fashion</SelectItem>
-                  <SelectItem value="3d">3D</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="rounded-md bg-muted w-full h-10" />
-            )}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const { control, watch } = useFormContext();
+          const customize = watch(`fabricSelections.${row.index}.customize`);
+          return (
+            <div className="relative">
+              {customize ? (
+                <Controller
+                  name={`fabricSelections.${row.index}.style.style`}
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="kuwaiti">Kuwaiti</SelectItem>
+                        <SelectItem value="saudi">Saudi</SelectItem>
+                        <SelectItem value="bahraini">Bahraini</SelectItem>
+                        <SelectItem value="fashion">Fashion</SelectItem>
+                        <SelectItem value="3d">3D</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              ) : (
+                <div className="rounded-md bg-muted w-full h-10" />
+              )}
+            </div>
+          );
+        },
       },
       {
         header: "Lines",
         id: "lines",
-        cell: ({ row, table }) => (
-          <div className="relative">
-            {row.original.customize ? (
-              <div className="flex items-center space-x-4 px-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`line1-${row.index}`}
-                    disabled={!row.original.customize}
-                    checked={row.original.line1}
-                    onCheckedChange={(value) =>
-                      table.options.meta?.updateData(
-                        row.index,
-                        "line1",
-                        !!value
-                      )
-                    }
+        cell: ({ row }) => {
+          const { control, watch } = useFormContext();
+          const customize = watch(`fabricSelections.${row.index}.customize`);
+          return (
+            <div className="relative">
+              {customize ? (
+                <div className="flex items-center space-x-4 px-2">
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.lines.line1`}
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`line1-${row.index}`}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <label htmlFor={`line1-${row.index}`}>Line 1</label>
+                      </div>
+                    )}
                   />
-                  <label htmlFor={`line1-${row.index}`}>Line 1</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`line2-${row.index}`}
-                    disabled={!row.original.customize}
-                    checked={row.original.line2}
-                    onCheckedChange={(value) =>
-                      table.options.meta?.updateData(
-                        row.index,
-                        "line2",
-                        !!value
-                      )
-                    }
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.lines.line2`}
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`line2-${row.index}`}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <label htmlFor={`line2-${row.index}`}>Line 2</label>
+                      </div>
+                    )}
                   />
-                  <label htmlFor={`line2-${row.index}`}>Line 2</label>
                 </div>
-              </div>
-            ) : (
-              <div className="rounded-md bg-muted w-full h-10" />
-            )}
-          </div>
-        ),
+              ) : (
+                <div className="rounded-md bg-muted w-full h-10" />
+              )}
+            </div>
+          );
+        },
       },
       {
         header: "Collar",
         id: "collar",
-        cell: ({ row, table }) => (
-          <div className="relative">
-            {row.original.customize ? (
-              <div className="w-[350px] flex flex-row space-x-2">
-                <Select
-                  disabled={!row.original.customize}
-                  onValueChange={(value) =>
-                    table.options.meta?.updateData(
-                      row.index,
-                      "collarType",
-                      value
-                    )
-                  }
-                  value={row.original.collarType}
-                >
-                  <SelectTrigger className="w-32">
-                    {row.original.collarType ? (
-                      <img
-                        src={
-                          collarTypes.find(
-                            (c) => c.value === row.original.collarType
-                          )?.image
-                        }
-                        alt={
-                          collarTypes.find(
-                            (c) => c.value === row.original.collarType
-                          )?.alt
-                        }
-                        className="w-10 h-10 object-contain"
-                      />
-                    ) : (
-                      <SelectValue placeholder="Select Type" />
-                    )}
-                  </SelectTrigger>
-                  <SelectContent className="">
-                    {collarTypes.map((collarType) => (
-                      <SelectItem
-                        key={collarType.value}
-                        value={collarType.value}
+        cell: ({ row }) => {
+          const { control, watch } = useFormContext();
+          const customize = watch(`fabricSelections.${row.index}.customize`);
+          const collarType = watch(
+            `fabricSelections.${row.index}.style.collar.collarType`
+          );
+          const collarButton = watch(
+            `fabricSelections.${row.index}.style.collar.collarButton`
+          );
+          return (
+            <div className="relative">
+              {customize ? (
+                <div className="w-[350px] flex flex-row space-x-2">
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.collar.collarType`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
                       >
-                        <div className="flex items-center space-x-2">
-                          <img
-                            src={collarType.image}
-                            alt={collarType.alt}
-                            className="w-12 h-12 object-contain"
-                          />
-                          <span>{collarType.displayText}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  disabled={!row.original.customize}
-                  onValueChange={(value) =>
-                    table.options.meta?.updateData(
-                      row.index,
-                      "collarButton",
-                      value
-                    )
-                  }
-                  value={row.original.collarButton}
-                >
-                  <SelectTrigger className="w-32">
-                    {row.original.collarButton ? (
-                      <img
-                        src={
-                          collarButtons.find(
-                            (b) => b.value === row.original.collarButton
-                          )?.image
-                        }
-                        alt={
-                          collarButtons.find(
-                            (b) => b.value === row.original.collarButton
-                          )?.alt
-                        }
-                        className="w-10 h-10 object-contain"
-                      />
-                    ) : (
-                      <SelectValue placeholder="Select Button" />
+                        <SelectTrigger className="w-32">
+                          {collarType ? (
+                            <img
+                              src={
+                                collarTypes.find((c) => c.value === collarType)
+                                  ?.image
+                              }
+                              alt={
+                                collarTypes.find((c) => c.value === collarType)
+                                  ?.alt
+                              }
+                              className="w-10 h-10 object-contain"
+                            />
+                          ) : (
+                            <SelectValue placeholder="Select Type" />
+                          )}
+                        </SelectTrigger>
+                        <SelectContent>
+                          {collarTypes.map((ct) => (
+                            <SelectItem key={ct.value} value={ct.value}>
+                              <div className="flex items-center space-x-2">
+                                <img
+                                  src={ct.image}
+                                  alt={ct.alt}
+                                  className="w-12 h-12 object-contain"
+                                />
+                                <span>{ct.displayText}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     )}
-                  </SelectTrigger>
-                  <SelectContent>
-                    {collarButtons.map((button) => (
-                      <SelectItem key={button.value} value={button.value}>
-                        <div className="flex items-center space-x-2">
-                          <img
-                            src={button.image}
-                            alt={button.alt}
-                            className="w-12 h-12 object-contain"
-                          />
-                          <span>{button.displayText}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    disabled={!row.original.customize}
-                    id={`smallTabaggi-${row.index}`}
-                    checked={row.original.smallTabaggi}
-                    onCheckedChange={(value) =>
-                      table.options.meta?.updateData(
-                        row.index,
-                        "smallTabaggi",
-                        !!value
-                      )
-                    }
                   />
-                  <label htmlFor={`smallTabaggi-${row.index}`}>
-                    <img
-                      src={smallTabaggiImage}
-                      alt="Small Tabaggi"
-                      className="w-8 h-8 object-contain"
-                    />
-                  </label>
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.collar.collarButton`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger className="w-32">
+                          {collarButton ? (
+                            <img
+                              src={
+                                collarButtons.find(
+                                  (b) => b.value === collarButton
+                                )?.image
+                              }
+                              alt={
+                                collarButtons.find(
+                                  (b) => b.value === collarButton
+                                )?.alt
+                              }
+                              className="w-10 h-10 object-contain"
+                            />
+                          ) : (
+                            <SelectValue placeholder="Select Button" />
+                          )}
+                        </SelectTrigger>
+                        <SelectContent>
+                          {collarButtons.map((button) => (
+                            <SelectItem key={button.value} value={button.value}>
+                              <div className="flex items-center space-x-2">
+                                <img
+                                  src={button.image}
+                                  alt={button.alt}
+                                  className="w-12 h-12 object-contain"
+                                />
+                                <span>{button.displayText}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.collar.smallTabaggi`}
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`smallTabaggi-${row.index}`}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <label htmlFor={`smallTabaggi-${row.index}`}>
+                          <img
+                            src={smallTabaggiImage}
+                            alt="Small Tabaggi"
+                            className="w-8 h-8 object-contain"
+                          />
+                        </label>
+                      </div>
+                    )}
+                  />
                 </div>
-              </div>
-            ) : (
-              <div className="w-[350px] rounded-md bg-muted h-10" />
-            )}
-          </div>
-        ),
+              ) : (
+                <div className="w-[350px] rounded-md bg-muted h-10" />
+              )}
+            </div>
+          );
+        },
       },
       {
         header: "Jabzour",
         id: "jabzour",
-        cell: ({ row, table }) => (
-          <div className="relative">
-            {row.original.customize ? (
-              <div className="w-[450px] flex flex-row space-x-2">
-                <Select
-                  disabled={!row.original.customize}
-                  onValueChange={(value) =>
-                    table.options.meta?.updateData(row.index, "jabzour1", value)
-                  }
-                  value={row.original.jabzour1}
-                >
-                  <SelectTrigger className="w-32">
-                    {row.original.jabzour1 ? (
-                      <img
-                        src={
-                          jabzourTypes.find(
-                            (j) => j.value === row.original.jabzour1
-                          )?.image
-                        }
-                        alt={
-                          jabzourTypes.find(
-                            (j) => j.value === row.original.jabzour1
-                          )?.alt
-                        }
-                        className="w-12 h-12 object-contain"
-                      />
-                    ) : (
-                      <SelectValue placeholder="Select Type" />
-                    )}
-                  </SelectTrigger>
-                  <SelectContent className="">
-                    {jabzourTypes.map((jabzourType) => (
-                      <SelectItem
-                        key={jabzourType.value}
-                        value={jabzourType.value}
+        cell: ({ row }) => {
+          const { control, watch } = useFormContext();
+          const customize = watch(`fabricSelections.${row.index}.customize`);
+          const jabzour1 = watch(
+            `fabricSelections.${row.index}.style.jabzour.jabzour1`
+          );
+          const jabzour2 = watch(
+            `fabricSelections.${row.index}.style.jabzour.jabzour2`
+          );
+          return (
+            <div className="relative">
+              {customize ? (
+                <div className="w-[450px] flex flex-row space-x-2">
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.jabzour.jabzour1`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
                       >
-                        <div className="flex items-center space-x-2">
-                          <img
-                            src={jabzourType.image}
-                            alt={jabzourType.alt}
-                            className="w-12 h-12 object-contain"
-                          />
-                          <span>{jabzourType.displayText}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  disabled={!row.original.customize}
-                  onValueChange={(value) =>
-                    table.options.meta?.updateData(row.index, "jabzour2", value)
-                  }
-                  value={row.original.jabzour2}
-                >
-                  <SelectTrigger className="w-32">
-                    {row.original.jabzour2 ? (
-                      <img
-                        src={
-                          jabzourTypes.find(
-                            (j) => j.value === row.original.jabzour2
-                          )?.image
-                        }
-                        alt={
-                          jabzourTypes.find(
-                            (j) => j.value === row.original.jabzour2
-                          )?.alt
-                        }
-                        className="w-10 h-10 object-contain"
-                      />
-                    ) : (
-                      <SelectValue placeholder="Select Type" />
+                        <SelectTrigger className="w-32">
+                          {jabzour1 ? (
+                            <img
+                              src={
+                                jabzourTypes.find((j) => j.value === jabzour1)
+                                  ?.image
+                              }
+                              alt={
+                                jabzourTypes.find((j) => j.value === jabzour1)
+                                  ?.alt
+                              }
+                              className="w-12 h-12 object-contain"
+                            />
+                          ) : (
+                            <SelectValue placeholder="Select Type" />
+                          )}
+                        </SelectTrigger>
+                        <SelectContent>
+                          {jabzourTypes.map((jabzourType) => (
+                            <SelectItem
+                              key={jabzourType.value}
+                              value={jabzourType.value}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <img
+                                  src={jabzourType.image}
+                                  alt={jabzourType.alt}
+                                  className="w-12 h-12 object-contain"
+                                />
+                                <span>{jabzourType.displayText}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     )}
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jabzourTypes.map((jabzourType) => (
-                      <SelectItem
-                        key={jabzourType.value}
-                        value={jabzourType.value}
+                  />
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.jabzour.jabzour2`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
                       >
-                        <div className="flex items-center space-x-2">
-                          <img
-                            src={jabzourType.image}
-                            alt={jabzourType.alt}
-                            className="w-12 h-12 object-contain"
-                          />
-                          <span>{jabzourType.displayText}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  disabled={!row.original.customize}
-                  onValueChange={(value) =>
-                    table.options.meta?.updateData(
-                      row.index,
-                      "jabzour_thickness",
-                      value
-                    )
-                  }
-                  value={row.original.jabzour_thickness}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select Thickness" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jabzourThicknessOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
-              <div className="w-[450px] rounded-md bg-muted h-10" />
-            )}
-          </div>
-        ),
+                        <SelectTrigger className="w-32">
+                          {jabzour2 ? (
+                            <img
+                              src={
+                                jabzourTypes.find((j) => j.value === jabzour2)
+                                  ?.image
+                              }
+                              alt={
+                                jabzourTypes.find((j) => j.value === jabzour2)
+                                  ?.alt
+                              }
+                              className="w-10 h-10 object-contain"
+                            />
+                          ) : (
+                            <SelectValue placeholder="Select Type" />
+                          )}
+                        </SelectTrigger>
+                        <SelectContent>
+                          {jabzourTypes.map((jabzourType) => (
+                            <SelectItem
+                              key={jabzourType.value}
+                              value={jabzourType.value}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <img
+                                  src={jabzourType.image}
+                                  alt={jabzourType.alt}
+                                  className="w-12 h-12 object-contain"
+                                />
+                                <span>{jabzourType.displayText}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.jabzour.jabzour_thickness`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="Select Thickness" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {jabzourThicknessOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              ) : (
+                <div className="w-[450px] rounded-md bg-muted h-10" />
+              )}
+            </div>
+          );
+        },
       },
       {
         header: "Top Pocket",
         id: "top-pocket",
-        cell: ({ row, table }) => (
-          <div className="relative">
-            {row.original.customize ? (
-              <div className="w-[450px] flex flex-row space-x-2 justify-center items-center">
-                <Select
-                  disabled={!row.original.customize}
-                  onValueChange={(value) =>
-                    table.options.meta?.updateData(
-                      row.index,
-                      "top_pocket_type",
-                      value
-                    )
-                  }
-                  value={row.original.top_pocket_type}
-                >
-                  <SelectTrigger className="w-32">
-                    {row.original.top_pocket_type ? (
-                      <img
-                        src={
-                          topPocketTypes.find(
-                            (j) => j.value === row.original.top_pocket_type
-                          )?.image
-                        }
-                        alt={
-                          topPocketTypes.find(
-                            (j) => j.value === row.original.top_pocket_type
-                          )?.alt
-                        }
-                        className="w-7 h-7 object-contain"
-                      />
-                    ) : (
-                      <SelectValue placeholder="Select Type" />
-                    )}
-                  </SelectTrigger>
-                  <SelectContent className="">
-                    {topPocketTypes.map((topPocketType) => (
-                      <SelectItem
-                        key={topPocketType.value}
-                        value={topPocketType.value}
+        cell: ({ row }) => {
+          const { control, watch } = useFormContext();
+          const customize = watch(`fabricSelections.${row.index}.customize`);
+          const topPocketType = watch(
+            `fabricSelections.${row.index}.style.topPocket.top_pocket_type`
+          );
+          return (
+            <div className="relative">
+              {customize ? (
+                <div className="w-[450px] flex flex-row space-x-2 justify-center items-center">
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.topPocket.top_pocket_type`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
                       >
-                        <div className="flex items-center space-x-2">
-                          <img
-                            src={topPocketType.image}
-                            alt={topPocketType.alt}
-                            className="w-12 h-12 object-contain"
-                          />
-                          <span>{topPocketType.displayText}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  disabled={!row.original.customize}
-                  onValueChange={(value) =>
-                    table.options.meta?.updateData(
-                      row.index,
-                      "top_pocket_thickness",
-                      value
-                    )
-                  }
-                  value={row.original.top_pocket_thickness}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select Thickness" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jabzourThicknessOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    disabled={!row.original.customize}
-                    id={`pen_holder-${row.index}`}
-                    checked={row.original.pen_holder}
-                    onCheckedChange={(value) =>
-                      table.options.meta?.updateData(
-                        row.index,
-                        "pen_holder",
-                        !!value
-                      )
-                    }
+                        <SelectTrigger className="w-32">
+                          {topPocketType ? (
+                            <img
+                              src={
+                                topPocketTypes.find(
+                                  (j) => j.value === topPocketType
+                                )?.image
+                              }
+                              alt={
+                                topPocketTypes.find(
+                                  (j) => j.value === topPocketType
+                                )?.alt
+                              }
+                              className="w-7 h-7 object-contain"
+                            />
+                          ) : (
+                            <SelectValue placeholder="Select Type" />
+                          )}
+                        </SelectTrigger>
+                        <SelectContent>
+                          {topPocketTypes.map((tpt) => (
+                            <SelectItem key={tpt.value} value={tpt.value}>
+                              <div className="flex items-center space-x-2">
+                                <img
+                                  src={tpt.image}
+                                  alt={tpt.alt}
+                                  className="w-12 h-12 object-contain"
+                                />
+                                <span>{tpt.displayText}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   />
-                  <label htmlFor={`pen_holder-${row.index}`}>
-                    <img
-                      src={penIcon}
-                      alt="Pen Holder"
-                      className="w-14 h-14 object-contain"
-                    />
-                  </label>
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.topPocket.top_pocket_thickness`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="Select Thickness" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {jabzourThicknessOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.topPocket.pen_holder`}
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`pen_holder-${row.index}`}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <label htmlFor={`pen_holder-${row.index}`}>
+                          <img
+                            src={penIcon}
+                            alt="Pen Holder"
+                            className="w-14 h-14 object-contain"
+                          />
+                        </label>
+                      </div>
+                    )}
+                  />
                 </div>
-              </div>
-            ) : (
-              <div className="w-[450px] rounded-md bg-muted h-10" />
-            )}
-          </div>
-        ),
+              ) : (
+                <div className="w-[450px] rounded-md bg-muted h-10" />
+              )}
+            </div>
+          );
+        },
       },
       {
         header: "Side Pocket",
         id: "side-pocket",
-        cell: ({ row, table }) => (
-          <div className="relative">
-            {row.original.customize ? (
-              <div className="w-[250px] flex flex-row space-x-4 justify-center items-center">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    disabled={!row.original.customize}
-                    id={`side_pocket_phone-${row.index}`}
-                    checked={row.original.side_pocket_phone}
-                    onCheckedChange={(value) =>
-                      table.options.meta?.updateData(
-                        row.index,
-                        "side_pocket_phone",
-                        !!value
-                      )
-                    }
+        cell: ({ row }) => {
+          const { control, watch } = useFormContext();
+          const customize = watch(`fabricSelections.${row.index}.customize`);
+          return (
+            <div className="relative">
+              {customize ? (
+                <div className="w-[250px] flex flex-row space-x-4 justify-center items-center">
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.sidePocket.side_pocket_phone`}
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`side_pocket_phone-${row.index}`}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <label htmlFor={`side_pocket_phone-${row.index}`}>
+                          <img
+                            src={phoneIcon}
+                            alt="Phone Pocket"
+                            className="w-14 h-14 object-contain"
+                          />
+                        </label>
+                      </div>
+                    )}
                   />
-                  <label htmlFor={`side_pocket_phone-${row.index}`}>
-                    <img
-                      src={phoneIcon}
-                      alt="Phone Pocket"
-                      className="w-14 h-14 object-contain"
-                    />
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    disabled={!row.original.customize}
-                    id={`side_pocket_wallet-${row.index}`}
-                    checked={row.original.side_pocket_wallet}
-                    onCheckedChange={(value) =>
-                      table.options.meta?.updateData(
-                        row.index,
-                        "side_pocket_wallet",
-                        !!value
-                      )
-                    }
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.sidePocket.side_pocket_wallet`}
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`side_pocket_wallet-${row.index}`}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <label htmlFor={`side_pocket_wallet-${row.index}`}>
+                          <img
+                            src={walletIcon}
+                            alt="Wallet Pocket"
+                            className="w-14 h-14 object-contain"
+                          />
+                        </label>
+                      </div>
+                    )}
                   />
-                  <label htmlFor={`side_pocket_wallet-${row.index}`}>
-                    <img
-                      src={walletIcon}
-                      alt="Wallet Pocket"
-                      className="w-14 h-14 object-contain"
-                    />
-                  </label>
                 </div>
-              </div>
-            ) : (
-              <div className="w-[300px] rounded-md bg-muted h-10" />
-            )}
-          </div>
-        ),
+              ) : (
+                <div className="w-[300px] rounded-md bg-muted h-10" />
+              )}
+            </div>
+          );
+        },
       },
       {
         header: "Sleeves",
         id: "sleeves",
-        cell: ({ row, table }) => (
-          <div className="relative">
-            {row.original.customize ? (
-              <div className="w-[300px] flex flex-row space-x-2">
-                <Select
-                  disabled={!row.original.customize}
-                  onValueChange={(value) =>
-                    table.options.meta?.updateData(
-                      row.index,
-                      "sleeves_type",
-                      value
-                    )
-                  }
-                  value={row.original.sleeves_type}
-                >
-                  <SelectTrigger className="w-32">
-                    {row.original.sleeves_type ? (
-                      <img
-                        src={
-                          sleeveTypes.find(
-                            (j) => j.value === row.original.sleeves_type
-                          )?.image
-                        }
-                        alt={
-                          sleeveTypes.find(
-                            (j) => j.value === row.original.sleeves_type
-                          )?.alt
-                        }
-                        className="w-7 h-7 object-contain"
-                      />
-                    ) : (
-                      <SelectValue placeholder="Select Type" />
-                    )}
-                  </SelectTrigger>
-                  <SelectContent className="">
-                    {sleeveTypes.map((sleeveType) => (
-                      <SelectItem
-                        key={sleeveType.value}
-                        value={sleeveType.value}
+        cell: ({ row }) => {
+          const { control, watch } = useFormContext();
+          const customize = watch(`fabricSelections.${row.index}.customize`);
+          const sleevesType = watch(
+            `fabricSelections.${row.index}.style.sleeves.sleeves_type`
+          );
+          return (
+            <div className="relative">
+              {customize ? (
+                <div className="w-[300px] flex flex-row space-x-2">
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.sleeves.sleeves_type`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
                       >
-                        <div className="flex items-center space-x-2">
-                          <img
-                            src={sleeveType.image}
-                            alt={sleeveType.alt}
-                            className="w-12 h-12 object-contain"
-                          />
-                          <span>{sleeveType.displayText}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  disabled={!row.original.customize}
-                  onValueChange={(value) =>
-                    table.options.meta?.updateData(
-                      row.index,
-                      "sleeves_thickness",
-                      value
-                    )
-                  }
-                  value={row.original.sleeves_thickness}
-                >
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Select Thickness" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jabzourThicknessOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
-              <div className="w-[300px] rounded-md bg-muted h-10" />
-            )}
-          </div>
-        ),
+                        <SelectTrigger className="w-32">
+                          {sleevesType ? (
+                            <img
+                              src={
+                                sleeveTypes.find((j) => j.value === sleevesType)
+                                  ?.image
+                              }
+                              alt={
+                                sleeveTypes.find((j) => j.value === sleevesType)
+                                  ?.alt
+                              }
+                              className="w-7 h-7 object-contain"
+                            />
+                          ) : (
+                            <SelectValue placeholder="Select Type" />
+                          )}
+                        </SelectTrigger>
+                        <SelectContent>
+                          {sleeveTypes.map((st) => (
+                            <SelectItem key={st.value} value={st.value}>
+                              <div className="flex items-center space-x-2">
+                                <img
+                                  src={st.image}
+                                  alt={st.alt}
+                                  className="w-12 h-12 object-contain"
+                                />
+                                <span>{st.displayText}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <Controller
+                    name={`fabricSelections.${row.index}.style.sleeves.sleeves_thickness`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="Select Thickness" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {jabzourThicknessOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              ) : (
+                <div className="w-[300px] rounded-md bg-muted h-10" />
+              )}
+            </div>
+          );
+        },
       },
     ],
   },

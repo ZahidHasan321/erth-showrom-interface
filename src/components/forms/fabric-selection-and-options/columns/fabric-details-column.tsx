@@ -1,3 +1,4 @@
+import * as React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
@@ -8,64 +9,138 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { type FabricSelection } from "@/types/fabric";
+import { useQuery } from "@tanstack/react-query";
+import { getFabrics } from "@/api/fabrics";
+import { toast } from "sonner";
+import { useFormContext, Controller } from "react-hook-form";
+import { type FabricSelectionSchema } from "../schema";
 
-export const fabricDetailsColumn: ColumnDef<FabricSelection>[] = [
+const FabricSelector = ({ rowIndex }: { rowIndex: number }) => {
+  const { control } = useFormContext();
+  const { data: fabricsResponse } = useQuery({
+    queryKey: ["fabrics"],
+    queryFn: getFabrics,
+  });
+  const fabrics = fabricsResponse;
+
+  const fabricOptions = fabrics
+    ? fabrics.map((fabric) => ({
+        value: fabric.id,
+        label: fabric.fields.Name,
+      }))
+    : [];
+
+  return (
+    <Controller
+      name={`fabricSelections.${rowIndex}.fabricDetails.fabricCode`}
+      control={control}
+      render={({ field }) => (
+        <Combobox
+          options={fabricOptions}
+          {...field}
+          placeholder="Search fabric..."
+        />
+      )}
+    />
+  );
+};
+
+const FabricLengthInput = ({ rowIndex }: { rowIndex: number }) => {
+  const { control, getValues, watch } = useFormContext();
+  const { data: fabricsResponse } = useQuery({
+    queryKey: ["fabrics"],
+    queryFn: getFabrics,
+  });
+  const fabrics = fabricsResponse;
+
+  const fabricSource = watch(
+    `fabricSelections.${rowIndex}.fabricDetails.fabricSource`
+  );
+  const fabricCode = watch(
+    `fabricSelections.${rowIndex}.fabricDetails.fabricCode`
+  );
+  const fabricLength = watch(
+    `fabricSelections.${rowIndex}.fabricDetails.fabricLength`
+  );
+
+  const checkStock = (lengthStr: string, code: string, source: string) => {
+    if (source !== "In" || !lengthStr || !code) return;
+    const length = parseFloat(lengthStr);
+    const fabric = fabrics?.find((f) => f.id === code);
+    if (fabric && length > fabric.fields["REAL STOCK"]) {
+      toast.error(
+        `Not Enough Stock! Real Stock: ${fabric.fields["REAL STOCK"]}.`
+      );
+    }
+  };
+
+  React.useEffect(() => {
+    checkStock(fabricLength, fabricCode, fabricSource);
+  }, [fabricSource, fabricCode, fabrics]);
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const length = e.target.value;
+    const code = getValues(
+      `fabricSelections.${rowIndex}.fabricDetails.fabricCode`
+    );
+    const source = getValues(
+      `fabricSelections.${rowIndex}.fabricDetails.fabricSource`
+    );
+    checkStock(length, code, source);
+  };
+
+  return (
+    <Controller
+      name={`fabricSelections.${rowIndex}.fabricDetails.fabricLength`}
+      control={control}
+      render={({ field }) => <Input {...field} onBlur={handleBlur} />}
+    />
+  );
+};
+
+export const fabricDetailsColumn: ColumnDef<FabricSelectionSchema>[] = [
   {
     header: "Fabric Details",
     id: "fabric-details",
     meta: { className: "bg-gray-100 px-4" },
     columns: [
       {
-        accessorKey: "fabricSource",
+        accessorKey: "fabricDetails.fabricSource",
         header: "Source",
-        cell: ({ row, table, column }) => (
-          <div className="flex flex-col space-y-1 w-[200px]">
-            <Select
-              onValueChange={(value) =>
-                table.options.meta?.updateData(row.index, column.id, value)
-              }
-              value={row.original.fabricSource}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select source" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="In">In</SelectItem>
-                <SelectItem value="Out">Out</SelectItem>
-              </SelectContent>
-            </Select>
-            {row.original.fabricSource === "In" && (
-              <Combobox
-                options={[
-                  { value: "fabric1", label: "Fabric 1 ($10/m)" },
-                  { value: "fabric2", label: "Fabric 2 ($12/m)" },
-                ]}
-                value={row.original.fabricCode}
-                onChange={(value) =>
-                  table.options.meta?.updateData(row.index, "fabricCode", value)
-                }
-                placeholder="Search fabric..."
+        cell: ({ row }) => {
+          const { control, watch } = useFormContext();
+          const fabricSource = watch(
+            `fabricSelections.${row.index}.fabricDetails.fabricSource`
+          );
+
+          return (
+            <div className="flex flex-col space-y-1 w-[200px]">
+              <Controller
+                name={`fabricSelections.${row.index}.fabricDetails.fabricSource`}
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="In">In</SelectItem>
+                      <SelectItem value="Out">Out</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               />
-            )}
-          </div>
-        ),
+              {fabricSource === "In" && <FabricSelector rowIndex={row.index} />}
+            </div>
+          );
+        },
       },
       {
-        accessorKey: "fabricLength",
+        accessorKey: "fabricDetails.fabricLength",
         header: "Fabric Length",
-        cell: ({ row, table, column }) => (
-          <Input
-            value={row.original.fabricLength}
-            onChange={(e) =>
-              table.options.meta?.updateData(
-                row.index,
-                column.id,
-                e.target.value
-              )
-            }
-          />
-        ),
+        cell: ({ row }) => {
+          return <FabricLengthInput rowIndex={row.index} />;
+        },
       },
     ],
   },

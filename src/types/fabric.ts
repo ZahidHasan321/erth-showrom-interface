@@ -1,30 +1,14 @@
-export type FabricSelection = {
+import { z } from "zod";
+import { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/schema";
+
+export type FabricSelection = z.infer<typeof fabricSelectionSchema>;
+
+export type Fabric = {
   id: string;
-  copyPrevious: boolean;
-  garmentId: string;
-  brova: boolean;
-  fabricSource: "In" | "Out" | "";
-  fabricCode: string;
-  fabricLength: string;
-  measurementId: string;
-  customize: boolean;
-  styleOptionId: string;
-  style: "kuwaiti" | "saudi" | "bahraini" | "fashion" | "3d" | "";
-  line1: boolean;
-  line2: boolean;
-  collarType: string;
-  collarButton: string;
-  smallTabaggi: boolean;
-  jabzour1: string;
-  jabzour2: string;
-  jabzour_thickness: "S" | "D" | "N" | "T" | "";
-  top_pocket_type: string;
-  top_pocket_thickness: "S" | "D" | "N" | "T" | "";
-  pen_holder: boolean;
-  side_pocket_phone: boolean;
-  side_pocket_wallet: boolean;
-  sleeves_type: string;
-  sleeves_thickness: "S" | "D" | "N" | "T" | "";
-  total_amount: number;
-  special_request: string;
+  createdTime: string;
+  fields: {
+    Name: string;
+    "REAL STOCK": number;
+    [key: string]: any;
+  };
 };

@@ -158,4 +158,14 @@ export const collarButtons = [
   },
 ];
 
+export const fabricSourceValues = ["In", "Out", ""];
+export const styleTypeValues = [
+  "kuwaiti",
+  "saudi",
+  "bahraini",
+  "fashion",
+  "3d",
+  "",
+] as const;
+
 export { penIcon, phoneIcon, walletIcon, smallTabaggiImage };

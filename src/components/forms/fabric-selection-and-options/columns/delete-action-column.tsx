@@ -1,9 +1,9 @@
 "use client";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { type FabricSelection } from "@/types/fabric";
+import { type FabricSelectionSchema } from "../schema";
 
-export const deleteActionColumn: ColumnDef<FabricSelection>[] = [
+export const deleteActionColumn: ColumnDef<FabricSelectionSchema>[] = [
   {
     id: "delete",
     cell: ({ row, table }) => {

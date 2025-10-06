@@ -1,38 +1,23 @@
-"use client"
+"use client";
 
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  type RowData,
-} from "@tanstack/react-table"
+import {type ColumnDef, flexRender, getCoreRowModel, type RowData, useReactTable,} from "@tanstack/react-table";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
 
-declare module '@tanstack/react-table' {
+declare module "@tanstack/react-table" {
   interface ColumnMeta<TData extends RowData, TValue> {
     className?: string;
   }
 
   interface TableMeta<TData extends RowData> {
-    updateData: (rowIndex: number, columnId: string, value: unknown) => void;
     measurementIDs: string[];
     removeRow: (rowIndex: number) => void;
   }
 }
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+  columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  updateData: (rowIndex: number, columnId: string, value: unknown) => void;
   measurementIDs: string[];
   removeRow: (rowIndex: number) => void;
 }
@@ -40,7 +25,6 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
   columns,
   data,
-  updateData,
   measurementIDs,
   removeRow,
 }: DataTableProps<TData, TValue>) {
@@ -49,19 +33,18 @@ export function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
     meta: {
-      updateData,
       measurementIDs,
       removeRow,
     },
-  })
+  });
 
   return (
     <div className="rounded-md border">
       <Table className="">
         <colgroup>
           {table.getHeaderGroups()[0]?.headers.map((header) => {
-            let bgClass = 'border';
-            
+            const bgClass = "border";
+
             return (
               <col key={header.id} className={bgClass} span={header.colSpan} />
             );
@@ -72,11 +55,11 @@ export function DataTable<TData, TValue>({
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead 
-                    key={header.id} 
-                    colSpan={header.colSpan} 
-                    className={`rounded-md px-4 py-2 text-center ${
-                      header.depth === 0 && header.index > 0 ? 'ml-4' : ''
+                  <TableHead
+                    key={header.id}
+                    colSpan={header.colSpan}
+                    className={`px-4 py-2 text-center bg-muted ${
+                      header.depth === 0 && header.index > 0 ? "ml-4" : ""
                     }`}
                   >
                     {header.isPlaceholder
@@ -86,7 +69,7 @@ export function DataTable<TData, TValue>({
                           header.getContext()
                         )}
                   </TableHead>
-                )
+                );
               })}
             </TableRow>
           ))}
@@ -99,10 +82,13 @@ export function DataTable<TData, TValue>({
                 data-state={row.getIsSelected() && "selected"}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell 
-                    key={cell.id} 
+                  <TableCell
+                    key={cell.id}
                     className={`rounded-md py-2 ${
-                      cell.column.parent === undefined && cell.column.getIndex() > 0 ? 'ml-4' : ''
+                      cell.column.parent === undefined &&
+                      cell.column.getIndex() > 0
+                        ? "ml-4"
+                        : ""
                     }`}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -112,7 +98,10 @@ export function DataTable<TData, TValue>({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell
+                colSpan={columns.length + 12}
+                className="h-24 text-center"
+              >
                 No results.
               </TableCell>
             </TableRow>
@@ -120,5 +109,5 @@ export function DataTable<TData, TValue>({
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }

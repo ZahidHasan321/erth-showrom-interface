@@ -9,8 +9,8 @@ export function GlobalLoader() {
   }
 
   return (
-<div className="fixed inset-0 z-50 flex items-baseline justify-center pointer-events-none">
-  <LoadingSpinner />
-</div>
+    <div className="fixed inset-0 z-50 flex items-baseline justify-center pointer-events-none">
+      <LoadingSpinner />
+    </div>
   );
 }

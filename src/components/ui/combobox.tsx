@@ -1,44 +1,48 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import * as React from "react";
+import { Check, ChevronsUpDown } from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
+import { GlobalLoader } from "../global/global-loader";
+import { LoadingSpinner } from "../global/loading-spinner";
 
 type Option = {
-  value: string
-  label: string
-}
+  value: string;
+  label: string;
+};
 
 interface ComboboxProps {
-  options: Option[]
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
+  options: Option[];
+  value: string;
+  isLoading?: boolean;
+  onChange: (value: string) => void;
+  placeholder?: string;
 }
 
 export function Combobox({
   options,
   value,
+  isLoading = false,
   onChange,
   placeholder = "Select an option...",
 }: ComboboxProps) {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
 
-  const selectedOption = options.find((option) => option.value === value)
+  const selectedOption = options.find((option) => option.value === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -58,27 +62,33 @@ export function Combobox({
           <CommandInput placeholder={placeholder} />
           <CommandEmpty>No option found.</CommandEmpty>
           <CommandGroup>
-            {options.map((option) => (
-              <CommandItem
-                key={option.value}
-                value={option.value} // ✅ use value, not label
-                onSelect={(val) => {
-                  onChange(val) // ✅ will be the option.value
-                  setOpen(false)
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === option.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {option.label}
-              </CommandItem>
-            ))}
+            {isLoading ? (
+              <div className="p-2 flex justify-center items-center">
+                <LoadingSpinner />
+              </div>
+            ) : (
+              options.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.value} // ✅ use value, not label
+                  onSelect={(val) => {
+                    onChange(val); // ✅ will be the option.value
+                    setOpen(false);
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))
+            )}
           </CommandGroup>
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

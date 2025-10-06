@@ -1,19 +1,21 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Input } from "@/components/ui/input";
-import { type FabricSelection } from "@/types/fabric";
+import { type FabricSelectionSchema } from "../schema";
+import { useFormContext, Controller } from "react-hook-form";
 
-export const totalAmountColumn: ColumnDef<FabricSelection>[] = [
+export const totalAmountColumn: ColumnDef<FabricSelectionSchema>[] = [
   {
     header: "Total Amount",
     id: "total_amount",
-    cell: ({ row, table, column }) => (
-      <Input
-        type="number"
-        value={row.original.total_amount}
-        onChange={(e) =>
-          table.options.meta?.updateData(row.index, column.id, e.target.value)
-        }
-      />
-    ),
+    cell: ({ row }) => {
+      const { control } = useFormContext();
+      return (
+        <Controller
+          name={`fabricSelections.${row.index}.total_amount`}
+          control={control}
+          render={({ field }) => <Input type="number" {...field} />}
+        />
+      );
+    },
   },
 ];

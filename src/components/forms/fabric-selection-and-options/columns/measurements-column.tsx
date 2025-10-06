@@ -7,9 +7,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { type FabricSelection } from "@/types/fabric";
+import { type FabricSelectionSchema } from "../schema";
+import { useFormContext, Controller } from "react-hook-form";
 
-export const measurementsColumn: ColumnDef<FabricSelection>[] = [
+export const measurementsColumn: ColumnDef<FabricSelectionSchema>[] = [
   {
     header: "Measurements",
     id: "measurements",
@@ -18,39 +19,50 @@ export const measurementsColumn: ColumnDef<FabricSelection>[] = [
       {
         accessorKey: "measurementId",
         header: "Measurement ID",
-        cell: ({ row, table, column }) => (
-          <Select
-            onValueChange={(value) =>
-              table.options.meta?.updateData(row.index, column.id, value)
-            }
-            value={row.original.measurementId}
-          >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Select ID" />
-            </SelectTrigger>
-            <SelectContent>
-              {table.options.meta?.measurementIDs.map((id) => (
-                <SelectItem key={id} value={id}>
-                  {id}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ),
+        cell: ({ row, table }) => {
+          const { control } = useFormContext();
+          return (
+            <Controller
+              name={`fabricSelections.${row.index}.measurementId`}
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Select ID" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {table.options.meta?.measurementIDs.map((id) => (
+                      <SelectItem key={id} value={id}>
+                        {id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          );
+        },
       },
       {
         accessorKey: "customize",
         header: "Customize",
-        cell: ({ row, table, column }) => (
-          <div className="w-full flex justify-center items-center">
-            <Switch
-              checked={row.original.customize}
-              onCheckedChange={(value) =>
-                table.options.meta?.updateData(row.index, column.id, !!value)
-              }
-            />
-          </div>
-        ),
+        cell: ({ row }) => {
+          const { control } = useFormContext();
+          return (
+            <div className="w-full flex justify-center items-center">
+              <Controller
+                name={`fabricSelections.${row.index}.customize`}
+                control={control}
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                )}
+              />
+            </div>
+          );
+        },
       },
     ],
   },

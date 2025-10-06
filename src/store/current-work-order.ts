@@ -3,10 +3,11 @@ import { devtools } from "zustand/middleware";
 import { customerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
 import { customerMeasurementsSchema } from "@/components/forms/customer-measurements/schema";
 import { z } from "zod";
-import { type FabricSelection } from "@/types/fabric";
+import type { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/schema";
 
 type CustomerDemographics = z.infer<typeof customerDemographicsSchema>;
 type CustomerMeasurements = z.infer<typeof customerMeasurementsSchema>;
+type FabricSelection = z.infer<typeof fabricSelectionSchema>;
 
 interface CurrentWorkOrderState {
   customerDemographics: Partial<CustomerDemographics>;

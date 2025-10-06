@@ -1,8 +1,9 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { type FabricSelection } from "@/types/fabric";
+import { type FabricSelectionSchema } from "../schema";
+import { useFormContext } from "react-hook-form";
 
-export const optionStyleColumn: ColumnDef<FabricSelection>[] = [
+export const optionStyleColumn: ColumnDef<FabricSelectionSchema>[] = [
   {
     header: "Option/Style",
     id: "option-style",
@@ -10,20 +11,33 @@ export const optionStyleColumn: ColumnDef<FabricSelection>[] = [
       {
         id: "actions",
         header: "Action",
-        cell: ({ row }) => (
-          <div className="flex items-center space-x-2">
-            <Button
-              size="sm"
-              variant={"outline"}
-              onClick={() => {
-                // Implement copy previous logic
-                console.log("Copying previous row", row.index - 1);
-              }}
-            >
-              Copy Previous
-            </Button>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const { getValues, setValue } = useFormContext();
+          return (
+            <div className="flex items-center space-x-2">
+              <Button
+                size="sm"
+                variant={"outline"}
+                onClick={() => {
+                  if (row.index > 0) {
+                    const prevRowValues = getValues(
+                      `fabricSelections.${row.index - 1}`
+                    );
+                    const currentRowValues = getValues(
+                      `fabricSelections.${row.index}`
+                    );
+                    setValue(`fabricSelections.${row.index}`, {
+                      ...prevRowValues,
+                      id: currentRowValues.id,
+                    });
+                  }
+                }}
+              >
+                Copy Previous
+              </Button>
+            </div>
+          );
+        },
       },
     ],
   },

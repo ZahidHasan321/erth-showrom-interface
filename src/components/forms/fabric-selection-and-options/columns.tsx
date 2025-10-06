@@ -1,7 +1,6 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { type FabricSelection } from "@/types/fabric";
 import { optionStyleColumn } from "./columns/option-style-column";
 import { garmentDetailsColumn } from "./columns/garment-details-column";
 import { fabricDetailsColumn } from "./columns/fabric-details-column";
@@ -10,8 +9,9 @@ import { styleGroupColumn } from "./columns/style-group-column";
 import { totalAmountColumn } from "./columns/total-amount-column";
 import { specialRequestColumn } from "./columns/special-request-column";
 import { deleteActionColumn } from "./columns/delete-action-column";
+import type { FabricSelectionSchema } from "./schema";
 
-export const columns: ColumnDef<FabricSelection>[] = [
+export const columns: ColumnDef<FabricSelectionSchema>[] = [
   ...optionStyleColumn,
   ...garmentDetailsColumn,
   ...fabricDetailsColumn,

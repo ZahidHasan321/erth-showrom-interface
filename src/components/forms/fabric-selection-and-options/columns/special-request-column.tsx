@@ -1,19 +1,21 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { Textarea } from "@/components/ui/textarea";
-import { type FabricSelection } from "@/types/fabric";
+import { type FabricSelectionSchema } from "../schema";
+import { useFormContext, Controller } from "react-hook-form";
 
-export const specialRequestColumn: ColumnDef<FabricSelection>[] = [
+export const specialRequestColumn: ColumnDef<FabricSelectionSchema>[] = [
   {
     header: "Special Request",
     id: "special_request",
-    cell: ({ row, table, column }) => (
-      <Textarea
-        className="w-[300px]"
-        value={row.original.special_request}
-        onChange={(e) =>
-          table.options.meta?.updateData(row.index, column.id, e.target.value)
-        }
-      />
-    ),
+    cell: ({ row }) => {
+      const { control } = useFormContext();
+      return (
+        <Controller
+          name={`fabricSelections.${row.index}.special_request`}
+          control={control}
+          render={({ field }) => <Textarea className="w-[300px]" {...field} />}
+        />
+      );
+    },
   },
 ];
