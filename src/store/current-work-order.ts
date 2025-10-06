@@ -2,22 +2,26 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { customerDemographicsSchema } from '@/components/forms/customer-demographics/schema';
 import { customerMeasurementsSchema } from '@/components/forms/customer-measurements/schema';
+import { shelvedProductsSchema } from '@/components/forms/shelved-products/schema';
 import { z } from 'zod';
 
 type CustomerDemographics = z.infer<typeof customerDemographicsSchema>;
 type CustomerMeasurements = z.infer<typeof customerMeasurementsSchema>;
+type ShelvedProducts = z.infer<typeof shelvedProductsSchema>;
 
 interface CurrentWorkOrderState {
   customerDemographics: Partial<CustomerDemographics>;
   customerMeasurements: Partial<CustomerMeasurements>;
-  measurementId: string | null;
+  shelvedProducts: ShelvedProducts;
+  customerId: string | null;
   currentStep: number;
   savedSteps: number[];
 
   // setters
   setCustomerDemographics: (data: Partial<CustomerDemographics>) => void;
   setCustomerMeasurements: (data: Partial<CustomerMeasurements>) => void;
-  setMeasurementId: (id: string | null) => void;
+  setShelvedProducts: (data: ShelvedProducts) => void;
+  setCustomerId: (id: string | null) => void;
   setCurrentStep: (step: number) => void;
 
   // mark step complete
@@ -33,6 +37,7 @@ export const createWorkOrderStore = (name: string) => create<CurrentWorkOrderSta
     (set) => ({
       customerDemographics: {},
       customerMeasurements: {},
+      shelvedProducts: [],
       measurementId: null,
       currentStep: 0,
       savedSteps: [],
@@ -47,7 +52,9 @@ export const createWorkOrderStore = (name: string) => create<CurrentWorkOrderSta
           customerMeasurements: { ...state.customerMeasurements, ...data },
         })),
 
-      setMeasurementId: (id) => set({ measurementId: id }),
+      setShelvedProducts: (data) => set({ shelvedProducts: data }),
+
+      setCustomerId: (id) => set({ customerId: id }),
 
       setCurrentStep: (step) => set({ currentStep: step }),
 
@@ -65,7 +72,8 @@ export const createWorkOrderStore = (name: string) => create<CurrentWorkOrderSta
         set({
           customerDemographics: {},
           customerMeasurements: {},
-          measurementId: null,
+          shelvedProducts: [],
+          customerId: null,
           currentStep: 0,
           savedSteps: [],
         }),

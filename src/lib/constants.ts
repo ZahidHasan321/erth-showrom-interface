@@ -1,4 +1,4 @@
 export const BRAND_NAMES = {
   showroom: 'erth',
-  fromHome: 'sakbba',
+  fromHome: 'sakkba',
 } as const;

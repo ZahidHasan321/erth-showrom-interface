@@ -18,15 +18,15 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootLayout() {
   return (
-    <ErrorBoundary>
-      <LoaderProvider>
-        <GlobalLoader />
-        <head>
-          <HeadContent />
-        </head>
-        <Outlet />
-        <Toaster position="top-center" richColors closeButton />
-      </LoaderProvider>
-    </ErrorBoundary>
+    <>
+      <HeadContent />
+      <ErrorBoundary>
+        <LoaderProvider>
+          <GlobalLoader />
+          <Outlet />
+          <Toaster position="top-center" richColors closeButton />
+        </LoaderProvider>
+      </ErrorBoundary>
+    </>
   );
 }

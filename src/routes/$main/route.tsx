@@ -8,7 +8,7 @@ import { BRAND_NAMES } from "@/lib/constants";
 import { router } from "@/router";
 import { createFileRoute, notFound, Outlet, redirect, rootRouteId } from '@tanstack/react-router'; // Added Link
 import ErthLogo from "../../assets/erth.svg"; // Import Erth Logo
-import SakhtbaLogo from "../../assets/sakbba.svg"; // Import Sakhtba Logo
+import SakhtbaLogo from "../../assets/Sakkba.png"; // Import Sakhtba Logo
 
 type MainParam = typeof BRAND_NAMES[keyof typeof BRAND_NAMES]
 
@@ -48,7 +48,7 @@ export const Route = createFileRoute('/$main')<{
   links:[{
     rel:'icon',
     type:"image/svg+xml",
-    href: params.main === 'erth' ? "/erth.svg" :"/sakbba.svg"
+    href: params.main === 'erth' ? "/erth.svg" :"/Sakkba.png"
   }]
   }),
 })

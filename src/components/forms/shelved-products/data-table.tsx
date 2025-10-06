@@ -1,11 +1,11 @@
-"use client"
+'use client'
 
 import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
-} from "@tanstack/react-table"
+} from '@tanstack/react-table'
 
 import {
   Table,
@@ -14,18 +14,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/table'
+import { type ShelvedProduct } from './schema'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  updateData: (rowIndex: number, columnId: string, value: unknown) => void
+  updateData: (rowIndex: number, columnId: string, value: any) => void
+  removeRow: (rowIndex: number) => void
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-  updateData,
+export function DataTable<TData extends ShelvedProduct, TValue>({ 
+    columns, 
+    data, 
+    updateData, 
+    removeRow 
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -33,33 +36,19 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     meta: {
       updateData,
+      removeRow,
     },
   })
 
   return (
     <div className="rounded-md border">
-      <Table className="">
-        <colgroup>
-          {table.getHeaderGroups()[0]?.headers.map((header) => {
-            let bgClass = 'border';
-            
-            return (
-              <col key={header.id} className={bgClass} span={header.colSpan} />
-            );
-          })}
-        </colgroup>
+      <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead 
-                    key={header.id} 
-                    colSpan={header.colSpan} 
-                    className={`rounded-md px-4 py-2 text-center ${
-                      header.depth === 0 && header.index > 0 ? 'ml-4' : ''
-                    }`}
-                  >
+                  <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -77,15 +66,10 @@ export function DataTable<TData, TValue>({
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
-                data-state={row.getIsSelected() && "selected"}
+                data-state={row.getIsSelected() && 'selected'}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell 
-                    key={cell.id} 
-                    className={`rounded-md py-2 ${
-                      cell.column.parent === undefined && cell.column.getIndex() > 0 ? 'ml-4' : ''
-                    }`}
-                  >
+                  <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

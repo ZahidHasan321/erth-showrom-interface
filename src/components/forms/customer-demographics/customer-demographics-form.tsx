@@ -35,9 +35,10 @@ interface CustomerDemographicsFormProps {
   onEdit?: () => void;
   onCancel?: () => void;
   onCustomerChange?: (customerId: string | null) => void;
+  onProceed?: () => void;
 }
 
-export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onCustomerChange }: CustomerDemographicsFormProps) {
+export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onCustomerChange, onProceed }: CustomerDemographicsFormProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [displayCustomerId, setDisplayCustomerId] = useState<number | null>(null);
   const [customerRecordId, setCustomerRecordId] = useState<string | null>(null);
@@ -633,13 +634,22 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
         {/* Buttons Section */}
         <div className="flex gap-6 justify-center">
           {customerType === "Existing" && !isEditing && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleEdit}
-            >
-              Edit Customer Details
-            </Button>
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleEdit}
+              >
+                Edit Customer Details
+              </Button>
+              <Button
+                type="button"
+                onClick={onProceed}
+                disabled={!customerRecordId}
+              >
+                Proceed
+              </Button>
+            </>
           )}
           {isEditing && (
             <Button

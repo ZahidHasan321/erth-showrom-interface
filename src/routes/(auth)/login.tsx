@@ -84,74 +84,87 @@ function LoginComponent() {
   }, [isSubmitting, setIsLoading]);
 
   return (
-    <div className="p-2 grid gap-2 place-items-center">
-      <h3 className="text-xl">
-        {userType === BRAND_NAMES.showroom ? 'Erth Login' : 'Sakthba Login'}
-      </h3>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center">
+      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+        <div className="flex justify-center mb-6">
+          <img
+            src={userType === BRAND_NAMES.showroom ? '/erth.svg' : '/Sakkba.png'}
+            alt={userType === BRAND_NAMES.showroom ? 'Erth Logo' : 'Sakkba Logo'}
+            className="h-20 w-auto"
+          />
+        </div>
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
+          {userType === BRAND_NAMES.showroom ? 'Erth Login' : 'Sakkba Login'}
+        </h2>
 
-      {search.redirect ? (
-        <p className="text-red-500">You need to login to access this page.</p>
-      ) : (
-        <p>Login to see all the cool content in here.</p>
-      )}
+        {search.redirect ? (
+          <p className="text-red-500 text-center mb-4">
+            You need to login to access this page.
+          </p>
+        ) : (
+          <p className="text-gray-600 text-center mb-6">
+            Welcome back! Please login to your account.
+          </p>
+        )}
 
-      <form className="mt-4 max-w-lg" onSubmit={onFormSubmit}>
-        <fieldset disabled={isSubmitting} className="w-full grid gap-4">
-          <div className="grid gap-2 items-center min-w-[300px]">
-            <label htmlFor="username-input" className="text-sm font-medium">
-              Username or User ID
-            </label>
-            <input
-              id="username-input"
-              name="username"
-              placeholder="Enter your username or ID"
-              type="text"
-              className="border rounded-md p-2 w-full"
-              required
-            />
-          </div>
+        <form onSubmit={onFormSubmit}>
+          <fieldset disabled={isSubmitting} className="space-y-6">
+            <div className="grid gap-2 items-center min-w-[300px]">
+              <label htmlFor="username-input" className="text-sm font-medium text-gray-700">
+                Username or User ID
+              </label>
+              <input
+                id="username-input"
+                name="username"
+                placeholder="Enter your username or ID"
+                type="text"
+                className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
 
-          <div className="grid gap-2 items-center min-w-[300px]">
-            <label htmlFor="password-input" className="text-sm font-medium">
-              Password
-            </label>
-            <input
-              id="password-input"
-              name="password"
-              placeholder="Enter your password"
-              type="password"
-              className="border rounded-md p-2 w-full"
-              required
-            />
-            <label className="text-xs">Hint: password is 123</label>
-          </div>
+            <div className="grid gap-2 items-center min-w-[300px]">
+              <label htmlFor="password-input" className="text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password-input"
+                name="password"
+                placeholder="Enter your password"
+                type="password"
+                className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+              <p className="text-xs text-gray-500">Hint: password is 123</p>
+            </div>
 
-          <div className="grid gap-2 items-center min-w-[300px]">
-            <label htmlFor="userType" className="text-sm font-medium">
-              User Type
-            </label>
-            <select
-              id="userType"
-              name="userType"
-              className="border rounded-md p-2 w-full"
-              value={userType}
-              onChange={(e) =>
-                setUserType(e.target.value as typeof BRAND_NAMES[keyof typeof BRAND_NAMES])
-              }
+            <div className="grid gap-2 items-center min-w-[300px]">
+              <label htmlFor="userType" className="text-sm font-medium text-gray-700">
+                Brand
+              </label>
+              <select
+                id="userType"
+                name="userType"
+                className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={userType}
+                onChange={(e) =>
+                  setUserType(e.target.value as typeof BRAND_NAMES[keyof typeof BRAND_NAMES])
+                }
+              >
+                <option value={BRAND_NAMES.showroom}>erth</option>
+                <option value={BRAND_NAMES.fromHome}>sakkba</option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              <option value={BRAND_NAMES.showroom}>{BRAND_NAMES.showroom}</option>
-              <option value={BRAND_NAMES.fromHome}>{BRAND_NAMES.fromHome}</option>
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            className="bg-blue-500 text-white py-2 px-4 rounded-md w-full disabled:bg-gray-300 disabled:text-gray-500"
-          >
-            {isSubmitting ? 'Loading...' : 'Login'}
-          </button>
-        </fieldset>
-      </form>
+              {isSubmitting ? 'Logging in...' : 'Login'}
+            </button>
+          </fieldset>
+        </form>
+      </div>
     </div>
-  )
+  );
 }
