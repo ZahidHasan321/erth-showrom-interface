@@ -29,8 +29,11 @@ export const measurementsColumn: ColumnDef<FabricSelection>[] = [
               <SelectValue placeholder="Select ID" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="m1">M-001</SelectItem>
-              <SelectItem value="m2">M-002</SelectItem>
+              {table.options.meta?.measurementIDs.map((id) => (
+                <SelectItem key={id} value={id}>
+                  {id}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         ),

@@ -9,6 +9,7 @@ import { measurementsColumn } from "./columns/measurements-column";
 import { styleGroupColumn } from "./columns/style-group-column";
 import { totalAmountColumn } from "./columns/total-amount-column";
 import { specialRequestColumn } from "./columns/special-request-column";
+import { deleteActionColumn } from "./columns/delete-action-column";
 
 export const columns: ColumnDef<FabricSelection>[] = [
   ...optionStyleColumn,
@@ -18,4 +19,5 @@ export const columns: ColumnDef<FabricSelection>[] = [
   ...styleGroupColumn,
   ...totalAmountColumn,
   ...specialRequestColumn,
+  ...deleteActionColumn,
 ];

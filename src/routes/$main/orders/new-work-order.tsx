@@ -158,7 +158,7 @@ function NewWorkOrder() {
               />
             )}
             {
-              index == 2 && <FabricSelectionForm />
+              index == 2 && <FabricSelectionForm useCurrentWorkOrderStore={useCurrentWorkOrderStore} customerId={customerRecordId} />
             }
             {index > 2 && (
               <div className="min-h-screen flex items-center justify-center">

@@ -23,20 +23,26 @@ declare module '@tanstack/react-table' {
   }
 
   interface TableMeta<TData extends RowData> {
-    updateData: (rowIndex: number, columnId: string, value: unknown) => void
+    updateData: (rowIndex: number, columnId: string, value: unknown) => void;
+    measurementIDs: string[];
+    removeRow: (rowIndex: number) => void;
   }
 }
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-  updateData: (rowIndex: number, columnId: string, value: unknown) => void
+  data: TData[];
+  updateData: (rowIndex: number, columnId: string, value: unknown) => void;
+  measurementIDs: string[];
+  removeRow: (rowIndex: number) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   updateData,
+  measurementIDs,
+  removeRow,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -44,6 +50,8 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     meta: {
       updateData,
+      measurementIDs,
+      removeRow,
     },
   })
 
