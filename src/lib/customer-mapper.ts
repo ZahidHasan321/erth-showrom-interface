@@ -16,41 +16,63 @@ export const mapCustomerToFormValues = (customer: Customer): Partial<CustomerDem
 
   const countryCodeOptions = customerDemographicsSchema.shape.countryCode.options;
   const alternativeCountryCodeOptions = customerDemographicsSchema.shape.alternativeCountryCode.unwrap().options;
-  const customerCategoryOptions = customerDemographicsSchema.shape.customerCategory.unwrap().options;
   const nationalityOptions = customerDemographicsSchema.shape.nationality.options;
 
   return {
     customerType: "Existing", // Explicitly set to Existing when mapping a found customer
     id: customer.id, // Top-level ID is string
-    name: fields.Name,
+    name: fields.Name || "",
     nickName: fields.NickName || "",
     countryCode: getValidEnumValue(fields.CountryCode, countryCodeOptions),
-    mobileNumber: fields.Phone, // No String() conversion
-    alternativeCountryCode: getValidEnumValue(fields.AlternateCountryCode, alternativeCountryCodeOptions), // Use getValidEnumValue
-    alternativeMobileNumber: fields.AlternateMobile, // Convert to string
-    hasWhatsApp: fields.Whatsapp || false,
-    isInfluencer: fields.InstaID ? true : false,
-    instagramId: fields.InstaID ? String(fields.InstaID) : "", // Convert InstaID to string
+    mobileNumber: fields.Phone || "", // Ensure phone is always a string
+    alternativeCountryCode: getValidEnumValue(fields.AlternateCountryCode, alternativeCountryCodeOptions),
+    alternativeMobileNumber: fields.AlternateMobile || "",
+    whatsapp: fields.Whatsapp || false, // Default to false
+    instagram: fields.InstaID ? String(fields.InstaID) : "",
     email: fields.Email || "",
-    customerCategory: getValidEnumValue(
-      (() => {
-        const customerTypeName = Array.isArray(fields.CustomerType) && fields.CustomerType.length > 0
-          ? fields.CustomerType[0].name
-          : fields.CustomerType;
-        return customerTypeName === "VIP" ? "VIP" : "Regular";
-      })(),
-      customerCategoryOptions
-    ), // Re-add customerCategory mapping
     nationality: getValidEnumValue(fields.Nationality, nationalityOptions),
     address: {
-      governorate: fields.Governorate || "",
+      city: fields.City || "",
+      area: fields.Area || "",
       block: fields.Block || "",
       street: fields.Street || "",
       houseNumber: fields.HouseNo || "",
-      floor: fields.Floor || "",
-      aptNo: fields.AptNo || "",
-      landmark: fields.Landmark || "",
-      dob: fields.DOB ? new Date(fields.DOB) : undefined,
+      addressNote: fields.AddressNote || "",
+    },
+    dob: fields.DOB ? new Date(fields.DOB) : undefined,
+    accountType: fields.AccountType || "",
+    customerSegment: fields.CustomerSegment || "",
+    note: fields.Note || "",
+    whatsappOnAlt: fields.WhatsappAlt || false,
+  };
+};
+
+export const mapFormValuesToCustomer = (values: CustomerDemographicsSchema, customerRecordId?: string | null): { id?: string; fields: Partial<Customer["fields"]> } => {
+  return {
+    id: customerRecordId || undefined,
+    fields: {
+      Phone: values.mobileNumber,
+      Name: values.name,
+      NickName: values.nickName || undefined,
+      CountryCode: values.countryCode,
+      AlternateCountryCode: values.alternativeCountryCode,
+      AlternateMobile: values.alternativeMobileNumber,
+      Whatsapp: values.whatsapp || false,
+      Email: values.email || undefined,
+      Nationality: values.nationality,
+      InstaID: values.instagram ? Number(values.instagram) : undefined,
+      City: values.address.city || undefined,
+      Area: values.address.area || undefined,
+      Block: values.address.block || undefined,
+      Street: values.address.street || undefined,
+      HouseNo: values.address.houseNumber,
+      AddressNote: values.address.addressNote || undefined,
+      DOB: values.dob ? values.dob.toISOString().split("T")[0] : undefined,
+      AccountType: values.accountType || undefined,
+      CustomerSegment: values.customerSegment || undefined,
+      Note: values.note || undefined,
+      WhatsappAlt: values.whatsappOnAlt || false,
     },
   };
 };
+

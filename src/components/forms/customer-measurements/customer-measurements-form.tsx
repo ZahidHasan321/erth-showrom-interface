@@ -242,7 +242,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
           title={confirmationDialog.title}
           description={confirmationDialog.description}
         />
-        <h1 className="text-2xl font-bold mb-4">Customer Measurement</h1>
+        <h1 className="text-2xl font-bold mb-4">Measurement</h1>
 
         {/* ---- Top Controls ---- */}
         <div className="flex justify-between gap-8">

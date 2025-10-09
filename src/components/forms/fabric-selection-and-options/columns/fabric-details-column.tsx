@@ -1,5 +1,4 @@
-import * as React from "react";
-import { type ColumnDef } from "@tanstack/react-table";
+import { getFabrics } from "@/api/fabrics";
 import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,17 +9,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
-import { getFabrics } from "@/api/fabrics";
+import { type ColumnDef } from "@tanstack/react-table";
+import * as React from "react";
+import { Controller, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { useFormContext, Controller } from "react-hook-form";
 import { type FabricSelectionSchema } from "../schema";
 
 const FabricSelector = ({ rowIndex }: { rowIndex: number }) => {
   const { control } = useFormContext();
+
   const { data: fabricsResponse } = useQuery({
     queryKey: ["fabrics"],
     queryFn: getFabrics,
   });
+
   const fabrics = fabricsResponse;
 
   const fabricOptions = fabrics
@@ -46,22 +48,22 @@ const FabricSelector = ({ rowIndex }: { rowIndex: number }) => {
 };
 
 const FabricLengthInput = ({ rowIndex }: { rowIndex: number }) => {
-  const { control, getValues, watch } = useFormContext();
+  const { control, getValues } = useFormContext();
   const { data: fabricsResponse } = useQuery({
     queryKey: ["fabrics"],
     queryFn: getFabrics,
   });
   const fabrics = fabricsResponse;
 
-  const fabricSource = watch(
-    `fabricSelections.${rowIndex}.fabricDetails.fabricSource`
-  );
-  const fabricCode = watch(
-    `fabricSelections.${rowIndex}.fabricDetails.fabricCode`
-  );
-  const fabricLength = watch(
-    `fabricSelections.${rowIndex}.fabricDetails.fabricLength`
-  );
+  // const fabricSource = watch(
+  //   `fabricSelections.${rowIndex}.fabricDetails.fabricSource`
+  // );
+  // const fabricCode = watch(
+  //   `fabricSelections.${rowIndex}.fabricDetails.fabricCode`
+  // );
+  // const fabricLength = watch(
+  //   `fabricSelections.${rowIndex}.fabricDetails.fabricLength`
+  // );
 
   const checkStock = (lengthStr: string, code: string, source: string) => {
     if (source !== "In" || !lengthStr || !code) return;
@@ -74,9 +76,9 @@ const FabricLengthInput = ({ rowIndex }: { rowIndex: number }) => {
     }
   };
 
-  React.useEffect(() => {
-    checkStock(fabricLength, fabricCode, fabricSource);
-  }, [fabricSource, fabricCode, fabrics]);
+  // React.useEffect(() => {
+  //   checkStock(fabricLength, fabricCode, fabricSource);
+  // }, [fabricSource, fabricCode, fabrics]);
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const length = e.target.value;

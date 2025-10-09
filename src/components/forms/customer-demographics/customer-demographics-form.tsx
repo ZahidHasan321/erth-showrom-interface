@@ -1,4 +1,4 @@
-import { upsertCustomer } from "@/api/customers";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -19,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mapCustomerToFormValues } from "@/lib/customer-mapper";
+import { mapCustomerToFormValues, mapFormValuesToCustomer } from "@/lib/customer-mapper";
 import type { Customer } from "@/types/customer";
 import * as React from "react";
 import { useState } from "react";
@@ -28,6 +29,7 @@ import { toast } from "sonner";
 import type z from "zod";
 import { customerDemographicsDefaults, customerDemographicsSchema } from "./schema";
 import { SearchCustomer } from "./search-customer";
+import { upsertCustomer } from "@/api/customers";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
@@ -77,29 +79,7 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
 
 
   const handleFormSubmit = async (values: z.infer<typeof customerDemographicsSchema>) => {
-    const customerToUpsert: { id?: string; fields: Partial<Customer["fields"]> } = {
-      id: customerRecordId || undefined,
-      fields: {
-        Phone: values.mobileNumber,
-        Name: values.name,
-        NickName: values.nickName || undefined,
-        CountryCode: values.countryCode,
-        AlternateCountryCode: values.alternativeCountryCode,
-        AlternateMobile: values.alternativeMobileNumber,
-        Whatsapp: values.hasWhatsApp || false,
-        Email: values.email || undefined,
-        Nationality: values.nationality,
-        InstaID: values.instagramId ? Number(values.instagramId) : undefined,
-        Governorate: values.address.governorate || undefined,
-        Floor: values.address.floor || undefined,
-        Block: values.address.block || undefined,
-        AptNo: values.address.aptNo || undefined,
-        Street: values.address.street || undefined,
-        Landmark: values.address.landmark || undefined,
-        HouseNo: values.address.houseNumber,
-        DOB: values.address.dob ? values.address.dob.toISOString().split("T")[0] : undefined,
-      },
-    };
+    const customerToUpsert = mapFormValuesToCustomer(values, customerRecordId);
 
     try {
       const response = await upsertCustomer([customerToUpsert], ["Phone"]);
@@ -176,12 +156,8 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
           description={confirmationDialog.description}
         />
         <div className="flex justify-between items-start">
-          <h1 className="text-2xl font-bold mb-4">Customer Demographics</h1>
-          {displayCustomerId && (
-            <div className="text-lg font-semibold p-2 bg-muted rounded-md">
-              Customer ID: <span className="font-mono text-primary">{displayCustomerId}</span>
-            </div>
-          )}
+          <h1 className="text-2xl font-bold mb-4">Demographics</h1>
+         
         </div>
 
         <div className="flex flex-row justify-between items-center">
@@ -191,7 +167,7 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
               name="customerType"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Customer Type</FormLabel>
+                  <FormLabel>Type</FormLabel>
                   <Select
                     value={field.value}
                     onValueChange={(value) => {
@@ -237,7 +213,6 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
               )}
             />
           </div>
-        </div>
 
         {customerType === "Existing" && (
           <SearchCustomer
@@ -254,7 +229,7 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
               <FormLabel className="font-bold"><span className="text-red-500">*</span>Name</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Customer Full Name"
+                  placeholder="e.g., Nasser Al-Sabah"
                   {...field}
                   className="bg-white"
                   readOnly={isReadOnly}
@@ -274,117 +249,102 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
                 <FormItem className={"bg-muted p-4 rounded-lg"}>
                   <FormLabel>Nick Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nick Name" {...field} className="bg-white" readOnly={isReadOnly} />
+                    <Input placeholder="e.g., Abu Nasser" {...field} className="bg-white" readOnly={isReadOnly} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="hasWhatsApp"
-                render={({ field }) => (
-                  <FormItem className="bg-muted p-4 rounded-lg">
-                    <FormLabel className="font-bold"><span className="text-red-500">*</span>WhatsApp</FormLabel>
-                    <div className="flex items-center gap-2">
-                      <img
-                        alt="WhatsApp"
-                        src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                        className="w-8 h-8"
-                      />
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="bg-white"
-                          disabled={isReadOnly}
-                        />
-                      </FormControl>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <div className="flex flex-col gap-4 bg-muted p-4 rounded-lg">
-                <FormField
-                  control={form.control}
-                  name="isInfluencer"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="bg-white"
-                          disabled={isReadOnly}
-                        />
-                      </FormControl>
-                      <FormLabel>Influencer</FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="instagramId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          placeholder="Insta ID"
-                          {...field}
-                          className="bg-white"
-                          readOnly={isReadOnly}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="instagram"
+              render={({ field }) => (
+                <FormItem className={"bg-muted p-4 rounded-lg"}>
+                  <FormLabel>Instagram ID</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., @erth" {...field} className="bg-white" readOnly={isReadOnly} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="dob"
+              render={({ field }) => (
+                <FormItem className={"bg-muted p-4 rounded-lg"}>
+                  <FormLabel>DOB</FormLabel>
+                  <FormControl>
+                    <DatePicker value={field.value} onChange={field.onChange} disabled={isReadOnly} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
           </div>
           <div className="space-y-4 bg-muted p-4 rounded-lg">
+
             <FormField
               control={form.control}
               name="mobileNumber"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="font-bold"><span className="text-red-500">*</span>Mobile No</FormLabel>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col lg:flex-row gap-2">
+                    <div className="flex gap-2">
+                      <FormField
+                        control={form.control}
+                        name="countryCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              disabled={isReadOnly}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="bg-white">
+                                  <SelectValue placeholder="Country Code" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="+91">+91</SelectItem>
+                                <SelectItem value="+1">+1</SelectItem>
+                                <SelectItem value="+44">+44</SelectItem>
+                                <SelectItem value="+965">+965</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormControl>
+                        <Input
+                          placeholder="Mobile Number"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
+                      </FormControl>
+                    </div>
                     <FormField
                       control={form.control}
-                      name="countryCode"
+                      name="whatsapp"
                       render={({ field }) => (
-                        <FormItem>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            disabled={isReadOnly}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="Country Code" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="+91">+91</SelectItem>
-                              <SelectItem value="+1">+1</SelectItem>
-                              <SelectItem value="+44">+44</SelectItem>
-                              <SelectItem value="+965">+965</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
+                        <FormItem className="flex items-center gap-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="bg-white"
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormLabel>WhatsApp</FormLabel>
                         </FormItem>
                       )}
                     />
-                    <FormControl>
-                      <Input
-                        placeholder="Mobile Number"
-                        {...field}
-                        className="bg-white"
-                        readOnly={isReadOnly}
-                      />
-                    </FormControl>
                   </div>
                   <FormMessage />
                 </FormItem>
@@ -396,46 +356,96 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Alternative Mobile No</FormLabel>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col lg:flex-row gap-2">
+                    <div className="flex gap-2">
+                      <FormField
+                        control={form.control}
+                        name="alternativeCountryCode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              disabled={isReadOnly}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="bg-white">
+                                  <SelectValue placeholder="Country Code" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="+91">+91</SelectItem>
+                                <SelectItem value="+1">+1</SelectItem>
+                                <SelectItem value="+44">+44</SelectItem>
+                                <SelectItem value="+965">+965</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormControl>
+                        <Input
+                          placeholder="Mobile Number"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
+                      </FormControl>
+                    </div>
                     <FormField
                       control={form.control}
-                      name="alternativeCountryCode"
+                      name="whatsappOnAlt"
                       render={({ field }) => (
-                        <FormItem>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            disabled={isReadOnly}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="Country Code" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="+91">+91</SelectItem>
-                              <SelectItem value="+1">+1</SelectItem>
-                              <SelectItem value="+44">+44</SelectItem>
-                              <SelectItem value="+965">+965</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
+                        <FormItem className="flex items-center gap-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="bg-white"
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormLabel>WhatsApp</FormLabel>
                         </FormItem>
                       )}
                     />
-                    <FormControl>
-                      <Input
-                        placeholder="Mobile Number"
-                        {...field}
-                        className="bg-white"
-                        readOnly={isReadOnly}
-                      />
-                    </FormControl>
                   </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="nationality"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-bold"><span className="text-red-500">*</span>Nationality</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isReadOnly}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue placeholder="Kuwaiti" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Kuwaiti">Kuwaiti</SelectItem>
+                        <SelectItem value="Saudi">Saudi</SelectItem>
+                        <SelectItem value="Bahraini">Bahraini</SelectItem>
+                        <SelectItem value="Qatari">Qatari</SelectItem>
+                        <SelectItem value="Emirati">Emirati</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
           </div>
         </div>
 
@@ -448,7 +458,7 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
               <FormLabel>E-mail</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Customer Email ID"
+                  placeholder="e.g., nasser@erth.com"
                   {...field}
                   className="bg-white"
                   readOnly={isReadOnly}
@@ -461,12 +471,14 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
 
         {/* Customer Type & Nationality */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+
           <FormField
             control={form.control}
-            name="customerCategory"
+            name="accountType"
             render={({ field }) => (
               <FormItem className="w-full bg-muted p-4 rounded-lg">
-                <FormLabel>Customer Type</FormLabel>
+                <FormLabel>User Type</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
@@ -474,12 +486,12 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
                 >
                   <FormControl>
                     <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Regular / VIP" />
+                      <SelectValue placeholder="Select User Type" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Regular">Regular</SelectItem>
-                    <SelectItem value="VIP">VIP</SelectItem>
+                    <SelectItem value="Primary">Primary</SelectItem>
+                    <SelectItem value="Secondary">Secondary</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -488,10 +500,10 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
           />
           <FormField
             control={form.control}
-            name="nationality"
+            name="customerSegment"
             render={({ field }) => (
               <FormItem className="w-full bg-muted p-4 rounded-lg">
-                <FormLabel className="font-bold"><span className="text-red-500">*</span>Customer Nationality</FormLabel>
+                <FormLabel>Segment</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
@@ -499,21 +511,19 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
                 >
                   <FormControl>
                     <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Kuwaiti" />
+                      <SelectValue placeholder="Select Segment" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Kuwaiti">Kuwaiti</SelectItem>
-                    <SelectItem value="Saudi">Saudi</SelectItem>
-                    <SelectItem value="Bahraini">Bahraini</SelectItem>
-                    <SelectItem value="Qatari">Qatari</SelectItem>
-                    <SelectItem value="Emirati">Emirati</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
+
         </div>
 
         {/* Address Section */}
@@ -523,10 +533,23 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
             <div className="space-y-4">
               <FormField
                 control={form.control}
-                name="address.governorate"
+                name="address.city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Governorate</FormLabel>
+                    <FormLabel>City</FormLabel>
+                    <FormControl>
+                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="address.area"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Area</FormLabel>
                     <FormControl>
                       <Input {...field} className="bg-white" readOnly={isReadOnly} />
                     </FormControl>
@@ -575,53 +598,15 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
               />
             </div>
             <div className="space-y-4">
+
               <FormField
                 control={form.control}
-                name="address.floor"
+                name="address.addressNote"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Floor</FormLabel>
+                    <FormLabel>Address Note</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address.aptNo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Apt. No</FormLabel>
-                    <FormControl>
-                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address.landmark"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Landmark</FormLabel>
-                    <FormControl>
-                      <Input {...field} className="bg-white" readOnly={isReadOnly} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address.dob"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>DOB</FormLabel>
-                    <FormControl>
-                      <DatePicker value={field.value} onChange={field.onChange} disabled={isReadOnly} />
+                      <Textarea {...field} className="bg-white" readOnly={isReadOnly} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -630,6 +615,20 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
             </div>
           </div>
         </div>
+
+        <FormField
+          control={form.control}
+          name="note"
+          render={({ field }) => (
+            <FormItem className="bg-muted p-4 rounded-lg">
+              <FormLabel>Note</FormLabel>
+              <FormControl>
+                <Textarea {...field} className="bg-white" readOnly={isReadOnly} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Buttons Section */}
         <div className="flex gap-6 justify-center">
@@ -640,7 +639,7 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
                 variant="outline"
                 onClick={handleEdit}
               >
-                Edit Customer Details
+                Edit Details
               </Button>
               <Button
                 type="button"
@@ -651,7 +650,7 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
               </Button>
             </>
           )}
-          {isEditing && (
+          {isEditing && customerRecordId && (
             <Button
               type="button"
               variant="destructive"
@@ -662,7 +661,7 @@ export function CustomerDemographicsForm({ form, onSubmit, onEdit, onCancel, onC
           )}
           {(isEditing || customerType === "New") && (
             <Button type="submit">
-              Save Customer
+              Save
             </Button>
           )}
         </div>

@@ -11,17 +11,19 @@ export interface Customer {
     AlternateMobile?: string;
     Whatsapp?: boolean;
     Email?: string;
-    CustomerType?: string | Array<{ id: string; name: string; }>;
     Nationality: string;
     InstaID?: number;
-    Governorate?: string;
-    Floor?: string;
+    WhatsappAlt?: boolean;
+    City?: string;
     Block?: string;
-    AptNo?: string;
     Street?: string;
-    Landmark?: string;
     HouseNo?: string;
-    DOB?: string; // Assuming date will be sent as a string
+    Area?: string;
+    AddressNote?: string;
+    DOB?: string;
+    AccountType?: string;
+    CustomerSegment?: string;
+    Note?: string;
   };
 }
 

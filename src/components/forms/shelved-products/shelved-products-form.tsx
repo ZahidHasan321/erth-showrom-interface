@@ -25,7 +25,7 @@ interface ShelvedProductsFormProps{
 
 
 export function ShelvedProductsForm({ setFormData, onProceed}:ShelvedProductsFormProps) {
-  const [data, setData] = React.useState<ShelvedProduct[]>(initialData);
+  const [data, setData] = React.useState<ShelvedProduct[]>([]);
   const updateData = (rowIndex: number, columnId: string, value: any) => {
     setData((old: ShelvedProduct[]) =>
       old.map((row, index) => {

@@ -10,11 +10,10 @@ import { customerDemographicsDefaults } from "@/components/forms/customer-demogr
 import { createWorkOrderStore } from "@/store/current-work-order";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useScrollSpy } from "@/hooks/use-scrollspy";
-import { Stepper } from "@/components/ui/stepper";
 import { FabricSelectionForm } from "@/components/forms/fabric-selection-and-options";
 import { ShelvedProductsForm } from "@/components/forms/shelved-products";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useScrollSpy } from "@/hooks/use-scrollspy";
+import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
 
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
@@ -27,8 +26,8 @@ export const Route = createFileRoute("/$main/orders/new-work-order")({
 });
 
 const steps = [
-  { title: "Customer Demographics", id: "step-0" },
-  { title: "Customer Measurement", id: "step-1" },
+  { title: "Demographics", id: "step-0" },
+  { title: "Measurement", id: "step-1" },
   { title: "Fabric Selection", id: "step-2" },
   { title: "Shelves Products", id: "step-3" },
   { title: "Order & Payment Info", id: "step-4" },
@@ -39,7 +38,6 @@ function NewWorkOrder() {
   const { main } = Route.useParams();
   const useCurrentWorkOrderStore = React.useMemo(() => createWorkOrderStore(main), [main]);
   const [isScrolling, setIsScrolling] = React.useState(false);
-  const isMobile = useIsMobile();
 
   const {
     currentStep,
@@ -49,7 +47,7 @@ function NewWorkOrder() {
     addSavedStep,
     removeSavedStep,
     customerId,
-    setCustomerId,
+    setCustomerId,  
     setCustomerDemographics,
     setCustomerMeasurements,
     setShelvedProducts,
@@ -106,31 +104,18 @@ function NewWorkOrder() {
   }, [addSavedStep]);
 
   return (
-    <div className={`w-full flex flex-col xl:flex-row xl:gap-8 ${isScrolling ? 'pointer-events-none' : ''}`}>
-      {isMobile ? (
-        <div className="sticky top-0 z-10 bg-white dark:bg-gray-950 shadow-md xl:hidden">
-          <Stepper
-            steps={steps}
-            currentStep={currentStep}
-            completedSteps={completedSteps}
-            onStepChange={handleStepChange}
-          />
-        </div>
-      ) : (
-        <div className="w-64 sticky top-10 self-start">
-          <div className="max-h-[80vh] overflow-y-auto pr-2">
-            <Stepper
-              steps={steps}
-              currentStep={currentStep}
-              completedSteps={completedSteps}
-              onStepChange={handleStepChange}
-            />
-          </div>
-        </div>
-      )}
+    <div className={`flex flex-col xl:gap-8 ${isScrolling ? 'pointer-events-none' : ''}`}>
+      <div className="sticky w-full top-0 z-10 bg-white dark:bg-gray-950 shadow-md">
+        <HorizontalStepper
+          steps={steps}
+          currentStep={currentStep}
+          completedSteps={completedSteps}
+          onStepChange={handleStepChange}
+        />
+      </div>
 
       {/* Right Side Content */}
-      <div className="flex-1 space-y-20 p-4 xl:p-0">
+      <div className="flex flex-col flex-1 items-center space-y-20 p-4 xl:p-0">
         {steps.map((step, index) => (
           <div key={step.id} id={step.id} ref={sectionRefs[index]}>
             {index === 0 && (
