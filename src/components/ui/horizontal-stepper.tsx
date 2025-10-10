@@ -35,7 +35,7 @@ const Step: React.FC<StepProps> = ({ title, isCompleted, isActive, onClick }) =>
       </div>
 
       {/* Title */}
-      <div className="mt-2 text-center">
+      <div className="mt-2 text-center hidden md:block">
         <p
           className={cn(
             "text-sm font-medium",
@@ -72,7 +72,7 @@ export const HorizontalStepper: React.FC<StepperProps> = ({
 
   return (
     <div className="w-full bg-background border-b border-muted sticky top-0 z-10">
-      <div className="flex flex-col md:flex-row items-center justify-center px-4 py-2 overflow-x-auto 2xl:gap-10">
+      <div className="flex flex-row items-center justify-center px-4 py-2 overflow-x-auto 2xl:gap-10">
         {steps.map((step, index) => (
           <React.Fragment key={step.title}>
             <Step

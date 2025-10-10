@@ -7,12 +7,12 @@ import { z } from "zod";
 import type { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/fabric-selection/fabric-selection-schema";
 import type { styleOptionsSchema } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
 import type { Order } from "@/types/order";
+import type { OrderSchema } from "@/schemas/schema";
 
 type CustomerDemographics = z.infer<typeof customerDemographicsSchema>;
 type CustomerMeasurements = z.infer<typeof customerMeasurementsSchema>;
 type FabricSelection = z.infer<typeof fabricSelectionSchema>;
 type StyleOption = z.infer<typeof styleOptionsSchema>;
-type ShelvedProducts = z.infer<typeof shelvedProductsSchema>;
 
 interface CurrentWorkOrderState {
   orderId: string | null;
@@ -22,23 +22,23 @@ interface CurrentWorkOrderState {
   fabricSelections: FabricSelection[];
   styleOptions: StyleOption[];
   measurementId: string | null;
-  shelvedProducts: ShelvedProducts;
+  shelvedProducts: z.infer<typeof shelvedProductsSchema>;
   customerId: string | null;
   currentStep: number;
   savedSteps: number[];
 
   // setters
   setOrderId: (id: string | null) => void;
-  setOrder: (order: Partial<Order["fields"]>) => void;
-  setCustomerDemographics: (data: Partial<CustomerDemographics>) => void;
-  setCustomerMeasurements: (data: Partial<CustomerMeasurements>) => void;
   setFabricSelections: (data: FabricSelection[]) => void;
   setStyleOptions: (data: StyleOption[]) => void;
   addFabricSelection: (data: FabricSelection) => void;
   updateFabricSelection: (data: FabricSelection) => void;
+  setOrder: (order: Partial<OrderSchema>) => void;
+  setCustomerDemographics: (data: Partial<z.infer<typeof customerDemographicsSchema>>) => void;
+  setCustomerMeasurements: (data: Partial<z.infer<typeof customerMeasurementsSchema>>) => void;
   removeFabricSelection: (id: string) => void;
   setMeasurementId: (id: string | null) => void;
-  setShelvedProducts: (data: ShelvedProducts) => void;
+  setShelvedProducts: (data: z.infer<typeof shelvedProductsSchema>) => void;
   setCustomerId: (id: string | null) => void;
   setCurrentStep: (step: number) => void;
 
@@ -66,7 +66,7 @@ export const createWorkOrderStore = (name: string) =>
         savedSteps: [],
 
         setOrderId: (id) => set({ orderId: id }),
-        setOrder: (order) => set({ order: order }),
+        setOrder: (order) => set((state) => ({ order: { ...state.order, ...order } })),
 
         setCustomerDemographics: (data) =>
           set((state) => ({

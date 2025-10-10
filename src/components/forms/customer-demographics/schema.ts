@@ -10,7 +10,7 @@ export const customerDemographicsDefaults: CustomerDemographicsSchema = {
   alternativeMobileNumber: "",
   whatsapp: false,
   email: "",
-  nationality: "Kuwait",
+  nationality: "",
   instagram: "",
   address: {
     city: "",

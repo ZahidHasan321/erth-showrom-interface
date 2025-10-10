@@ -20,6 +20,7 @@ interface ComboboxProps {
   isLoading?: boolean;
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean
 }
 
 export function Combobox({
@@ -28,6 +29,7 @@ export function Combobox({
   isLoading = false,
   onChange,
   placeholder = "Select an option...",
+  disabled
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -39,6 +41,7 @@ export function Combobox({
         <Button
           variant="outline"
           role="combobox"
+          disabled={disabled}
           aria-expanded={open}
           className="w-[200px] justify-between"
         >

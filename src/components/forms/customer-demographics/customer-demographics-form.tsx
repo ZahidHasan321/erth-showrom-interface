@@ -47,6 +47,7 @@ interface CustomerDemographicsFormProps {
   onCancel?: () => void;
   onCustomerChange?: (customerId: string | null) => void;
   onProceed?: () => void;
+  onClear?:() => void;
 }
 
 export function CustomerDemographicsForm({
@@ -56,6 +57,7 @@ export function CustomerDemographicsForm({
   onCancel,
   onCustomerChange,
   onProceed,
+  onClear
 }: CustomerDemographicsFormProps) {
   const [isEditing, setIsEditing] = useState(true);
   const [customerRecordId, setCustomerRecordId] = useState<string | null>(null);
@@ -63,12 +65,12 @@ export function CustomerDemographicsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
   const countries = React.useMemo(() => getSortedCountries(), []);
 
   React.useEffect(() => {
-    onCustomerChange?.(customerRecordId ? String(customerRecordId) : null);
+    onCustomerChange?.(customerRecordId ? customerRecordId : null);
   }, [customerRecordId, onCustomerChange]);
 
   const handleCustomerFound = React.useCallback(
@@ -92,7 +94,7 @@ export function CustomerDemographicsForm({
           const wasNewCustomer = !customerRecordId;
           toast.success(
             `Customer ${wasNewCustomer ? "created" : "updated"} successfully!`
-          );
+          );onProceed
           const upsertedCustomerData = response.data.records.at(0) as Customer;
           setCustomerRecordId(upsertedCustomerData.id);
           flushSync(() => {
@@ -102,7 +104,7 @@ export function CustomerDemographicsForm({
         } else {
           toast.error(
             response.message ||
-              `Failed to ${customerRecordId ? "update" : "create"} customer.`
+            `Failed to ${customerRecordId ? "update" : "create"} customer.`
           );
         }
       },
@@ -188,6 +190,7 @@ export function CustomerDemographicsForm({
           onCustomerFound={handleCustomerFound}
           onHandleClear={() => {
             form.reset(customerDemographicsDefaults);
+            onClear?.()
           }}
         />
 
@@ -283,9 +286,11 @@ export function CustomerDemographicsForm({
                       <FormField
                         control={form.control}
                         name="countryCode"
+                        disabled={isReadOnly}
                         render={({ field }) => (
                           <FormItem>
                             <Combobox
+                              disabled={isReadOnly}
                               options={countries.map((country) => ({
                                 value: country.phoneCode,
                                 label: `${country.flag}: ${country.name} ${country.phoneCode}`,
@@ -344,6 +349,7 @@ export function CustomerDemographicsForm({
                         render={({ field }) => (
                           <FormItem>
                             <Combobox
+                              disabled={isReadOnly}
                               options={countries.map((country) => ({
                                 value: country.phoneCode,
                                 label: `${country.flag}: ${country.name} ${country.phoneCode}`,
@@ -397,6 +403,7 @@ export function CustomerDemographicsForm({
                     <span className="text-red-500">*</span>Nationality
                   </FormLabel>
                   <Combobox
+                    disabled={isReadOnly}
                     options={countries.map((country) => ({
                       value: country.name,
                       label: `${country.flag} ${country.name}`,

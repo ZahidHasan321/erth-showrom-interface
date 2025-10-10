@@ -1,20 +1,14 @@
-import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createOrder } from "@/api/orders";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
-import { CustomerMeasurementsForm } from "@/components/forms/customer-measurements";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  customerDemographicsSchema,
   customerDemographicsDefaults,
+  customerDemographicsSchema,
 } from "@/components/forms/customer-demographics/schema";
+import { CustomerMeasurementsForm } from "@/components/forms/customer-measurements";
 import {
-  customerMeasurementsSchema,
   customerMeasurementsDefaults,
+  customerMeasurementsSchema,
 } from "@/components/forms/customer-measurements/schema";
-import { createWorkOrderStore } from "@/store/current-work-order";
-import { z } from "zod";
-import { toast } from "sonner";
 import { FabricSelectionForm } from "@/components/forms/fabric-selection-and-options";
 import {
   fabricSelectionSchema,
@@ -24,14 +18,24 @@ import {
   styleOptionsSchema,
   type StyleOptionsSchema,
 } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
+import { orderTypeAndPaymentDefaults, OrderTypeAndPaymentForm, orderTypeAndPaymentSchema } from "@/components/forms/order-type-and-payment";
+import { paymentTypeSchema } from "@/components/forms/payment-type";
+import { PaymentTypeForm } from "@/components/forms/payment-type/payment-type-form";
 import { ShelvedProductsForm } from "@/components/forms/shelved-products";
-import { useScrollSpy } from "@/hooks/use-scrollspy";
-import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
-import { createOrder } from "@/api/orders";
-import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@tanstack/react-query";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
+import { useScrollSpy } from "@/hooks/use-scrollspy";
+import { mapApiOrderToFormOrder } from "@/lib/order-mapper";
+import { createWorkOrderStore } from "@/store/current-work-order";
 import { type Order } from "@/types/order";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import * as React from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
@@ -62,7 +66,7 @@ function NewWorkOrder() {
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   const {
@@ -79,6 +83,7 @@ function NewWorkOrder() {
     setFabricSelections,
     setStyleOptions,
     setShelvedProducts,
+    shelvedProducts,
     orderId,
     setOrderId,
     order,
@@ -90,8 +95,9 @@ function NewWorkOrder() {
     onSuccess: (response) => {
       if (response.data) {
         const order = response.data as Order;
+        const formattedOrder = mapApiOrderToFormOrder(order);
         setOrderId(order.id);
-        setOrder(order.fields);
+        setOrder(formattedOrder);
         toast.success("New work order created successfully!");
       }
     },
@@ -99,6 +105,8 @@ function NewWorkOrder() {
       toast.error("Failed to create new work order.");
     },
   });
+
+
 
   // Forms
   const demographicsForm = useForm<z.infer<typeof customerDemographicsSchema>>({
@@ -127,6 +135,43 @@ function NewWorkOrder() {
     },
   });
 
+
+  const OrderForm = useForm<z.infer<typeof orderTypeAndPaymentSchema>>({
+    resolver: zodResolver(orderTypeAndPaymentSchema),
+    defaultValues: orderTypeAndPaymentDefaults,
+  });
+
+  const paymentForm = useForm<z.infer<typeof paymentTypeSchema>>({
+    resolver: zodResolver(paymentTypeSchema),
+    defaultValues: {
+      paymentType: "cash",
+    }
+  })
+
+  const shelfCharges = React.useMemo(() => {
+    if (!shelvedProducts || shelvedProducts.length === 0) {
+      return 0;
+    }
+    return shelvedProducts.reduce((total, product) => {
+      return total + product.quantity * product.unitPrice;
+    }, 0);
+  }, [shelvedProducts]);
+
+  // Dummy values for now
+  const fabricCharges = 100;
+  const stitchingCharges = 20;
+
+  const advancePayment = React.useMemo(() => {
+    return fabricCharges + shelfCharges + (0.5 * stitchingCharges);
+  }, [fabricCharges, shelfCharges, stitchingCharges]);
+
+  React.useEffect(() => {
+    OrderForm.setValue("charges.shelf", shelfCharges);
+    OrderForm.setValue("charges.fabric", fabricCharges);
+    OrderForm.setValue("charges.stitching", stitchingCharges);
+    OrderForm.setValue("charges.style", 0); // Keep style as 0
+    OrderForm.setValue("advance", advancePayment);
+  }, [shelfCharges, fabricCharges, stitchingCharges, advancePayment, OrderForm]);
   // Refs for scroll sections
   const sectionRefs = steps.map(() =>
     React.useRef<HTMLDivElement | null>(null)
@@ -258,7 +303,9 @@ function NewWorkOrder() {
   }
 
   return (
-    <div className={``}>
+    <div
+      className="mb-20"
+    >
       <ConfirmationDialog
         isOpen={confirmationDialog.isOpen}
         onClose={() =>
@@ -282,7 +329,7 @@ function NewWorkOrder() {
       <div className="flex flex-col flex-1 items-center space-y-20 p-4 xl:p-0">
         <p>Order ID: {order.OrderID}</p>
         {steps.map((step, index) => (
-          <div key={step.id} id={step.id} ref={sectionRefs[index]}>
+          <div key={step.id} id={step.id} className="w-full flex flex-col items-center max-w-7xl" ref={sectionRefs[index]}>
             {index === 0 && (
               <CustomerDemographicsForm
                 form={demographicsForm}
@@ -294,6 +341,7 @@ function NewWorkOrder() {
                 onCancel={() => addSavedStep(0)}
                 onCustomerChange={setCustomerId}
                 onProceed={() => onHandleProceed(customerId, orderId)}
+
               />
             )}
 
@@ -325,16 +373,32 @@ function NewWorkOrder() {
                 onProceed={() => handleProceed(3)}
               />
             )}
+            {
+              index === 4 && (
+                <OrderTypeAndPaymentForm
+                  form={OrderForm}
+                  onSubmit={(data) => {
+                    setOrder(data);
+                    toast.success("Order & Payment Info saved ✅");
+                  }}
+                  onProceed={() => handleProceed(4)}
+                />
+              )
+            }
 
-            {index > 3 && (
-              <div className="min-h-screen flex items-center justify-center">
-                <div className="p-6 border rounded-lg w-full text-center">
-                  {step.title} Form
-                </div>
-              </div>
+            {index === 5 && (
+              <PaymentTypeForm form={paymentForm} onSubmit={() => {
+                // Print the entire current work order store
+                const currentStore = useCurrentWorkOrderStore.getState();
+                console.log("🧾 Full Work Order Store:", currentStore);
+
+                toast.success("Payment confirmed! ✅");
+                handleProceed(5);
+              }} />
             )}
           </div>
         ))}
+
       </div>
     </div>
   );
