@@ -2,13 +2,28 @@ import { type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { customerMeasurementsDefaults, customerMeasurementsSchema, type CustomerMeasurementsSchema } from "./schema";
-import MyImg from "../../../assets/image.png";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  customerMeasurementsDefaults,
+  customerMeasurementsSchema,
+  type CustomerMeasurementsSchema,
+} from "./schema";
 import * as React from "react";
-import { MeasurementInput } from "./MeasurementInput";
 import { GroupedMeasurementFields } from "./GroupedMeasurementFields";
 import { FabricReferenceInput } from "./FabricReferenceInput";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
@@ -18,41 +33,54 @@ import { upsertMeasurement } from "@/api/measurements";
 import { getMeasurementsByCustomerId } from "@/api/measurements";
 import { useQuery } from "@tanstack/react-query";
 import { useGlobalLoader } from "@/hooks/use-global-loader";
-import { mapFormValuesToMeasurement, mapMeasurementToFormValues } from "@/lib/measurement-mapper";
+import {
+  mapFormValuesToMeasurement,
+  mapMeasurementToFormValues,
+} from "@/lib/measurement-mapper";
 import { type Measurement } from "@/types/customer";
 
 const unit = "cm";
 
 interface CustomerMeasurementsFormProps {
   form: UseFormReturn<z.infer<typeof customerMeasurementsSchema>>;
-  onSubmit: (values: z.infer<typeof customerMeasurementsSchema>) => void;  // <-- Accept `onSubmit` as prop
+  onSubmit: (values: z.infer<typeof customerMeasurementsSchema>) => void; // <-- Accept `onSubmit` as prop
   customerId: string | null;
   onMeasurementsChange?: (measurements: measurementMap | null) => void;
   onProceed?: () => void;
 }
 
-type measurementMap = Record<string, CustomerMeasurementsSchema>
+type measurementMap = Record<string, CustomerMeasurementsSchema>;
 
-export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed }: CustomerMeasurementsFormProps) {
+export function CustomerMeasurementsForm({
+  form,
+  onSubmit,
+  customerId,
+  onProceed,
+}: CustomerMeasurementsFormProps) {
   const [isEditing, setIsEditing] = React.useState(false);
-  const [measurements, setMeasurements] = React.useState<measurementMap | null>(null)
-  const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<string | null>(null);
+  const [measurements, setMeasurements] = React.useState<measurementMap | null>(
+    null
+  );
+  const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<
+    string | null
+  >(null);
   const [isCreatingNew, setIsCreatingNew] = React.useState(false);
-  const [previousMeasurementId, setPreviousMeasurementId] = React.useState<string | null>(null);
+  const [previousMeasurementId, setPreviousMeasurementId] = React.useState<
+    string | null
+  >(null);
   const [confirmationDialog, setConfirmationDialog] = React.useState({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
 
   const { setIsLoading } = useGlobalLoader();
 
-
-      React.useEffect(() => {
-        setMeasurements(null);
-        setSelectedMeasurementId(null);
-      }, [customerId]);
+  React.useEffect(() => {
+    setMeasurements(null);
+    setSelectedMeasurementId(null);
+  }, [customerId]);
 
   const { data: measurementQuery, isLoading } = useQuery({
     queryKey: ["measurements", customerId],
@@ -69,20 +97,24 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
     setIsLoading(isLoading);
   }, [isLoading, setIsLoading]);
 
-   React.useEffect(() => {
-      if (selectedMeasurementId && measurements) {
-        const selectedMeasurement = measurements[selectedMeasurementId];
-        if (selectedMeasurement) {
-          form.reset(selectedMeasurement);
-        }
+  React.useEffect(() => {
+    if (selectedMeasurementId && measurements) {
+      const selectedMeasurement = measurements[selectedMeasurementId];
+      if (selectedMeasurement) {
+        form.reset(selectedMeasurement);
       }
+    }
   }, [selectedMeasurementId, measurements, form]);
 
   React.useEffect(() => {
     if (measurementQuery?.data && measurementQuery.data.length > 0) {
       const newMeasurements = measurementQuery.data.reduce(
-        (acc: { measurementMap: measurementMap; measurementIDs: string[] }, measurement: Measurement) => {
-          acc.measurementMap[measurement.fields.MeasurementID] = mapMeasurementToFormValues(measurement);
+        (
+          acc: { measurementMap: measurementMap; measurementIDs: string[] },
+          measurement: Measurement
+        ) => {
+          acc.measurementMap[measurement.fields.MeasurementID] =
+            mapMeasurementToFormValues(measurement);
           acc.measurementIDs.push(measurement.fields.MeasurementID);
           return acc;
         },
@@ -102,8 +134,6 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
     }
   }, [measurementQuery, customerId, setSelectedMeasurementId, form]);
 
-  
-
   const handleSave = () => {
     setConfirmationDialog({
       isOpen: true,
@@ -120,22 +150,25 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
     setConfirmationDialog({
       isOpen: true,
       title: "Confirm New Measurement",
-      description: "Are you sure you want to create a new measurement? Any unsaved changes will be lost.",
+      description:
+        "Are you sure you want to create a new measurement? Any unsaved changes will be lost.",
       onConfirm: () => {
         setPreviousMeasurementId(selectedMeasurementId); // Save the current measurement id
         setIsCreatingNew(true);
         setIsEditing(true);
 
-        const existingMeasurementIds = measurements ? Object.keys(measurements) : [];
+        const existingMeasurementIds = measurements
+          ? Object.keys(measurements)
+          : [];
         let nextMeasurementNumber = 1;
 
         if (existingMeasurementIds.length > 0) {
           const measurementNumbers = existingMeasurementIds
-            .map(id => {
+            .map((id) => {
               const parts = id.split("-");
               return parts.length > 1 ? parseInt(parts[1], 10) : 0;
             })
-            .filter(num => !isNaN(num));
+            .filter((num) => !isNaN(num));
           if (measurementNumbers.length > 0) {
             nextMeasurementNumber = Math.max(...measurementNumbers) + 1;
           }
@@ -146,11 +179,17 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
         let tempNewMeasurement;
         if (selectedMeasurementId && measurements) {
           const selectedMeasurement = measurements[selectedMeasurementId];
-          tempNewMeasurement = { ...selectedMeasurement, measurementID: newMeasurementId };
+          tempNewMeasurement = {
+            ...selectedMeasurement,
+            measurementID: newMeasurementId,
+          };
         } else {
-          tempNewMeasurement = { ...customerMeasurementsDefaults, measurementID: newMeasurementId };
+          tempNewMeasurement = {
+            ...customerMeasurementsDefaults,
+            measurementID: newMeasurementId,
+          };
         }
-        setMeasurements(prev => ({
+        setMeasurements((prev) => ({
           ...prev,
           [newMeasurementId]: tempNewMeasurement,
         }));
@@ -165,7 +204,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
     setIsCreatingNew(false);
 
     // Remove the new measurement from the measurements state
-    setMeasurements(prev => {
+    setMeasurements((prev) => {
       const newMeasurements = { ...prev };
       delete newMeasurements[form.getValues("measurementID")];
       return newMeasurements;
@@ -191,22 +230,23 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
     }
   };
 
-
-  const handleFormSubmit = async (values: z.infer<typeof customerMeasurementsSchema>) => {
+  const handleFormSubmit = async (
+    values: z.infer<typeof customerMeasurementsSchema>
+  ) => {
     if (!customerId) {
       toast.error("Customer ID is required to save measurements.");
       return;
     }
 
-    const measurementToUpsert = mapFormValuesToMeasurement(values, Number(customerId));
+    const measurementToUpsert = mapFormValuesToMeasurement(
+      values,
+      Number(customerId)
+    );
 
     try {
-      const response = await upsertMeasurement([
-        measurementToUpsert
-      ]);
+      const response = await upsertMeasurement([measurementToUpsert]);
 
       if (response.status === "success" && response.data) {
-
         setIsEditing(false);
 
         if (isCreatingNew) {
@@ -216,12 +256,11 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
         // Update the measurements state with the saved measurement
         const savedMeasurement = response.data.records[0];
         const formValues = mapMeasurementToFormValues(savedMeasurement);
-        setMeasurements(prev => ({
+        setMeasurements((prev) => ({
           ...prev,
           [formValues.measurementID]: formValues,
         }));
         setSelectedMeasurementId(formValues.measurementID);
-
       } else {
         toast.error(response.message || "Failed to save measurement.");
       }
@@ -234,10 +273,18 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
 
   return (
     <Form {...form}>
-      <form onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="mx-auto space-y-8 max-w-7xl">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSave();
+        }}
+        className="space-y-8 max-w-7xl"
+      >
         <ConfirmationDialog
           isOpen={confirmationDialog.isOpen}
-          onClose={() => setConfirmationDialog({ ...confirmationDialog, isOpen: false })}
+          onClose={() =>
+            setConfirmationDialog({ ...confirmationDialog, isOpen: false })
+          }
           onConfirm={confirmationDialog.onConfirm}
           title={confirmationDialog.title}
           description={confirmationDialog.description}
@@ -249,26 +296,30 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
           {/* Left side: Measurement Type + ID */}
           <div className="flex gap-6 bg-muted p-4 rounded-lg">
             <FormField
-                          control={form.control}
-                          name="measurementType"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Measurement Type</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value} disabled={!isEditing}>
-                                <FormControl>
-                                  <SelectTrigger className="bg-white w-auto">
-                                    <SelectValue placeholder="Measurement Type" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Body">Body</SelectItem>
-                                  <SelectItem value="Dishdasha">Dishdasha</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+              control={form.control}
+              name="measurementType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Measurement Type</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={!isEditing}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-white w-auto">
+                        <SelectValue placeholder="Measurement Type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Body">Body</SelectItem>
+                      <SelectItem value="Dishdasha">Dishdasha</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="measurementID"
@@ -278,8 +329,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
                   <Select
                     onValueChange={(value) => {
                       field.onChange(value);
-                      if(value != "")
-                        setSelectedMeasurementId(value);
+                      if (value != "") setSelectedMeasurementId(value);
                     }}
                     value={field.value}
                     disabled={!customerId || isCreatingNew}
@@ -290,18 +340,18 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {measurements && Object.keys(measurements).map((id) => (
-                        <SelectItem key={id} value={id}>
-                          {id}
-                        </SelectItem>
-                      ))}
+                      {measurements &&
+                        Object.keys(measurements).map((id) => (
+                          <SelectItem key={id} value={id}>
+                            {id}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
           </div>
 
           {/* Right side: Measurement Reference */}
@@ -312,7 +362,11 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Measurement Reference</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={!isEditing}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={!isEditing}
+                  >
                     <FormControl>
                       <SelectTrigger className="bg-white w-auto">
                         <SelectValue placeholder="Measurement Reference" />
@@ -334,162 +388,136 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
         </div>
 
         {/* ---- Middle Section ---- */}
-        <div className="flex flex-col-reverse 2xl:flex-row 2xl:gap-x-4 items-center 2xl:items-end pt-64 pb-20">
-          <div className="space-y-6 flex flex-col w-80 bg-muted p-4 rounded-lg">
-            <FabricReferenceInput
-              form={form}
-              name="fabricReferenceNo"
-              label="Fabric Reference No."
-              isDisabled={!isEditing}
-            />
+        <div className="flex flex-col 2xl:flex-row 2xl:gap-x-4 items-start pt-8">
+          {/* Left: Measurement Fields */}
+          <div className="w-full 2xl:w-auto space-y-6 p-4 rounded-lg">
+            <div className="space-y-3">
+              {/* Collar */}
+              <GroupedMeasurementFields
+                form={form}
+                title="Collar"
+                unit={unit}
+                isDisabled={!isEditing}
+                fields={[
+                  { name: "collar.width", label: "Length" },
+                  { name: "collar.height", label: "Height" },
+                ]}
+                forceColumn={true}
+              />
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Notes and special requests</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      rows={5}
-                      placeholder="Customer special request and notes"
-                      className="w-full bg-white border rounded-md"
-                      {...field}
-                      disabled={!isEditing}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                 </FormItem>
-              )}
-            />
-          </div>
+              {/* Lengths */}
+              <GroupedMeasurementFields
+                form={form}
+                title="Lengths"
+                unit={unit}
+                isDisabled={!isEditing}
+                fields={[
+                  { name: "length.front", label: "Front" },
+                  { name: "length.back", label: "Back" },
+                ]}
+                forceColumn={true}
+              />
 
-          {/* Right: Image + Measurement Fields */}
-          <div className="relative flex flex-col items-center flex-grow w-full mb-40 2xl:mb-0">
-            <img src={MyImg} alt="Dishdasha Measurement Guide" className="max-w-md lg:max-w-xl 2xl:max-w-xl h-auto object-contain" />
+              {/* Arm */}
+              <GroupedMeasurementFields
+                form={form}
+                title="Arm"
+                unit={unit}
+                isDisabled={!isEditing}
+                fields={[
+                  { name: "shoulder", label: "Shoulder" },
+                  { name: "sleeve", label: "Sleeve" },
+                  { name: "elbow", label: "Elbow" },
+                  { name: "armhole", label: "Armhole" },
+                ]}
+                forceColumn={true}
+              />
 
-            {/* Example: Collar Overlay */}
-            <GroupedMeasurementFields
-              form={form}
-              title="Collar"
-              unit={unit}
-              isDisabled={!isEditing}
-              fields={[
-                { name: "collar.width", label: "Width" },
-                { name: "collar.height", label: "Height" },
-              ]}
-              wrapperClassName="absolute top-[-23%] right-[30%] bg-muted p-2 rounded-lg"
-            />
-            {/* Shoulder */}
-            <MeasurementInput
-              form={form}
-              name="shoulder"
-              label="Shoulder"
-              unit={unit}
-              isDisabled={!isEditing}
-              className="absolute top-[3%] right-[10%] bg-muted p-2 rounded-lg"
-            />
-            {/* Armhole */}
-            <MeasurementInput
-              form={form}
-              name="armhole"
-              label="Armhole"
-              unit={unit}
-              isDisabled={!isEditing}
-              className="absolute top-[0%] left-[12%] bg-muted p-2 rounded-lg"
-            />
-            {/* Chest */}
-            <GroupedMeasurementFields
-              form={form}
-              title="Chest"
-              unit={unit}
-              isDisabled={!isEditing}
-              fields={[
-                { name: "chest.upper", label: "Upper" },
-                { name: "chest.half", label: "Half", className: "mt-2" },
-                { name: "chest.full", label: "Full", className: "mt-2" }
-              ]}
-              wrapperClassName="absolute top-[10%] left-[6%] bg-muted p-2 rounded-lg"
-            />
-            {/* Sleeve */}
-            <MeasurementInput
-              form={form}
-              name="sleeve"
-              label="Sleeve"
-              unit={unit}
-              isDisabled={!isEditing}
-              className="absolute top-[48%] left-[4%] bg-muted p-2 rounded-lg"
-            />
-            {/* Elbow */}
-            <MeasurementInput
-              form={form}
-              name="elbow"
-              label="Elbow"
-              unit={unit}
-              isDisabled={!isEditing}
-              className="absolute top-[32%] left-[4%] bg-muted p-2 rounded-lg"
-            />
-            {/* Top Pocket */}
-            <GroupedMeasurementFields
-              form={form}
-              title="Top Pocket"
-              unit={unit}
-              isDisabled={!isEditing}
-              fields={[
-                { name: "topPocket.length", label: "Length" },
-                { name: "topPocket.width", label: "Width", className: "mt-2" },
-                { name: "topPocket.distance", label: "Distance", className: "mt-2" }
-              ]}
-              wrapperClassName="absolute top-[10%] right-[8%] bg-muted p-2 rounded-lg"
-            />
-            {/* Side Pocket */}
-            <GroupedMeasurementFields
-              form={form}
-              title="Side Pocket"
-              unit={unit}
-              isDisabled={!isEditing}
-              fields={[
-                { name: "sidePocket.length", label: "Length" },
-                { name: "sidePocket.width", label: "Width", className: "mt-2" },
-                { name: "sidePocket.distance", label: "Distance", className: "mt-2" },
-                { name: "sidePocket.opening", label: "Opening", className: "mt-2" },
-              ]}
-              wrapperClassName="absolute top-[27%] right-[6%] bg-muted p-2 rounded-lg"
-            />
-            {/* Waist */}
-            <GroupedMeasurementFields
-              form={form}
-              title="Waist"
-              unit={unit}
-              isDisabled={!isEditing}
-              fields={[
-                { name: "waist.front", label: "Front" },
-                { name: "waist.back", label: "Back" },
-              ]}
-              wrapperClassName="absolute top-[49%] right-[6%] bg-muted p-2 rounded-lg"
-              forceColumn={true}
-            />
-            {/* Length */}
-            <GroupedMeasurementFields
-              form={form}
-              title="Length"
-              unit={unit}
-              isDisabled={!isEditing}
-              fields={[
-                { name: "length.front", label: "Front" },
-                { name: "length.back", label: "Back" },
-              ]}
-              wrapperClassName="absolute top-[-12%] right-[13%] bg-muted p-2 rounded-lg"
-            />
-            {/* Bottom */}
-            <MeasurementInput
-              form={form}
-              name="bottom"
-              label="Bottom"
-              unit={unit}
-              isDisabled={!isEditing}
-              className="absolute top-[92%] right-[6%] bg-muted p-2 rounded-lg"
-            />
+              {/* Body */}
+              <GroupedMeasurementFields
+                form={form}
+                title="Body"
+                unit={unit}
+                isDisabled={!isEditing}
+                fields={[
+                  { name: "chest.upper", label: "Upper Chest" },
+                  { name: "chest.full", label: "Full Chest" },
+                  { name: "waist.front", label: "Full Waist" },
+                  { name: "bottom", label: "Bottom" },
+                ]}
+                forceColumn={true}
+              />
+
+              {/* Top Pocket */}
+              <GroupedMeasurementFields
+                form={form}
+                title="Top Pocket"
+                unit={unit}
+                isDisabled={!isEditing}
+                fields={[
+                  { name: "topPocket.distance", label: "Distance" },
+                  { name: "topPocket.length", label: "Length" },
+                  { name: "topPocket.width", label: "Width" },
+                ]}
+                forceColumn={true}
+              />
+
+              {/* Jabzoor */}
+              <GroupedMeasurementFields
+                form={form}
+                title="Jabzoor"
+                unit={unit}
+                isDisabled={!isEditing}
+                fields={[
+                  { name: "jabzoor.length", label: "Length" },
+                  { name: "jabzoor.width", label: "Width" },
+                ]}
+                forceColumn={true}
+              />
+
+              {/* Side Pocket */}
+              <GroupedMeasurementFields
+                form={form}
+                title="Side Pocket"
+                unit={unit}
+                isDisabled={!isEditing}
+                fields={[
+                  { name: "sidePocket.length", label: "Length" },
+                  { name: "sidePocket.width", label: "Width" },
+                  { name: "sidePocket.distance", label: "Distance" },
+                  { name: "sidePocket.opening", label: "Opening" },
+                ]}
+                forceColumn={true}
+              />
+            </div>
+            <div className="space-y-6 pt-6">
+              <FabricReferenceInput
+                form={form}
+                name="fabricReferenceNo"
+                label="Fabric Reference No."
+                isDisabled={!isEditing}
+              />
+
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel>Notes and special requests</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={5}
+                        placeholder="Customer special request and notes"
+                        className="w-full bg-white border rounded-md"
+                        {...field}
+                        disabled={!isEditing}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         </div>
 
@@ -504,11 +532,7 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
               Cancel
             </Button>
           )}
-          <Button
-            type="submit"
-            variant="outline"
-            disabled={!isEditing}
-          >
+          <Button type="submit" variant="outline" disabled={!isEditing}>
             Save Current Measurement
           </Button>
           <Button
@@ -519,17 +543,21 @@ export function CustomerMeasurementsForm({ form, onSubmit, customerId, onProceed
           >
             Edit Existing
           </Button>
-          {!isEditing && <Button
-            type="button"
-            onClick={handleNewMeasurement}
-            disabled={!customerId || isCreatingNew}
-          >
-            New Measurement
-          </Button>}
+          {!isEditing && (
+            <Button
+              type="button"
+              onClick={handleNewMeasurement}
+              disabled={!customerId || isCreatingNew}
+            >
+              New Measurement
+            </Button>
+          )}
           <Button
             type="button"
             onClick={onProceed}
-            disabled={measurements == null || Object.keys(measurements).length == 0} 
+            disabled={
+              measurements == null || Object.keys(measurements).length == 0
+            }
           >
             Proceed
           </Button>

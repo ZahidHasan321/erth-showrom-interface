@@ -16,20 +16,31 @@ interface GroupedMeasurementFieldsProps {
   forceColumn?: boolean; // New prop
 }
 
-export function GroupedMeasurementFields({ form, title, unit, isDisabled, fields, wrapperClassName, forceColumn }: GroupedMeasurementFieldsProps) {
+export function GroupedMeasurementFields({
+  form,
+  title,
+  unit,
+  isDisabled,
+  fields,
+  wrapperClassName,
+  forceColumn,
+}: GroupedMeasurementFieldsProps) {
   let containerClasses = "flex";
 
-  if (fields.length === 2 && !forceColumn) {
+  if (!forceColumn) {
     containerClasses += " flex-row gap-x-2";
-  } else if (fields.length === 2 && forceColumn) {
+  } else if (forceColumn) {
     containerClasses += " flex-col gap-y-2";
-  } else { // fields.length > 2
-    containerClasses += " flex-col gap-y-0";
+  } else {
+    // fields.length > 2
+    containerClasses += "flex-col gap-y-0";
   }
 
   return (
-    <div className={`bg-muted p-2 rounded-lg ${wrapperClassName}`}>
-      <h4 className="font-bold mb-2 text-center">{title}</h4>
+    <div
+      className={`w-[200px] border border-1 rounded-lg p-2 ${wrapperClassName}`}
+    >
+      <h4 className="font-bold mb-2">{title}</h4>
       <div className={containerClasses}>
         {fields.map((fieldConfig) => (
           <MeasurementInput
