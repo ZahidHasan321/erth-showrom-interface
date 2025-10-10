@@ -36,7 +36,7 @@ import {
   mapFormValuesToMeasurement,
   mapMeasurementToFormValues,
 } from "@/lib/measurement-mapper";
-import { type Measurement } from "@/types/customer";
+import type { Measurement } from "@/types/measurement";
 
 const unit = "cm";
 
@@ -71,7 +71,7 @@ export function CustomerMeasurementsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   const { setIsLoading } = useGlobalLoader();
@@ -106,31 +106,47 @@ export function CustomerMeasurementsForm({
   }, [selectedMeasurementId, measurements, form]);
 
   React.useEffect(() => {
+
     if (measurementQuery?.data && measurementQuery.data.length > 0) {
       const newMeasurements = measurementQuery.data.reduce(
-        (
-          acc: { measurementMap: measurementMap; measurementIDs: string[] },
-          measurement: Measurement
-        ) => {
-          acc.measurementMap[measurement.fields.MeasurementID] =
-            mapMeasurementToFormValues(measurement);
+        (acc: { measurementMap: measurementMap; measurementIDs: string[] }, measurement: Measurement) => {
+
+          acc.measurementMap[measurement.fields.MeasurementID] = mapMeasurementToFormValues(measurement);
+
           acc.measurementIDs.push(measurement.fields.MeasurementID);
+
           return acc;
+
         },
+
         { measurementMap: {} as measurementMap, measurementIDs: [] as string[] }
+
       );
+
       setMeasurements(newMeasurements.measurementMap);
 
+
+
       if (newMeasurements.measurementIDs.length > 0) {
+
         const firstMeasurementId = newMeasurements.measurementIDs[0];
+
         setSelectedMeasurementId(firstMeasurementId);
+
         form.setValue("measurementID", firstMeasurementId);
+
       }
+
     } else if (measurementQuery?.data?.length === 0) {
+
       // No measurements found, initialize a new form
+
       form.reset(customerMeasurementsDefaults);
+
       setIsEditing(false);
+
     }
+
   }, [measurementQuery, customerId, setSelectedMeasurementId, form]);
 
   const handleSave = () => {
@@ -291,100 +307,95 @@ export function CustomerMeasurementsForm({
         <h1 className="text-2xl font-bold mb-4">Measurement</h1>
 
         {/* ---- Top Controls ---- */}
-        <div className="flex justify-between gap-8">
-          {/* Left side: Measurement Type + ID */}
-          <div className="flex gap-6 bg-muted p-4 rounded-lg">
-            <FormField
-              control={form.control}
-              name="measurementType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Measurement Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={!isEditing}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="bg-white w-auto">
-                        <SelectValue placeholder="Measurement Type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Body">Body</SelectItem>
-                      <SelectItem value="Dishdasha">Dishdasha</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="measurementID"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Measurement ID</FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      if (value != "") setSelectedMeasurementId(value);
-                    }}
-                    value={field.value}
-                    disabled={!customerId || isCreatingNew}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="bg-white w-auto">
-                        <SelectValue placeholder="Measurement ID" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {measurements &&
-                        Object.keys(measurements).map((id) => (
-                          <SelectItem key={id} value={id}>
-                            {id}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+        <div className="flex justify-start gap-6 bg-muted p-4 rounded-lg">
+          <FormField
+            control={form.control}
+            name="measurementType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Measurement Type</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={!isEditing}
+                >
+                  <FormControl>
+                    <SelectTrigger className="bg-white w-auto">
+                      <SelectValue placeholder="Measurement Type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Body">Body</SelectItem>
+                    <SelectItem value="Dishdasha">Dishdasha</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="measurementID"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Measurement ID</FormLabel>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    if (value != "") setSelectedMeasurementId(value);
+                  }}
+                  value={field.value}
+                  disabled={!customerId || isCreatingNew}
+                >
+                  <FormControl>
+                    <SelectTrigger className="bg-white w-auto">
+                      <SelectValue placeholder="Measurement ID" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {measurements &&
+                      Object.keys(measurements).map((id) => (
+                        <SelectItem key={id} value={id}>
+                          {id}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-          {/* Right side: Measurement Reference */}
-          <div className="bg-muted p-4 rounded-lg">
-            <FormField
-              control={form.control}
-              name="measurementReference"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Measurement Reference</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={!isEditing}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="bg-white w-auto">
-                        <SelectValue placeholder="Measurement Reference" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Winter">Winter</SelectItem>
-                      <SelectItem value="Summer">Summer</SelectItem>
-                      <SelectItem value="Eid">Eid</SelectItem>
-                      <SelectItem value="Occasion">Occasion</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="measurementReference"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Measurement Reference</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={!isEditing}
+                >
+                  <FormControl>
+                    <SelectTrigger className="bg-white w-auto">
+                      <SelectValue placeholder="Measurement Reference" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Winter">Winter</SelectItem>
+                    <SelectItem value="Summer">Summer</SelectItem>
+                    <SelectItem value="Eid">Eid</SelectItem>
+                    <SelectItem value="Occasion">Occasion</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
+
 
         {/* ---- Middle Section ---- */}
         <div className="flex flex-col 2xl:flex-row 2xl:gap-x-4 items-start pt-8">
