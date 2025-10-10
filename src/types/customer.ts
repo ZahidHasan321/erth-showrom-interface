@@ -11,7 +11,7 @@ export interface Customer {
     AlternateMobile?: string;
     Whatsapp?: boolean;
     Email?: string;
-    CustomerType?: string | Array<{ id: string; name: string; }>;
+    CustomerType?: string | Array<{ id: string; name: string }>;
     Nationality: string;
     InstaID?: number;
     Governorate?: string;
@@ -62,5 +62,7 @@ export interface Measurement {
     LengthFront?: number;
     LengthBack?: number;
     Bottom?: number;
+    JabzoorLength?: number;
+    JabzoorWidth?: number;
   };
 }

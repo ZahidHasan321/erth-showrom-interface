@@ -39,6 +39,10 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
     back: 0,
   },
   bottom: 0,
+  jabzoor: {
+    length: 0,
+    width: 0,
+  },
 };
 export const customerMeasurementsSchema = z.object({
   measurementID: z.string(),
@@ -79,6 +83,10 @@ export const customerMeasurementsSchema = z.object({
     back: z.number("Invalid number").positive("InValid Length Back"),
   }),
   bottom: z.number("Invalid number").positive("InValid Bottom"),
+  jabzoor: z.object({
+    length: z.number("Invalid number").positive("InValid Jabzoor Length"),
+    width: z.number("Invalid number").positive("InValid Jabzoor Width"),
+  }),
 });
 
 export type CustomerMeasurementsSchema = z.infer<typeof customerMeasurementsSchema>;
