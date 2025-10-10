@@ -1,4 +1,4 @@
-import type { ApiResponse, UpsertResponseData, UpsertApiResponse } from '../types/api';
+import type { ApiResponse, UpsertApiResponse } from '../types/api';
 import type { Customer } from '../types/customer';
 import { createRecord, getRecords, searchAllRecords, searchRecords, upsertRecords } from './baseApi';
 

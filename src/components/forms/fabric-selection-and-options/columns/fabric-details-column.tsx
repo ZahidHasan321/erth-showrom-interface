@@ -25,8 +25,8 @@ const FabricSelector = ({ rowIndex }: { rowIndex: number }) => {
 
   const fabrics = fabricsResponse;
 
-  const fabricOptions = fabrics
-    ? fabrics.map((fabric) => ({
+  const fabricOptions = fabrics?.data
+    ? fabrics.data?.map((fabric) => ({
         value: fabric.id,
         label: fabric.fields.Name,
       }))
@@ -68,7 +68,7 @@ const FabricLengthInput = ({ rowIndex }: { rowIndex: number }) => {
   const checkStock = (lengthStr: string, code: string, source: string) => {
     if (source !== "In" || !lengthStr || !code) return;
     const length = parseFloat(lengthStr);
-    const fabric = fabrics?.find((f) => f.id === code);
+    const fabric = fabrics?.data?.find((f) => f.id === code);
     if (fabric && length > fabric.fields["REAL STOCK"]) {
       toast.error(
         `Not Enough Stock! Real Stock: ${fabric.fields["REAL STOCK"]}.`

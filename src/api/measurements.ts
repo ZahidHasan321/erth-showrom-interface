@@ -1,4 +1,4 @@
-import type { ApiResponse, UpsertResponseData, UpsertApiResponse } from '../types/api';
+import type { ApiResponse, UpsertApiResponse } from '../types/api';
 import type { Measurement } from '../types/measurement';
 import { getRecords, searchAllRecords, upsertRecords } from './baseApi';
 
@@ -15,4 +15,4 @@ export const upsertMeasurement = (
   keyFields: string[] = ['CustomerID', 'MeasurementID'], // Key fields for measurements
 ): Promise<UpsertApiResponse<Measurement>> => {
   return upsertRecords<Measurement>(TABLE_NAME, measurements, keyFields) as Promise<UpsertApiResponse<Measurement>>;
-};
+}

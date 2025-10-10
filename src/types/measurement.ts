@@ -29,5 +29,7 @@ export interface Measurement {
     LengthFront?: number;
     LengthBack?: number;
     Bottom?: number;
+    JabzoorLength?: number;
+    JabzoorWidth?: number;
   };
 }

@@ -1,5 +1,5 @@
 import type { CustomerMeasurementsSchema } from "@/components/forms/customer-measurements/schema";
-import type { Measurement } from "@/types/customer";
+import type { Measurement } from "@/types/measurement";
 
 export const mapMeasurementToFormValues = (
   measurement: Measurement
