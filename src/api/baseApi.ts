@@ -122,9 +122,9 @@ export const createRecord = async <T>(
  * @param keyFields An array of field names to use for matching existing records.
  * @returns A promise that resolves to the upserted records.
  */
-export const upsertRecords = async <T>(
+export const upsertRecords = async <T extends { fields: any }>(
   tableName: string,
-  records: Array<{ id?: string; fields: any }>,
+  records: Array<{ id?: string; fields: Partial<T['fields']> }>,
   keyFields: string[],
 ): Promise<ApiResponse<T[]>> => {
   const response = await fetch(`${BASE_URL}/airtable/${tableName}/upsert`, {

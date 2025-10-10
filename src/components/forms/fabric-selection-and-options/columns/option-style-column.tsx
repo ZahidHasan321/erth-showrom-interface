@@ -1,7 +1,35 @@
-import { type ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef, type Row } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { type FabricSelectionSchema } from "../schema";
 import { useFormContext } from "react-hook-form";
+
+const OptionStyleCell = ({ row }: { row: Row<FabricSelectionSchema> }) => {
+  const { getValues, setValue } = useFormContext();
+  return (
+    <div className="flex items-center space-x-2">
+      <Button
+        size="sm"
+        variant={"outline"}
+        onClick={() => {
+          if (row.index > 0) {
+            const prevRowValues = getValues(
+              `fabricSelections.${row.index - 1}`
+            );
+            const currentRowValues = getValues(
+              `fabricSelections.${row.index}`
+            );
+            setValue(`fabricSelections.${row.index}`, {
+              ...prevRowValues,
+              id: currentRowValues.id,
+            });
+          }
+        }}
+      >
+        Copy Previous
+      </Button>
+    </div>
+  );
+};
 
 export const optionStyleColumn: ColumnDef<FabricSelectionSchema>[] = [
   {
@@ -11,33 +39,7 @@ export const optionStyleColumn: ColumnDef<FabricSelectionSchema>[] = [
       {
         id: "actions",
         header: "Action",
-        cell: ({ row }) => {
-          const { getValues, setValue } = useFormContext();
-          return (
-            <div className="flex items-center space-x-2">
-              <Button
-                size="sm"
-                variant={"outline"}
-                onClick={() => {
-                  if (row.index > 0) {
-                    const prevRowValues = getValues(
-                      `fabricSelections.${row.index - 1}`
-                    );
-                    const currentRowValues = getValues(
-                      `fabricSelections.${row.index}`
-                    );
-                    setValue(`fabricSelections.${row.index}`, {
-                      ...prevRowValues,
-                      id: currentRowValues.id,
-                    });
-                  }
-                }}
-              >
-                Copy Previous
-              </Button>
-            </div>
-          );
-        },
+        cell: ({ row }) => <OptionStyleCell row={row} />,
       },
     ],
   },

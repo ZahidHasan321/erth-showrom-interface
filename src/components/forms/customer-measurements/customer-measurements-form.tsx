@@ -25,7 +25,6 @@ import {
 } from "./schema";
 import * as React from "react";
 import { GroupedMeasurementFields } from "./GroupedMeasurementFields";
-import { FabricReferenceInput } from "./FabricReferenceInput";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { toast } from "sonner";
 import { upsertMeasurement } from "@/api/measurements";
@@ -491,12 +490,6 @@ export function CustomerMeasurementsForm({
               />
             </div>
             <div className="space-y-6 pt-6">
-              <FabricReferenceInput
-                form={form}
-                name="fabricReferenceNo"
-                label="Fabric Reference No."
-                isDisabled={!isEditing}
-              />
 
               <FormField
                 control={form.control}

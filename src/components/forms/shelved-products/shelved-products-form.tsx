@@ -6,16 +6,7 @@ import { DataTable } from './data-table'
 import { type ShelvedProduct } from './schema'
 import React, { useEffect } from 'react'
 
-const initialData: ShelvedProduct[] = [
-  {
-    id: '1',
-    serialNumber: '1',
-    productType: 'shirt',
-    brand: 'brand-a',
-    quantity: 1,
-    unitPrice: 10,
-  },
-]
+
 
 interface ShelvedProductsFormProps{
   onProceed?: () => void;

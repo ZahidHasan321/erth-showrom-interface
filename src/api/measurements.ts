@@ -1,31 +1,18 @@
-import type { ApiResponse } from '../types/api';
-import type { Measurement, UpsertResponseData } from '../types/customer'; // Import Measurement type
+import type { ApiResponse, UpsertResponseData, UpsertApiResponse } from '../types/api';
+import type { Measurement } from '../types/measurement';
 import { getRecords, searchAllRecords, upsertRecords } from './baseApi';
 
-export interface UpsertMeasurementApiResponse extends ApiResponse<UpsertResponseData<Measurement>> {
-  data?: UpsertResponseData<Measurement>;
-}
-
-const TABLE_NAME = 'Measurement'; // New table name for measurements
+const TABLE_NAME = 'MEASUREMENT'; // New table name for measurements
 
 export const getMeasurements = () => getRecords<Measurement>(TABLE_NAME);
 
 export const getMeasurementsByCustomerId = async (customerId: string): Promise<ApiResponse<Measurement[]>> => {
-  try {
-    const response = await searchAllRecords<Measurement[]>(TABLE_NAME, { CustomerID: Number(customerId) });
-    return response;
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("No records found")) {
-      return { status: "success", message: "No records found", data: [] };
-    }
-    throw error;
-  }
+  return await searchAllRecords<Measurement[]>(TABLE_NAME, { CustomerID: Number(customerId) });
 };
 
 export const upsertMeasurement = (
   measurements: Array<{ id?: string; fields: Partial<Measurement['fields']> }>,
   keyFields: string[] = ['CustomerID', 'MeasurementID'], // Key fields for measurements
-): Promise<UpsertMeasurementApiResponse> => {
-  const measurementsForUpsertRecords = measurements as Array<{ id?: string; fields: Measurement['fields'] }>;
-  return upsertRecords<Measurement>(TABLE_NAME, measurementsForUpsertRecords, keyFields) as Promise<UpsertMeasurementApiResponse>;
+): Promise<UpsertApiResponse<Measurement>> => {
+  return upsertRecords<Measurement>(TABLE_NAME, measurements, keyFields) as Promise<UpsertApiResponse<Measurement>>;
 };

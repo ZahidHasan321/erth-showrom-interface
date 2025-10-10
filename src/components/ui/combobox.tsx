@@ -50,7 +50,7 @@ export function Combobox({
         <Command>
           <CommandInput placeholder={placeholder} />
           <CommandEmpty>No option found.</CommandEmpty>
-          <CommandGroup>
+          <CommandGroup className="max-h-[200px] overflow-y-auto">
             {isLoading ? (
               <div className="p-2 flex justify-center items-center">
                 <LoadingSpinner />
@@ -59,9 +59,12 @@ export function Combobox({
               options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value} // ✅ use value, not label
-                  onSelect={(val) => {
-                    onChange(val); // ✅ will be the option.value
+                  value={option.label} // Search against the label
+                  onSelect={(selectedLabel) => {
+                    const selectedOption = options.find(opt => opt.label === selectedLabel);
+                    if (selectedOption) {
+                      onChange(selectedOption.value); // Return the actual value
+                    }
                     setOpen(false);
                   }}
                 >

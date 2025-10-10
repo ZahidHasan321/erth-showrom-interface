@@ -1,44 +1,57 @@
-import { getCustomerById, searchCustomerByPhone } from "@/api/customers";
+import { searchCustomerByPhone } from "@/api/customers";
 import { Button } from "@/components/ui/button";
 import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { Customer } from "@/types/customer";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 interface SearchCustomerProps {
   onCustomerFound: (customer: Customer) => void;
-  customerType: "New" | "Existing";
+  onHandleClear: () => void;
 }
 
-export function SearchCustomer({ onCustomerFound, customerType }: SearchCustomerProps) {
+export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustomerProps) {
   const [searchMobile, setSearchMobile] = useState("");
-  const [searchCustomerId, setSearchCustomerId] = useState("");
-  const [submittedSearch, setSubmittedSearch] = useState<{ term: string; type: "phone" | "id" } | null>(null);
+  const [submittedSearch, setSubmittedSearch] = useState<string | null>(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [customerOptions, setCustomerOptions] = useState<Customer[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const { data, isFetching, isSuccess, isError, error } = useQuery({
     queryKey: ["customerSearch", submittedSearch],
     queryFn: async () => {
       if (!submittedSearch) return null;
-      if (submittedSearch.type === "id") {
-        return getCustomerById(submittedSearch.term);
-      } else {
-        return searchCustomerByPhone(submittedSearch.term);
-      }
+      return searchCustomerByPhone(submittedSearch);
     },
     enabled: !!submittedSearch,
-    retry: false, // Don't retry on failure, as "not found" is a valid outcome
+    retry: false,
   });
 
   useEffect(() => {
     if (isSuccess && data) {
       if (data.data) {
-        onCustomerFound(data.data as Customer);
-        toast.success("Customer found!");
-      } else {
-        toast.error("Customer not found.");
+        if (data.count === 1) {
+          onCustomerFound(data.data[0] as Customer);
+          toast.success("Customer found!");
+        } else if (data.count && data.count > 1) {
+          setCustomerOptions(data.data);
+          setShowDialog(true);
+          setSelectedIndex(0); // Reset index when dialog opens
+          toast.info("Multiple customers found. Please select one.");
+        } else {
+          toast.error("Customer not found.");
+        }
       }
     }
   }, [isSuccess, data, onCustomerFound]);
@@ -50,42 +63,61 @@ export function SearchCustomer({ onCustomerFound, customerType }: SearchCustomer
     }
   }, [isError, error]);
 
+  useEffect(() => {
+    return () => {
+      setSubmittedSearch(null);
+      setSearchMobile("");
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!showDialog) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev + 1) % customerOptions.length);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev - 1 + customerOptions.length) % customerOptions.length);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        handleSelectCustomer(customerOptions[selectedIndex]);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showDialog, customerOptions, selectedIndex]);
+
+
   const handleSearch = () => {
-    if (searchCustomerId) {
-      setSubmittedSearch({ term: searchCustomerId, type: "id" });
-    } else if (searchMobile) {
-      setSubmittedSearch({ term: searchMobile, type: "phone" });
+    if (searchMobile) {
+      setSubmittedSearch(searchMobile);
     } else {
-      toast.warning("Please enter a Customer ID or Mobile Number to search.");
+      toast.warning("Please enter a Mobile Number to search.");
     }
   };
 
   const handleClear = () => {
     setSearchMobile("");
-    setSearchCustomerId("");
     setSubmittedSearch(null);
+    onHandleClear()
   };
 
-  if (customerType !== "Existing") {
-    return null;
-  }
+  const handleSelectCustomer = React.useCallback((customer: Customer) => {
+    onCustomerFound(customer);
+    setShowDialog(false);
+    setCustomerOptions([]);
+    setSubmittedSearch(null);
+    toast.success(`Selected ${customer.fields.Name}`);
+  }, [onCustomerFound]);
 
   return (
     <div className="bg-muted p-4 rounded-lg space-y-4">
-      <h2 className={"text-xl font-semibold"}>Search Customer</h2>
-      <div className={"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end"}>
-        <FormItem>
-          <FormLabel>Customer ID</FormLabel>
-          <FormControl>
-            <Input
-              placeholder="Enter customer ID..."
-              value={searchCustomerId}
-              onChange={(e) => setSearchCustomerId(e.target.value)}
-              className="bg-white"
-            />
-          </FormControl>
-        </FormItem>
+      <h2 className="text-xl font-semibold">Search Customer</h2>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         <FormItem>
           <FormLabel>Mobile Number</FormLabel>
           <FormControl>
@@ -93,29 +125,66 @@ export function SearchCustomer({ onCustomerFound, customerType }: SearchCustomer
               placeholder="Enter mobile number..."
               value={searchMobile}
               onChange={(e) => setSearchMobile(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSearch();
+                }
+              }}
               className="bg-white"
             />
           </FormControl>
         </FormItem>
 
         <div className="flex gap-2 flex-wrap justify-end lg:col-span-2">
-          <Button
-            type="button"
-            onClick={handleSearch}
-            disabled={isFetching}
-          >
+          <Button type="button" onClick={handleSearch} disabled={isFetching}>
             <SearchIcon className="w-4 h-4 mr-2" />
             {isFetching ? "Searching..." : "Search Customer"}
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClear}
-          >
+          <Button type="button" variant="outline" onClick={handleClear}>
             Clear Search
           </Button>
         </div>
       </div>
+
+      {/* Dialog for multiple customers */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select a Customer</DialogTitle>
+          </DialogHeader>
+            {customerOptions.map((customer, index) => (
+              <DialogDescription
+                key={customer.id}
+                onClick={() => handleSelectCustomer(customer)}
+                className={`p-2 border rounded-lg hover:bg-muted cursor-pointer flex flex-col ${selectedIndex === index ? "border-primary border-2" : ""
+                  }`}>
+                <span className="font-medium">{customer.fields.Name}</span>
+                {customer.fields.City && (
+                  <span className="text-xs text-muted-foreground">
+                    <strong>City:</strong> {customer.fields.City}
+                  </span>
+                )}
+                {customer.fields.Relation && (
+                  <span className="text-xs text-muted-foreground">
+                    <strong>Relation:</strong> {customer.fields.Relation}
+                  </span>
+                )}
+                {customer.fields.AccountType && (
+                  <span className="text-xs text-muted-foreground">
+                    <strong>Account Type:</strong> {customer.fields.AccountType}
+                  </span>
+                )}
+              </DialogDescription>
+            ))}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDialog(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

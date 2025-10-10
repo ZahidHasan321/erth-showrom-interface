@@ -1,8 +1,9 @@
-import { type UseFormReturn } from "react-hook-form";
+import { type Path, type UseFormReturn } from "react-hook-form";
 import { MeasurementInput } from "./MeasurementInput";
+import type { CustomerMeasurementsSchema } from "./schema";
 
 interface GroupedMeasurementFieldsProps {
-  form: UseFormReturn<any>;
+  form: UseFormReturn<CustomerMeasurementsSchema>;
   title: string;
   unit: string;
   isDisabled: boolean;
@@ -46,7 +47,7 @@ export function GroupedMeasurementFields({
           <MeasurementInput
             key={fieldConfig.name}
             form={form}
-            name={fieldConfig.name}
+            name={fieldConfig.name as Path<CustomerMeasurementsSchema>}
             label={fieldConfig.label}
             unit={unit}
             isDisabled={isDisabled}

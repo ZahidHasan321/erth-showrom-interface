@@ -100,6 +100,34 @@ const FabricLengthInput = ({ rowIndex }: { rowIndex: number }) => {
   );
 };
 
+const FabricSourceCell = ({ rowIndex }: { rowIndex: number }) => {
+  const { control, watch } = useFormContext();
+  const fabricSource = watch(
+    `fabricSelections.${rowIndex}.fabricDetails.fabricSource`
+  );
+
+  return (
+    <div className="flex flex-col space-y-1 w-[200px]">
+      <Controller
+        name={`fabricSelections.${rowIndex}.fabricDetails.fabricSource`}
+        control={control}
+        render={({ field }) => (
+          <Select onValueChange={field.onChange} value={field.value}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select source" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="In">In</SelectItem>
+              <SelectItem value="Out">Out</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      />
+      {fabricSource === "In" && <FabricSelector rowIndex={rowIndex} />}
+    </div>
+  );
+};
+
 export const fabricDetailsColumn: ColumnDef<FabricSelectionSchema>[] = [
   {
     header: "Fabric Details",
@@ -109,33 +137,7 @@ export const fabricDetailsColumn: ColumnDef<FabricSelectionSchema>[] = [
       {
         accessorKey: "fabricDetails.fabricSource",
         header: "Source",
-        cell: ({ row }) => {
-          const { control, watch } = useFormContext();
-          const fabricSource = watch(
-            `fabricSelections.${row.index}.fabricDetails.fabricSource`
-          );
-
-          return (
-            <div className="flex flex-col space-y-1 w-[200px]">
-              <Controller
-                name={`fabricSelections.${row.index}.fabricDetails.fabricSource`}
-                control={control}
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select source" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="In">In</SelectItem>
-                      <SelectItem value="Out">Out</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {fabricSource === "In" && <FabricSelector rowIndex={row.index} />}
-            </div>
-          );
-        },
+        cell: ({ row }) => <FabricSourceCell rowIndex={row.index} />,
       },
       {
         accessorKey: "fabricDetails.fabricLength",

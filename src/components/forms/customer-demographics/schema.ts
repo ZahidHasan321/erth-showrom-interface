@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const customerDemographicsDefaults: CustomerDemographicsSchema = {
   id: undefined,
-  customerType: "New",
   name: "",
   nickName: "",
   countryCode: "",
@@ -11,7 +10,7 @@ export const customerDemographicsDefaults: CustomerDemographicsSchema = {
   alternativeMobileNumber: "",
   whatsapp: false,
   email: "",
-  nationality: "",
+  nationality: "Kuwait",
   instagram: "",
   address: {
     city: "",
@@ -26,20 +25,20 @@ export const customerDemographicsDefaults: CustomerDemographicsSchema = {
   customerSegment: "",
   note: "",
   whatsappOnAlt: false,
+  relation: undefined
 };
 
 export const customerDemographicsSchema = z.object({
   id: z.string().optional(),
-  customerType: z.enum(["New", "Existing"]),
   name: z.string("Invalid Name").min(1, "Name is required"),
   nickName: z.string().optional(),
-  countryCode: z.enum(["", "+91", "+1", "+44", "+965"]),
+  countryCode: z.string(),
   mobileNumber: z.string("Invalid Mobile Number").min(1, "Mobile number is required"),
-  alternativeCountryCode: z.enum(["", "+91", "+1", "+44", "+965"]).optional(),
+  alternativeCountryCode: z.string().optional(),
   alternativeMobileNumber: z.string().optional(),
   whatsapp: z.boolean(),
   email: z.string().optional(),
-  nationality: z.enum(["", "Kuwaiti", "Saudi", "Bahraini", "Qatari", "Emirati"]),
+  nationality: z.string().optional(),
   instagram: z.string().optional(),
   address: z.object({
     city: z.string().optional(),
@@ -54,6 +53,7 @@ export const customerDemographicsSchema = z.object({
   customerSegment: z.string().optional(),
   note: z.string().optional(),
   whatsappOnAlt: z.boolean().optional(),
+  relation: z.string().optional()
 });
 
 export type CustomerDemographicsSchema = z.infer<typeof customerDemographicsSchema>;

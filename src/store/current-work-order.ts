@@ -5,6 +5,7 @@ import { customerMeasurementsSchema } from "@/components/forms/customer-measurem
 import { shelvedProductsSchema } from '@/components/forms/shelved-products/schema';
 import { z } from "zod";
 import type { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/schema";
+import type { Order } from "@/types/order";
 
 type CustomerDemographics = z.infer<typeof customerDemographicsSchema>;
 type CustomerMeasurements = z.infer<typeof customerMeasurementsSchema>;
@@ -12,6 +13,8 @@ type FabricSelection = z.infer<typeof fabricSelectionSchema>;
 type ShelvedProducts = z.infer<typeof shelvedProductsSchema>;
 
 interface CurrentWorkOrderState {
+  orderId: string | null;
+  order: Partial<Order['fields']>;
   customerDemographics: Partial<CustomerDemographics>;
   customerMeasurements: Partial<CustomerMeasurements>;
   fabricSelections: FabricSelection[];
@@ -22,6 +25,8 @@ interface CurrentWorkOrderState {
   savedSteps: number[];
 
   // setters
+  setOrderId: (id: string | null) => void;
+  setOrder: (order: Partial<Order['fields']>) => void;
   setCustomerDemographics: (data: Partial<CustomerDemographics>) => void;
   setCustomerMeasurements: (data: Partial<CustomerMeasurements>) => void;
   setFabricSelections: (data: FabricSelection[]) => void;
@@ -45,6 +50,8 @@ export const createWorkOrderStore = (name: string) =>
   create<CurrentWorkOrderState>()(
     devtools(
       (set) => ({
+        orderId: null,
+        order: {},
         customerDemographics: {},
         customerMeasurements: {},
         fabricSelections: [],
@@ -52,6 +59,9 @@ export const createWorkOrderStore = (name: string) =>
         measurementId: null,
         currentStep: 0,
         savedSteps: [],
+
+        setOrderId: (id) => set({ orderId: id }),
+        setOrder: (order) => set({ order: order }),
 
         setCustomerDemographics: (data) =>
           set((state) => ({
@@ -107,6 +117,8 @@ export const createWorkOrderStore = (name: string) =>
 
         resetWorkOrder: () =>
           set({
+            orderId: null,
+            order: {},
             customerDemographics: {},
             customerMeasurements: {},
             fabricSelections: [],
