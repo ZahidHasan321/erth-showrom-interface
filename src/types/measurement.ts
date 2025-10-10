@@ -12,9 +12,13 @@ export interface Measurement {
     CollarHeight?: number;
     Shoulder?: number;
     Armhole?: number;
+    ArmholeFront?: number;
+    ArmholeProvision?: number;
     ChestUpper?: number;
     ChestHalf?: number;
     ChestFull?: number;
+    ChestFront?: number;
+    ChestProvision?: number;
     Sleeve?: number;
     Elbow?: number;
     TopPocketLength?: number;
@@ -24,8 +28,10 @@ export interface Measurement {
     SidePocketWidth?: number;
     SidePocketDistance?: number;
     SidePocketOpening?: number;
+    WaistFull?: number;
     WaistFront?: number;
     WaistBack?: number;
+    WaistProvision?: number;
     LengthFront?: number;
     LengthBack?: number;
     Bottom?: number;

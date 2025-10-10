@@ -276,7 +276,8 @@ export function CustomerDemographicsForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="font-bold">
-                    <span className="text-red-500">*</span>Mobile No</FormLabel>
+                    <span className="text-red-500">*</span>Mobile No
+                  </FormLabel>
                   <div className="flex flex-nowrap gap-2">
                     <div className="flex gap-2">
                       <FormField

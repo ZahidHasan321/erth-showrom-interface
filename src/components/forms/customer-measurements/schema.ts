@@ -10,15 +10,35 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
     width: 0,
     height: 0,
   },
-  shoulder: 0,
-  armhole: 0,
-  chest: {
-    upper: 0,
-    half: 0,
-    full: 0,
+  lengths: {
+    front: 0,
+    back: 0,
   },
-  sleeve: 0,
-  elbow: 0,
+  arm: {
+    shoulder: 0,
+    sleeve: 0,
+    elbow: 0,
+    armhole: {
+      value: 0,
+      front: 0,
+      provision: 0,
+    },
+  },
+  body: {
+    upper_chest: 0,
+    full_chest: {
+      value: 0,
+      front: 0,
+      provision: 0,
+    },
+    full_waist: {
+      value: 0,
+      front: 0,
+      back: 0,
+      provision: 0,
+    },
+    bottom: 0,
+  },
   topPocket: {
     length: 0,
     width: 0,
@@ -30,20 +50,12 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
     distance: 0,
     opening: 0,
   },
-  waist: {
-    front: 0,
-    back: 0,
-  },
-  length: {
-    front: 0,
-    back: 0,
-  },
-  bottom: 0,
   jabzoor: {
     length: 0,
     width: 0,
   },
 };
+
 export const customerMeasurementsSchema = z.object({
   measurementID: z.string(),
   measurementType: z.enum(["Body", "Dishdasha"]),
@@ -51,41 +63,52 @@ export const customerMeasurementsSchema = z.object({
   fabricReferenceNo: z.array(z.string()).optional(),
   notes: z.string().optional(),
   collar: z.object({
-    width: z.number("Invalid number").positive("InValid Collar Width"),
-    height: z.number("Invalid number").positive("InValid Collar Height"),
+    width: z.number().positive("InValid Collar Width"),
+    height: z.number().positive("InValid Collar Height"),
   }),
-  shoulder: z.number("Invalid number").positive("InValid Shoulder"),
-  armhole: z.number("Invalid number").positive("InValid Armhole"),
-  chest: z.object({
-    upper: z.number("Invalid number").positive("InValid Chest Upper"),
-    half: z.number("Invalid number").positive("InValid Chest Half"),
-    full: z.number("Invalid number").positive("InValid Chest Full"),
+  lengths: z.object({
+    front: z.number().positive("InValid Length Front"),
+    back: z.number().positive("InValid Length Back"),
   }),
-  sleeve: z.number("Invalid number").positive("InValid Sleeve"),
-  elbow: z.number("Invalid number").positive("InValid Elbow"),
+  arm: z.object({
+    shoulder: z.number().positive("InValid Shoulder"),
+    sleeve: z.number().positive("InValid Sleeve"),
+    elbow: z.number().positive("InValid Elbow"),
+    armhole: z.object({
+      value: z.number().positive("InValid Armhole"),
+      front: z.number().positive("InValid Armhole Front"),
+      provision: z.number().optional(),
+    }),
+  }),
+  body: z.object({
+    upper_chest: z.number().positive("InValid Chest Upper"),
+    full_chest: z.object({
+      value: z.number().positive("InValid Chest Full"),
+      front: z.number().positive("InValid Chest Full Front"),
+      provision: z.number().optional(),
+    }),
+    full_waist: z.object({
+      value: z.number().positive("InValid Waist"),
+      front: z.number().positive("InValid Waist Front"),
+      back: z.number().positive("InValid Waist Back"),
+      provision: z.number().optional(),
+    }),
+    bottom: z.number().positive("InValid Bottom"),
+  }),
   topPocket: z.object({
-    length: z.number("Invalid number").positive("InValid Top Pocket Length"),
-    width: z.number("Invalid number").positive("InValid Top Pocket Width"),
-    distance: z.number("Invalid number").positive("InValid Top Pocket Distance").optional(),
+    length: z.number().positive("InValid Top Pocket Length"),
+    width: z.number().positive("InValid Top Pocket Width"),
+    distance: z.number().positive("InValid Top Pocket Distance").optional(),
   }),
   sidePocket: z.object({
-    length: z.number("Invalid number").positive("InValid Side Pocket Length"),
-    width: z.number("Invalid number").positive("InValid Side Pocket Width"),
-    distance: z.number("Invalid number").positive("InValid Side Pocket Distance").optional(),
-    opening: z.number("Invalid number").positive("InValid Side Pocket Opening").optional(),
+    length: z.number().positive("InValid Side Pocket Length"),
+    width: z.number().positive("InValid Side Pocket Width"),
+    distance: z.number().positive("InValid Side Pocket Distance").optional(),
+    opening: z.number().positive("InValid Side Pocket Opening").optional(),
   }),
-  waist: z.object({
-    front: z.number("Invalid number").positive("InValid Waist Front"),
-    back: z.number("Invalid number").positive("InValid Waist Back"),
-  }),
-  length: z.object({
-    front: z.number("Invalid number").positive("InValid Length Front"),
-    back: z.number("Invalid number").positive("InValid Length Back"),
-  }),
-  bottom: z.number("Invalid number").positive("InValid Bottom"),
   jabzoor: z.object({
-    length: z.number("Invalid number").positive("InValid Jabzoor Length"),
-    width: z.number("Invalid number").positive("InValid Jabzoor Width"),
+    length: z.number().positive("InValid Jabzoor Length"),
+    width: z.number().positive("InValid Jabzoor Width"),
   }),
 });
 

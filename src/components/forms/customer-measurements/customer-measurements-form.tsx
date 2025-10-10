@@ -71,10 +71,44 @@ export function CustomerMeasurementsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
 
   const { setIsLoading } = useGlobalLoader();
+
+  React.useEffect(() => {
+    const armholeValue = form.watch("arm.armhole.value");
+    const armholeFront = form.watch("arm.armhole.front");
+    form.setValue("arm.armhole.provision", armholeFront * 2 - armholeValue);
+  }, [form, form.watch("arm.armhole.value"), form.watch("arm.armhole.front")]);
+
+  React.useEffect(() => {
+    const fullChestValue = form.watch("body.full_chest.value");
+    const fullChestFront = form.watch("body.full_chest.front");
+    form.setValue(
+      "body.full_chest.provision",
+      fullChestFront * 2 - fullChestValue
+    );
+  }, [
+    form,
+    form.watch("body.full_chest.value"),
+    form.watch("body.full_chest.front"),
+  ]);
+
+  React.useEffect(() => {
+    const fullWaistValue = form.watch("body.full_waist.value");
+    const fullWaistFront = form.watch("body.full_waist.front");
+    const fullWaistBack = form.watch("body.full_waist.back");
+    form.setValue(
+      "body.full_waist.provision",
+      fullWaistFront + fullWaistBack - fullWaistValue
+    );
+  }, [
+    form,
+    form.watch("body.full_waist.value"),
+    form.watch("body.full_waist.front"),
+    form.watch("body.full_waist.back"),
+  ]);
 
   React.useEffect(() => {
     setMeasurements(null);
@@ -106,47 +140,39 @@ export function CustomerMeasurementsForm({
   }, [selectedMeasurementId, measurements, form]);
 
   React.useEffect(() => {
-
     if (measurementQuery?.data && measurementQuery.data.length > 0) {
       const newMeasurements = measurementQuery.data.reduce(
-        (acc: { measurementMap: measurementMap; measurementIDs: string[] }, measurement: Measurement) => {
-
-          acc.measurementMap[measurement.fields.MeasurementID] = mapMeasurementToFormValues(measurement);
+        (
+          acc: { measurementMap: measurementMap; measurementIDs: string[] },
+          measurement: Measurement
+        ) => {
+          acc.measurementMap[measurement.fields.MeasurementID] =
+            mapMeasurementToFormValues(measurement);
 
           acc.measurementIDs.push(measurement.fields.MeasurementID);
 
           return acc;
-
         },
 
         { measurementMap: {} as measurementMap, measurementIDs: [] as string[] }
-
       );
 
       setMeasurements(newMeasurements.measurementMap);
 
-
-
       if (newMeasurements.measurementIDs.length > 0) {
-
         const firstMeasurementId = newMeasurements.measurementIDs[0];
 
         setSelectedMeasurementId(firstMeasurementId);
 
         form.setValue("measurementID", firstMeasurementId);
-
       }
-
     } else if (measurementQuery?.data?.length === 0) {
-
       // No measurements found, initialize a new form
 
       form.reset(customerMeasurementsDefaults);
 
       setIsEditing(false);
-
     }
-
   }, [measurementQuery, customerId, setSelectedMeasurementId, form]);
 
   const handleSave = () => {
@@ -396,7 +422,6 @@ export function CustomerMeasurementsForm({
           />
         </div>
 
-
         {/* ---- Middle Section ---- */}
         <div className="flex flex-col 2xl:flex-row 2xl:gap-x-4 items-start pt-8">
           {/* Left: Measurement Fields */}
@@ -422,8 +447,8 @@ export function CustomerMeasurementsForm({
                 unit={unit}
                 isDisabled={!isEditing}
                 fields={[
-                  { name: "length.front", label: "Front" },
-                  { name: "length.back", label: "Back" },
+                  { name: "lengths.front", label: "Front" },
+                  { name: "lengths.back", label: "Back" },
                 ]}
                 forceColumn={true}
               />
@@ -435,10 +460,18 @@ export function CustomerMeasurementsForm({
                 unit={unit}
                 isDisabled={!isEditing}
                 fields={[
-                  { name: "shoulder", label: "Shoulder" },
-                  { name: "sleeve", label: "Sleeve" },
-                  { name: "elbow", label: "Elbow" },
-                  { name: "armhole", label: "Armhole" },
+                  { name: "arm.shoulder", label: "Shoulder" },
+                  { name: "arm.sleeve", label: "Sleeve" },
+                  { name: "arm.elbow", label: "Elbow" },
+                  { name: "arm.armhole.value", label: "Armhole" },
+                  [
+                    { name: "arm.armhole.front", label: "Front" },
+                    {
+                      name: "arm.armhole.provision",
+                      label: "Provision",
+                      isDisabled: true,
+                    },
+                  ],
                 ]}
                 forceColumn={true}
               />
@@ -450,10 +483,28 @@ export function CustomerMeasurementsForm({
                 unit={unit}
                 isDisabled={!isEditing}
                 fields={[
-                  { name: "chest.upper", label: "Upper Chest" },
-                  { name: "chest.full", label: "Full Chest" },
-                  { name: "waist.front", label: "Full Waist" },
-                  { name: "bottom", label: "Bottom" },
+                  { name: "body.upper_chest", label: "Upper Chest" },
+                  [
+                    { name: "body.full_chest.value", label: "Full Chest" },
+                    { name: "body.full_chest.front", label: "Front" },
+                    {
+                      name: "body.full_chest.provision",
+                      label: "Provision",
+                      isDisabled: true,
+                    },
+                  ],
+                  [
+                    { name: "body.full_waist.value", label: "Full Waist" },
+                    { name: "body.full_waist.front", label: "Front" },
+                    { name: "body.full_waist.back", label: "Back" },
+                    {
+                      name: "body.full_waist.provision",
+                      label: "Provision",
+                      isDisabled: true,
+                    },
+                  ],
+
+                  { name: "body.bottom", label: "Bottom" },
                 ]}
                 forceColumn={true}
               />
@@ -501,7 +552,6 @@ export function CustomerMeasurementsForm({
               />
             </div>
             <div className="space-y-6 pt-6">
-
               <FormField
                 control={form.control}
                 name="notes"
