@@ -1,1 +1,1 @@
-export * from './fabric-selection-form'
+export * from "./fabric-selection-form";

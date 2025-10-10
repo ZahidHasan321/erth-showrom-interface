@@ -2,22 +2,25 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { customerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
 import { customerMeasurementsSchema } from "@/components/forms/customer-measurements/schema";
-import { shelvedProductsSchema } from '@/components/forms/shelved-products/schema';
+import { shelvedProductsSchema } from "@/components/forms/shelved-products/schema";
 import { z } from "zod";
-import type { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/schema";
+import type { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/fabric-selection/fabric-selection-schema";
+import type { styleOptionsSchema } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
 import type { Order } from "@/types/order";
 
 type CustomerDemographics = z.infer<typeof customerDemographicsSchema>;
 type CustomerMeasurements = z.infer<typeof customerMeasurementsSchema>;
 type FabricSelection = z.infer<typeof fabricSelectionSchema>;
+type StyleOption = z.infer<typeof styleOptionsSchema>;
 type ShelvedProducts = z.infer<typeof shelvedProductsSchema>;
 
 interface CurrentWorkOrderState {
   orderId: string | null;
-  order: Partial<Order['fields']>;
+  order: Partial<Order["fields"]>;
   customerDemographics: Partial<CustomerDemographics>;
   customerMeasurements: Partial<CustomerMeasurements>;
   fabricSelections: FabricSelection[];
+  styleOptions: StyleOption[];
   measurementId: string | null;
   shelvedProducts: ShelvedProducts;
   customerId: string | null;
@@ -26,10 +29,11 @@ interface CurrentWorkOrderState {
 
   // setters
   setOrderId: (id: string | null) => void;
-  setOrder: (order: Partial<Order['fields']>) => void;
+  setOrder: (order: Partial<Order["fields"]>) => void;
   setCustomerDemographics: (data: Partial<CustomerDemographics>) => void;
   setCustomerMeasurements: (data: Partial<CustomerMeasurements>) => void;
   setFabricSelections: (data: FabricSelection[]) => void;
+  setStyleOptions: (data: StyleOption[]) => void;
   addFabricSelection: (data: FabricSelection) => void;
   updateFabricSelection: (data: FabricSelection) => void;
   removeFabricSelection: (id: string) => void;
@@ -55,6 +59,7 @@ export const createWorkOrderStore = (name: string) =>
         customerDemographics: {},
         customerMeasurements: {},
         fabricSelections: [],
+        styleOptions: [],
         shelvedProducts: [],
         measurementId: null,
         currentStep: 0,
@@ -74,6 +79,7 @@ export const createWorkOrderStore = (name: string) =>
           })),
 
         setFabricSelections: (data) => set({ fabricSelections: data }),
+        setStyleOptions: (data) => set({ styleOptions: data }),
 
         addFabricSelection: (data) =>
           set((state) => ({
@@ -95,9 +101,9 @@ export const createWorkOrderStore = (name: string) =>
           })),
 
         setMeasurementId: (id) => set({ measurementId: id }),
-      setShelvedProducts: (data) => set({ shelvedProducts: data }),
+        setShelvedProducts: (data) => set({ shelvedProducts: data }),
 
-      setCustomerId: (id) => set({ customerId: id }),
+        setCustomerId: (id) => set({ customerId: id }),
 
         setCurrentStep: (step) => set({ currentStep: step }),
 
@@ -122,6 +128,7 @@ export const createWorkOrderStore = (name: string) =>
             customerDemographics: {},
             customerMeasurements: {},
             fabricSelections: [],
+            styleOptions: [],
             shelvedProducts: [],
             customerId: null,
             measurementId: null,

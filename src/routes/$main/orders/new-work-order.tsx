@@ -16,6 +16,14 @@ import { createWorkOrderStore } from "@/store/current-work-order";
 import { z } from "zod";
 import { toast } from "sonner";
 import { FabricSelectionForm } from "@/components/forms/fabric-selection-and-options";
+import {
+  fabricSelectionSchema,
+  type FabricSelectionSchema,
+} from "@/components/forms/fabric-selection-and-options/fabric-selection/fabric-selection-schema";
+import {
+  styleOptionsSchema,
+  type StyleOptionsSchema,
+} from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
 import { ShelvedProductsForm } from "@/components/forms/shelved-products";
 import { useScrollSpy } from "@/hooks/use-scrollspy";
 import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
@@ -68,6 +76,8 @@ function NewWorkOrder() {
     customerDemographics,
     setCustomerDemographics,
     setCustomerMeasurements,
+    setFabricSelections,
+    setStyleOptions,
     setShelvedProducts,
     orderId,
     setOrderId,
@@ -101,8 +111,26 @@ function NewWorkOrder() {
     defaultValues: customerMeasurementsDefaults,
   });
 
+  const fabricSelectionForm = useForm<{
+    fabricSelections: FabricSelectionSchema[];
+    styleOptions: StyleOptionsSchema[];
+  }>({
+    resolver: zodResolver(
+      z.object({
+        fabricSelections: z.array(fabricSelectionSchema),
+        styleOptions: z.array(styleOptionsSchema),
+      })
+    ),
+    defaultValues: {
+      fabricSelections: [],
+      styleOptions: [],
+    },
+  });
+
   // Refs for scroll sections
-  const sectionRefs = steps.map(() => React.useRef<HTMLDivElement | null>(null));
+  const sectionRefs = steps.map(() =>
+    React.useRef<HTMLDivElement | null>(null)
+  );
   const activeSection = useScrollSpy(sectionRefs, {
     rootMargin: "0px",
     threshold: 0.5,
@@ -136,6 +164,15 @@ function NewWorkOrder() {
     },
     [addSavedStep]
   );
+
+  const handleFabricSelectionSubmit = (data: {
+    fabricSelections: FabricSelectionSchema[];
+    styleOptions: StyleOptionsSchema[];
+  }) => {
+    setFabricSelections(data.fabricSelections);
+    setStyleOptions(data.styleOptions);
+    toast.success("Fabric Selections and Style Options saved ✅");
+  };
 
   // -------------------------------------------------
   // Auto-prompt user on first mount if no order exists
@@ -213,17 +250,15 @@ function NewWorkOrder() {
   // MAIN CONTENT (only shown after orderId is set)
   // -------------------------------------------------
 
-  function onHandleProceed(customerId: string|null, orderId:string|null){
-    if(orderId && customerId){
-      setOrder({CustomerID:[customerId]})
+  function onHandleProceed(customerId: string | null, orderId: string | null) {
+    if (orderId && customerId) {
+      setOrder({ CustomerID: [customerId] });
       addSavedStep(0);
     }
   }
-  
+
   return (
-    <div
-      className={``}
-    >
+    <div className={``}>
       <ConfirmationDialog
         isOpen={confirmationDialog.isOpen}
         onClose={() =>
@@ -245,9 +280,7 @@ function NewWorkOrder() {
       </div>
       {/* Step Content */}
       <div className="flex flex-col flex-1 items-center space-y-20 p-4 xl:p-0">
-      <p>
-        Order ID: {order.OrderID}
-      </p>
+        <p>Order ID: {order.OrderID}</p>
         {steps.map((step, index) => (
           <div key={step.id} id={step.id} ref={sectionRefs[index]}>
             {index === 0 && (
@@ -261,7 +294,6 @@ function NewWorkOrder() {
                 onCancel={() => addSavedStep(0)}
                 onCustomerChange={setCustomerId}
                 onProceed={() => onHandleProceed(customerId, orderId)}
-
               />
             )}
 
@@ -272,7 +304,7 @@ function NewWorkOrder() {
                   setCustomerMeasurements(data);
                   toast.success("Customer Measurements saved ✅");
                 }}
-                customerId={customerDemographics.id??null}
+                customerId={customerDemographics.id ?? null}
                 onProceed={() => handleProceed(1)}
               />
             )}
@@ -281,6 +313,9 @@ function NewWorkOrder() {
               <FabricSelectionForm
                 useCurrentWorkOrderStore={useCurrentWorkOrderStore}
                 customerId={customerId}
+                form={fabricSelectionForm}
+                onSubmit={handleFabricSelectionSubmit}
+                onProceed={() => handleProceed(2)}
               />
             )}
 

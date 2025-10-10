@@ -1,75 +1,113 @@
 "use client";
 
-import { columns } from "./columns";
+import { columns as fabricSelectionColumns } from "./fabric-selection/fabric-selection-columns";
 import { DataTable } from "./data-table";
 import { Button } from "@/components/ui/button";
 import { createWorkOrderStore } from "@/store/current-work-order";
 import { useQuery } from "@tanstack/react-query";
 import { getMeasurementsByCustomerId } from "@/api/measurements";
 import * as React from "react";
-import { useForm, FormProvider, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { FormProvider, useFieldArray } from "react-hook-form";
 import {
-  fabricSelectionSchema,
   type FabricSelectionSchema,
   fabricSelectionDefaults,
-} from "./schema";
-import z from "zod";
+} from "./fabric-selection/fabric-selection-schema";
+import { columns as styleOptionsColumns } from "./style-options/style-options-columns";
+import {
+  type StyleOptionsSchema,
+  styleOptionsDefaults,
+} from "./style-options/style-options-schema";
+import { type UseFormReturn } from "react-hook-form";
 
 interface FabricSelectionFormProps {
   useCurrentWorkOrderStore: ReturnType<typeof createWorkOrderStore>;
   customerId: string | null;
+  form: UseFormReturn<{
+    fabricSelections: FabricSelectionSchema[];
+    styleOptions: StyleOptionsSchema[];
+  }>;
+  onSubmit: (values: {
+    fabricSelections: FabricSelectionSchema[];
+    styleOptions: StyleOptionsSchema[];
+  }) => void;
+  onProceed: () => void;
 }
 
 export function FabricSelectionForm({
   useCurrentWorkOrderStore,
   customerId,
+  form,
+  // onSubmit,
+  // onProceed,
 }: FabricSelectionFormProps) {
-  const { fabricSelections, setFabricSelections } = useCurrentWorkOrderStore();
+  const {
+    fabricSelections,
+    setFabricSelections,
+    styleOptions,
+    setStyleOptions,
+  } = useCurrentWorkOrderStore();
 
-  const methods = useForm<{
-    fabricSelections: FabricSelectionSchema[];
-  }>({
-    resolver: zodResolver(
-      z.object({ fabricSelections: z.array(fabricSelectionSchema) })
-    ),
-    defaultValues: {
-      fabricSelections: [],
-    },
+  const {
+    fields: fabricSelectionFields,
+    append: appendFabricSelection,
+    remove: removeFabricSelection,
+  } = useFieldArray({
+    control: form.control,
+    name: "fabricSelections",
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: methods.control,
-    name: "fabricSelections",
+  const {
+    fields: styleOptionFields,
+    append: appendStyleOption,
+    remove: removeStyleOption,
+  } = useFieldArray({
+    control: form.control,
+    name: "styleOptions",
   });
 
   React.useEffect(() => {
     // reset the form if the store's fabricSelections change from an external source.
     if (
       fabricSelections &&
-      JSON.stringify(methods.getValues("fabricSelections")) !==
+      JSON.stringify(form.getValues("fabricSelections")) !==
         JSON.stringify(fabricSelections)
     ) {
-      methods.reset({ fabricSelections });
+      form.reset({ fabricSelections });
     }
 
     // Subscribe to form changes and update the store.
-    const subscription = methods.watch((value) => {
-      const currentSelections = value.fabricSelections || [];
-      // Filter out any undefined/null values that might appear during form state changes.
-      const filteredSelections = currentSelections.filter(
+    const subscription = form.watch((value) => {
+      const currentFabricSelections = value.fabricSelections || [];
+      const currentStyleOptions = value.styleOptions || [];
+
+      const filteredFabricSelections = currentFabricSelections.filter(
         Boolean
       ) as FabricSelectionSchema[];
+      const filteredStyleOptions = currentStyleOptions.filter(
+        Boolean
+      ) as StyleOptionsSchema[];
 
       if (
-        JSON.stringify(fabricSelections) !== JSON.stringify(filteredSelections)
+        JSON.stringify(fabricSelections) !==
+        JSON.stringify(filteredFabricSelections)
       ) {
-        setFabricSelections(filteredSelections);
+        setFabricSelections(filteredFabricSelections);
+      }
+      if (
+        JSON.stringify(styleOptions) !== JSON.stringify(filteredStyleOptions)
+      ) {
+        setStyleOptions(filteredStyleOptions);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [fabricSelections, methods, setFabricSelections]);
+  }, [
+    fabricSelections,
+    form,
+    setFabricSelections,
+    styleOptions,
+    setStyleOptions,
+  ]);
 
   const { data: measurementQuery } = useQuery({
     queryKey: ["measurements", customerId],
@@ -89,40 +127,58 @@ export function FabricSelectionForm({
     return [];
   }, [measurementQuery]);
 
-  const addRow = () => {
-    append(fabricSelectionDefaults);
+  const addFabricRow = () => {
+    appendFabricSelection(fabricSelectionDefaults);
   };
 
-  const removeRow = (rowIndex: number) => {
-    remove(rowIndex);
+  const removeFabricRow = (rowIndex: number) => {
+    removeFabricSelection(rowIndex);
   };
 
-  const updateData = (rowIndex: number, columnId: string, value: unknown) => {
-    methods.setValue(
-      `fabricSelections.${rowIndex}.${columnId}` as any,
-      value
-    );
+  const addStyleRow = () => {
+    appendStyleOption(styleOptionsDefaults);
+  };
+
+  const removeStyleRow = (rowIndex: number) => {
+    removeStyleOption(rowIndex);
   };
 
   return (
-    <FormProvider {...methods}>
+    <FormProvider {...form}>
       <div className="p-4 max-w-6xl overflow-x-auto">
-        <h2 className="text-2xl font-bold mb-4">
-          Fabric Selection and Options
-        </h2>
+        <h2 className="text-2xl font-bold mb-4">Fabric Selections</h2>
         <DataTable
-          columns={columns}
-          data={fields}
-          removeRow={removeRow}
+          columns={fabricSelectionColumns}
+          data={fabricSelectionFields}
+          removeRow={removeFabricRow}
           measurementIDs={measurementIDs}
-          updateData={updateData}
+          updateData={(rowIndex, columnId, value) =>
+            form.setValue(
+              `fabricSelections.${rowIndex}.${columnId}` as any,
+              value
+            )
+          }
         />
         <Button
-          onClick={addRow}
+          onClick={addFabricRow}
           className="mt-4"
-          disabled={measurementIDs.length === 0}
+          disabled={!(measurementIDs.length === 0)}
         >
-          Add Lines
+          Add Fabric Line
+        </Button>
+
+        <h2 className="text-2xl font-bold mb-4 mt-8">Style Options</h2>
+        <DataTable
+          measurementIDs={measurementIDs}
+          columns={styleOptionsColumns}
+          data={styleOptionFields}
+          removeRow={removeStyleRow}
+          updateData={(rowIndex, columnId, value) =>
+            form.setValue(`styleOptions.${rowIndex}.${columnId}` as any, value)
+          }
+        />
+        <Button onClick={addStyleRow} className="mt-4">
+          Add Style Line
         </Button>
       </div>
     </FormProvider>

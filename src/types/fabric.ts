@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/schema";
+import { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/fabric-selection/fabric-selection-schema";
 
 export type FabricSelection = z.infer<typeof fabricSelectionSchema>;
 
