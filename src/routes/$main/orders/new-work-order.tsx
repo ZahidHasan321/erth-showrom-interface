@@ -18,7 +18,11 @@ import {
   styleOptionsSchema,
   type StyleOptionsSchema,
 } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
-import { orderTypeAndPaymentDefaults, OrderTypeAndPaymentForm, orderTypeAndPaymentSchema } from "@/components/forms/order-type-and-payment";
+import {
+  orderTypeAndPaymentDefaults,
+  OrderTypeAndPaymentForm,
+  orderTypeAndPaymentSchema,
+} from "@/components/forms/order-type-and-payment";
 import { paymentTypeSchema } from "@/components/forms/payment-type";
 import { PaymentTypeForm } from "@/components/forms/payment-type/payment-type-form";
 import { ShelvedProductsForm } from "@/components/forms/shelved-products";
@@ -66,7 +70,7 @@ function NewWorkOrder() {
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
 
   const {
@@ -106,8 +110,6 @@ function NewWorkOrder() {
     },
   });
 
-
-
   // Forms
   const demographicsForm = useForm<z.infer<typeof customerDemographicsSchema>>({
     resolver: zodResolver(customerDemographicsSchema),
@@ -135,7 +137,6 @@ function NewWorkOrder() {
     },
   });
 
-
   const OrderForm = useForm<z.infer<typeof orderTypeAndPaymentSchema>>({
     resolver: zodResolver(orderTypeAndPaymentSchema),
     defaultValues: orderTypeAndPaymentDefaults,
@@ -145,8 +146,8 @@ function NewWorkOrder() {
     resolver: zodResolver(paymentTypeSchema),
     defaultValues: {
       paymentType: "cash",
-    }
-  })
+    },
+  });
 
   const shelfCharges = React.useMemo(() => {
     if (!shelvedProducts || shelvedProducts.length === 0) {
@@ -162,7 +163,7 @@ function NewWorkOrder() {
   const stitchingCharges = 20;
 
   const advancePayment = React.useMemo(() => {
-    return fabricCharges + shelfCharges + (0.5 * stitchingCharges);
+    return fabricCharges + shelfCharges + 0.5 * stitchingCharges;
   }, [fabricCharges, shelfCharges, stitchingCharges]);
 
   React.useEffect(() => {
@@ -171,7 +172,13 @@ function NewWorkOrder() {
     OrderForm.setValue("charges.stitching", stitchingCharges);
     OrderForm.setValue("charges.style", 0); // Keep style as 0
     OrderForm.setValue("advance", advancePayment);
-  }, [shelfCharges, fabricCharges, stitchingCharges, advancePayment, OrderForm]);
+  }, [
+    shelfCharges,
+    fabricCharges,
+    stitchingCharges,
+    advancePayment,
+    OrderForm,
+  ]);
   // Refs for scroll sections
   const sectionRefs = steps.map(() =>
     React.useRef<HTMLDivElement | null>(null)
@@ -303,9 +310,7 @@ function NewWorkOrder() {
   }
 
   return (
-    <div
-      className="mb-20"
-    >
+    <div className="mb-20">
       <ConfirmationDialog
         isOpen={confirmationDialog.isOpen}
         onClose={() =>
@@ -329,7 +334,12 @@ function NewWorkOrder() {
       <div className="flex flex-col flex-1 items-center space-y-20 p-4 xl:p-0">
         <p>Order ID: {order.OrderID}</p>
         {steps.map((step, index) => (
-          <div key={step.id} id={step.id} className="w-full flex flex-col items-center max-w-7xl" ref={sectionRefs[index]}>
+          <div
+            key={step.id}
+            id={step.id}
+            className="w-full flex flex-col items-center max-w-7xl"
+            ref={sectionRefs[index]}
+          >
             {index === 0 && (
               <CustomerDemographicsForm
                 form={demographicsForm}
@@ -341,7 +351,6 @@ function NewWorkOrder() {
                 onCancel={() => addSavedStep(0)}
                 onCustomerChange={setCustomerId}
                 onProceed={() => onHandleProceed(customerId, orderId)}
-
               />
             )}
 
@@ -356,7 +365,6 @@ function NewWorkOrder() {
                 onProceed={() => handleProceed(1)}
               />
             )}
-
             {index === 2 && (
               <FabricSelectionForm
                 useCurrentWorkOrderStore={useCurrentWorkOrderStore}
@@ -373,32 +381,32 @@ function NewWorkOrder() {
                 onProceed={() => handleProceed(3)}
               />
             )}
-            {
-              index === 4 && (
-                <OrderTypeAndPaymentForm
-                  form={OrderForm}
-                  onSubmit={(data) => {
-                    setOrder(data);
-                    toast.success("Order & Payment Info saved ✅");
-                  }}
-                  onProceed={() => handleProceed(4)}
-                />
-              )
-            }
+            {index === 4 && (
+              <OrderTypeAndPaymentForm
+                form={OrderForm}
+                onSubmit={(data) => {
+                  setOrder(data);
+                  toast.success("Order & Payment Info saved ✅");
+                }}
+                onProceed={() => handleProceed(4)}
+              />
+            )}
 
             {index === 5 && (
-              <PaymentTypeForm form={paymentForm} onSubmit={() => {
-                // Print the entire current work order store
-                const currentStore = useCurrentWorkOrderStore.getState();
-                console.log("🧾 Full Work Order Store:", currentStore);
+              <PaymentTypeForm
+                form={paymentForm}
+                onSubmit={() => {
+                  // Print the entire current work order store
+                  const currentStore = useCurrentWorkOrderStore.getState();
+                  console.log("🧾 Full Work Order Store:", currentStore);
 
-                toast.success("Payment confirmed! ✅");
-                handleProceed(5);
-              }} />
+                  toast.success("Payment confirmed! ✅");
+                  handleProceed(5);
+                }}
+              />
             )}
           </div>
         ))}
-
       </div>
     </div>
   );

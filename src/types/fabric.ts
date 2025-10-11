@@ -9,6 +9,7 @@ export type Fabric = {
   fields: {
     Name: string;
     "REAL STOCK": number;
+    COL: string;
     [key: string]: any;
   };
 };

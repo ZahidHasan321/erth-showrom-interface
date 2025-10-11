@@ -116,7 +116,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     cell: ({ row }) => {
       const { control, watch } = useFormContext();
       const fabricSource = watch(`fabricSelections.${row.index}.fabricSource`);
-      const isDisabled = fabricSource === "Out";
+      const isDisabled = fabricSource === "Out" || !fabricSource;
 
       const { data: fabricsResponse } = useQuery({
         queryKey: ["fabrics"],
@@ -236,13 +236,15 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
-        <Controller
-          name={`fabricSelections.${row.index}.deliveryDate`}
-          control={control}
-          render={({ field }) => (
-            <DatePicker value={field.value} onChange={field.onChange} />
-          )}
-        />
+        <div className="w-50">
+          <Controller
+            name={`fabricSelections.${row.index}.deliveryDate`}
+            control={control}
+            render={({ field }) => (
+              <DatePicker value={field.value} onChange={field.onChange} />
+            )}
+          />
+        </div>
       );
     },
   },
@@ -255,7 +257,9 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
         <Controller
           name={`fabricSelections.${row.index}.fabricAmount`}
           control={control}
-          render={({ field }) => <Input type="number" {...field} readOnly />}
+          render={({ field }) => (
+            <Input type="number" {...field} readOnly className="w-40" />
+          )}
         />
       );
     },
