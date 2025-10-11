@@ -319,7 +319,7 @@ export function CustomerMeasurementsForm({
           e.preventDefault();
           handleSave();
         }}
-        className="space-y-8 max-w-7xl"
+        className="space-y-8 w-full"
       >
         <ConfirmationDialog
           isOpen={confirmationDialog.isOpen}
@@ -333,7 +333,7 @@ export function CustomerMeasurementsForm({
         <h1 className="text-2xl font-bold mb-4">Measurement</h1>
 
         {/* ---- Top Controls ---- */}
-        <div className="flex justify-start gap-6 bg-muted p-4 rounded-lg">
+        <div className="flex flex-wrap justify-start gap-6 bg-muted p-4 rounded-lg">
           <FormField
             control={form.control}
             name="measurementType"
@@ -423,160 +423,141 @@ export function CustomerMeasurementsForm({
         </div>
 
         {/* ---- Middle Section ---- */}
-        <div className="flex flex-col 2xl:flex-row 2xl:gap-x-4 items-start pt-8">
-          {/* Left: Measurement Fields */}
-          <div className="w-full 2xl:w-auto space-y-6 p-4 rounded-lg">
-            <div className="space-y-3">
-              {/* Collar */}
-              <GroupedMeasurementFields
-                form={form}
-                title="Collar"
-                unit={unit}
-                isDisabled={!isEditing}
-                fields={[
-                  { name: "collar.width", label: "Length" },
-                  { name: "collar.height", label: "Height" },
-                ]}
-                forceColumn={true}
-              />
+        <div className="flex flex-wrap gap-4 items-start pt-8">
+          <GroupedMeasurementFields
+            form={form}
+            title="Collar"
+            unit={unit}
+            isDisabled={!isEditing}
+            fields={[
+              { name: "collar.width", label: "Length" },
+              { name: "collar.height", label: "Height" },
+            ]}
+          />
 
-              {/* Lengths */}
-              <GroupedMeasurementFields
-                form={form}
-                title="Lengths"
-                unit={unit}
-                isDisabled={!isEditing}
-                fields={[
-                  { name: "lengths.front", label: "Front" },
-                  { name: "lengths.back", label: "Back" },
-                ]}
-                forceColumn={true}
-              />
+          <GroupedMeasurementFields
+            form={form}
+            title="Lengths"
+            unit={unit}
+            isDisabled={!isEditing}
+            fields={[
+              { name: "lengths.front", label: "Front" },
+              { name: "lengths.back", label: "Back" },
+            ]}
+          />
 
-              {/* Arm */}
-              <GroupedMeasurementFields
-                form={form}
-                title="Arm"
-                unit={unit}
-                isDisabled={!isEditing}
-                fields={[
-                  { name: "arm.shoulder", label: "Shoulder" },
-                  { name: "arm.sleeve", label: "Sleeve" },
-                  { name: "arm.elbow", label: "Elbow" },
-                  { name: "arm.armhole.value", label: "Armhole" },
-                  [
-                    { name: "arm.armhole.front", label: "Front" },
-                    {
-                      name: "arm.armhole.provision",
-                      label: "Provision",
-                      isDisabled: true,
-                    },
-                  ],
-                ]}
-                forceColumn={true}
-              />
+          <GroupedMeasurementFields
+            form={form}
+            title="Arm"
+            unit={unit}
+            isDisabled={!isEditing}
+            fields={[
+              { name: "arm.shoulder", label: "Shoulder" },
+              { name: "arm.sleeve", label: "Sleeve" },
+              { name: "arm.elbow", label: "Elbow" },
+              [
+                { name: "arm.armhole.value", label: "Armhole" },
+                { name: "arm.armhole.front", label: "Front" },
+                {
+                  name: "arm.armhole.provision",
+                  label: "Provision",
+                  isDisabled: true,
+                },
+              ],
+            ]}
+          />
 
-              {/* Body */}
-              <GroupedMeasurementFields
-                form={form}
-                title="Body"
-                unit={unit}
-                isDisabled={!isEditing}
-                fields={[
-                  { name: "body.upper_chest", label: "Upper Chest" },
-                  [
-                    { name: "body.full_chest.value", label: "Full Chest" },
-                    { name: "body.full_chest.front", label: "Front" },
-                    {
-                      name: "body.full_chest.provision",
-                      label: "Provision",
-                      isDisabled: true,
-                    },
-                  ],
-                  [
-                    { name: "body.full_waist.value", label: "Full Waist" },
-                    { name: "body.full_waist.front", label: "Front" },
-                    { name: "body.full_waist.back", label: "Back" },
-                    {
-                      name: "body.full_waist.provision",
-                      label: "Provision",
-                      isDisabled: true,
-                    },
-                  ],
+          <GroupedMeasurementFields
+            form={form}
+            title="Body"
+            unit={unit}
+            isDisabled={!isEditing}
+            fields={[
+              { name: "body.upper_chest", label: "Upper Chest" },
+              [
+                { name: "body.full_chest.value", label: "Full Chest" },
+                { name: "body.full_chest.front", label: "Front" },
+                {
+                  name: "body.full_chest.provision",
+                  label: "Provision",
+                  isDisabled: true,
+                },
+              ],
+              [
+                { name: "body.full_waist.value", label: "Full Waist" },
+                { name: "body.full_waist.front", label: "Front" },
+                { name: "body.full_waist.back", label: "Back" },
+                {
+                  name: "body.full_waist.provision",
+                  label: "Provision",
+                  isDisabled: true,
+                },
+              ],
 
-                  { name: "body.bottom", label: "Bottom" },
-                ]}
-                forceColumn={true}
-              />
+              { name: "body.bottom", label: "Bottom" },
+            ]}
+          />
 
-              {/* Top Pocket */}
-              <GroupedMeasurementFields
-                form={form}
-                title="Top Pocket"
-                unit={unit}
-                isDisabled={!isEditing}
-                fields={[
-                  { name: "topPocket.distance", label: "Distance" },
-                  { name: "topPocket.length", label: "Length" },
-                  { name: "topPocket.width", label: "Width" },
-                ]}
-                forceColumn={true}
-              />
+          <GroupedMeasurementFields
+            form={form}
+            title="Top Pocket"
+            unit={unit}
+            isDisabled={!isEditing}
+            fields={[
+              { name: "topPocket.distance", label: "Distance" },
+              { name: "topPocket.length", label: "Length" },
+              { name: "topPocket.width", label: "Width" },
+            ]}
+          />
 
-              {/* Jabzoor */}
-              <GroupedMeasurementFields
-                form={form}
-                title="Jabzoor"
-                unit={unit}
-                isDisabled={!isEditing}
-                fields={[
-                  { name: "jabzoor.length", label: "Length" },
-                  { name: "jabzoor.width", label: "Width" },
-                ]}
-                forceColumn={true}
-              />
+          <GroupedMeasurementFields
+            form={form}
+            title="Jabzoor"
+            unit={unit}
+            isDisabled={!isEditing}
+            fields={[
+              { name: "jabzoor.length", label: "Length" },
+              { name: "jabzoor.width", label: "Width" },
+            ]}
+          />
 
-              {/* Side Pocket */}
-              <GroupedMeasurementFields
-                form={form}
-                title="Side Pocket"
-                unit={unit}
-                isDisabled={!isEditing}
-                fields={[
-                  { name: "sidePocket.length", label: "Length" },
-                  { name: "sidePocket.width", label: "Width" },
-                  { name: "sidePocket.distance", label: "Distance" },
-                  { name: "sidePocket.opening", label: "Opening" },
-                ]}
-                forceColumn={true}
-              />
-            </div>
-            <div className="space-y-6 pt-6">
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Notes and special requests</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        rows={5}
-                        placeholder="Customer special request and notes"
-                        className="w-full bg-white border rounded-md"
-                        {...field}
-                        disabled={!isEditing}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+          <GroupedMeasurementFields
+            form={form}
+            title="Side Pocket"
+            unit={unit}
+            isDisabled={!isEditing}
+            fields={[
+              { name: "sidePocket.length", label: "Length" },
+              { name: "sidePocket.width", label: "Width" },
+              { name: "sidePocket.distance", label: "Distance" },
+              { name: "sidePocket.opening", label: "Opening" },
+            ]}
+          />
+        </div>
+        <div className="space-y-6 pt-6">
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Notes and special requests</FormLabel>
+                <FormControl>
+                  <Textarea
+                    rows={5}
+                    placeholder="Customer special request and notes"
+                    className="w-full bg-white border rounded-md"
+                    {...field}
+                    disabled={!isEditing}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* ---- Buttons ---- */}
-        <div className="flex justify-center gap-6">
+        <div className="flex flex-wrap justify-center gap-6">
           {(isCreatingNew || isEditing) && (
             <Button
               type="button"

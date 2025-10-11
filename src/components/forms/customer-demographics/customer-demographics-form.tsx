@@ -47,7 +47,7 @@ interface CustomerDemographicsFormProps {
   onCancel?: () => void;
   onCustomerChange?: (customerId: string | null) => void;
   onProceed?: () => void;
-  onClear?:() => void;
+  onClear?: () => void;
 }
 
 export function CustomerDemographicsForm({
@@ -67,6 +67,7 @@ export function CustomerDemographicsForm({
     description: "",
     onConfirm: () => { },
   });
+  const AccountType = form.watch("accountType")
   const countries = React.useMemo(() => getSortedCountries(), []);
 
   React.useEffect(() => {
@@ -94,7 +95,7 @@ export function CustomerDemographicsForm({
           const wasNewCustomer = !customerRecordId;
           toast.success(
             `Customer ${wasNewCustomer ? "created" : "updated"} successfully!`
-          );onProceed
+          ); onProceed
           const upsertedCustomerData = response.data.records.at(0) as Customer;
           setCustomerRecordId(upsertedCustomerData.id);
           flushSync(() => {
@@ -170,7 +171,7 @@ export function CustomerDemographicsForm({
           e.preventDefault();
           handleSave();
         }}
-        className="space-y-8 max-w-7xl"
+        className="space-y-8 w-full"
       >
         <ConfirmationDialog
           isOpen={confirmationDialog.isOpen}
@@ -439,31 +440,61 @@ export function CustomerDemographicsForm({
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="accountType"
-            render={({ field }) => (
-              <FormItem className="w-full bg-muted p-4 rounded-lg">
-                <FormLabel>Account Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={isReadOnly}
-                >
-                  <FormControl>
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Select account type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Primary">Primary</SelectItem>
-                    <SelectItem value="Secondary">Secondary</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="flex flex-col">
+            <FormField
+              control={form.control}
+              name="accountType"
+              render={({ field }) => (
+                <FormItem className="w-full bg-muted p-4 rounded-lg">
+                  <FormLabel>Account Type</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isReadOnly}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-white">
+                        <SelectValue placeholder="Select account type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Primary">Primary</SelectItem>
+                      <SelectItem value="Secondary">Secondary</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="relation"
+              render={({ field }) => (
+                <FormItem className="w-full bg-muted p-4 rounded-lg">
+                  <FormLabel>Account Relation</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isReadOnly || AccountType === "Primary"}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-white">
+                        <SelectValue placeholder={AccountType === "Primary" ? "Account is primary" :"Select account type" } />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Secondary">Father</SelectItem>
+                      <SelectItem value="Primary">Son</SelectItem>
+                      <SelectItem value="Secondary">Cousin</SelectItem>
+                      <SelectItem value="Secondary">Brother</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <FormField
             control={form.control}

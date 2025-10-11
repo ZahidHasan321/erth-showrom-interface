@@ -145,7 +145,7 @@ export function FabricSelectionForm({
 
   return (
     <FormProvider {...form}>
-      <div className="p-4 max-w-6xl overflow-x-auto">
+      <div className="p-4 max-w-7xl w-full overflow-x-auto">
         <h2 className="text-2xl font-bold mb-4">Fabric Selections</h2>
         <DataTable
           columns={fabricSelectionColumns}

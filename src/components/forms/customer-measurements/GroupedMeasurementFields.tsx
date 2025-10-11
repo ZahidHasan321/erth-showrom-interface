@@ -8,14 +8,16 @@ interface GroupedMeasurementFieldsProps {
   unit: string;
   isDisabled: boolean;
   fields: Array<
-    | {
+    |
+      {
         name: string;
         label: string;
         className?: string;
         labelClassName?: string;
         isDisabled?: boolean;
       }
-    | Array<{
+    |
+      Array<{
         name: string;
         label: string;
         className?: string;
@@ -24,7 +26,6 @@ interface GroupedMeasurementFieldsProps {
       }>
   >;
   wrapperClassName?: string;
-  forceColumn?: boolean;
 }
 
 export function GroupedMeasurementFields({
@@ -36,13 +37,13 @@ export function GroupedMeasurementFields({
   wrapperClassName,
 }: GroupedMeasurementFieldsProps) {
   return (
-    <div className={`rounded-lg p-2 ${wrapperClassName}`}>
+    <div className={`border rounded-lg p-4 ${wrapperClassName}`}>
       <h4 className="font-bold mb-2">{title}</h4>
       <div className="flex flex-col gap-y-2">
         {fields.map((fieldOrFieldGroup, index) => {
           if (Array.isArray(fieldOrFieldGroup)) {
             return (
-              <div key={index} className="flex flex-row gap-x-8">
+              <div key={index} className="flex flex-wrap gap-x-8 border p-2 rounded-md">
                 {fieldOrFieldGroup.map((fieldConfig) => (
                   <MeasurementInput
                     key={fieldConfig.name}

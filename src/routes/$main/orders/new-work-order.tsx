@@ -298,7 +298,7 @@ function NewWorkOrder() {
   function onHandleProceed(customerId: string | null, orderId: string | null) {
     if (orderId && customerId) {
       setOrder({ CustomerID: [customerId] });
-      addSavedStep(0);
+      handleProceed(0);
     }
   }
 

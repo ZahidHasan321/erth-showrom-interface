@@ -10,9 +10,10 @@ interface StepProps {
   isCompleted?: boolean
   isActive?: boolean
   onClick?: () => void
+  index: number
 }
 
-const Step: React.FC<StepProps> = ({ title, isCompleted, isActive, onClick }) => {
+const Step: React.FC<StepProps> = ({ title, isCompleted, isActive, onClick, index }) => {
   return (
     <div
       className="flex flex-col items-center cursor-pointer p-2 rounded-md transition-colors group hover:bg-muted"
@@ -30,7 +31,7 @@ const Step: React.FC<StepProps> = ({ title, isCompleted, isActive, onClick }) =>
               : "border-muted-foreground/50"
           )}
         >
-          {isCompleted ? <Check className="w-4 h-4" /> : null}
+          {isCompleted ? <Check className="w-4 h-4" /> : <span>{index + 1}</span>}
         </div>
       </div>
 
@@ -76,6 +77,7 @@ export const HorizontalStepper: React.FC<StepperProps> = ({
         {steps.map((step, index) => (
           <React.Fragment key={step.title}>
             <Step
+              index={index}
               title={step.title}
               description={step.description}
               isCompleted={completedSteps.includes(index)}

@@ -33,7 +33,7 @@ export function MeasurementInput({
       name={name}
       render={({ field }) => (
         <FormItem className={className}>
-          <div className="flex items-center gap-2 w-[170px] justify-between">
+          <div className="flex items-center gap-4 flex-nowrap justify-between">
             <FormLabel className={labelClassName}>{label}</FormLabel>
             <FormControl>
               <div className="relative flex items-center">
