@@ -33,7 +33,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     accessorKey: "styleOptionId",
     header: "Style Option Id",
     cell: ({ row }) => {
-      return <div>{row.index + 1}</div>;
+      return <div className="w-20">{row.index + 1}</div>;
     },
   },
   {
@@ -66,7 +66,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
-        <div className="flex items-center space-x-4 px-2">
+        <div className="w-40 flex items-center space-x-4 px-2">
           <Controller
             name={`styleOptions.${row.index}.lines.line1`}
             control={control}
@@ -300,7 +300,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="">
                   <SelectValue placeholder="Select Thickness" />
                 </SelectTrigger>
                 <SelectContent>
@@ -530,7 +530,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     accessorKey: "extraAmount",
     header: "Extras Amount / سعر الإضافات",
     cell: () => {
-      return <div>100</div>;
+      return <div className="w-40">100</div>;
     },
   },
   {

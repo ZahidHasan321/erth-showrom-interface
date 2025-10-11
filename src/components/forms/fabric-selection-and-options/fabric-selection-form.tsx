@@ -19,6 +19,9 @@ import {
 } from "./style-options/style-options-schema";
 import { type UseFormReturn } from "react-hook-form";
 
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 interface FabricSelectionFormProps {
   useCurrentWorkOrderStore: ReturnType<typeof createWorkOrderStore>;
   customerId: string | null;
@@ -37,9 +40,10 @@ export function FabricSelectionForm({
   useCurrentWorkOrderStore,
   customerId,
   form,
-  // onSubmit,
-  // onProceed,
+  onSubmit,
+  onProceed,
 }: FabricSelectionFormProps) {
+  const [numRowsToAdd, setNumRowsToAdd] = React.useState(0);
   const {
     fabricSelections,
     setFabricSelections,
@@ -146,6 +150,29 @@ export function FabricSelectionForm({
   return (
     <FormProvider {...form}>
       <div className="p-4 max-w-7xl w-full overflow-x-auto">
+        <div className="flex items-center space-x-2 mb-4">
+          <Label htmlFor="num-fabrics">Add Lines</Label>
+          <Input
+            id="num-fabrics"
+            type="number"
+            placeholder="e.g., 2"
+            onChange={(e) => setNumRowsToAdd(parseInt(e.target.value, 10))}
+            className="w-24"
+          />
+          <Button
+            onClick={() => {
+              if (numRowsToAdd && numRowsToAdd > 0) {
+                for (let i = 0; i < numRowsToAdd; i++) {
+                  appendFabricSelection(fabricSelectionDefaults);
+                  appendStyleOption(styleOptionsDefaults);
+                }
+              }
+            }}
+            disabled={!numRowsToAdd || numRowsToAdd <= 0}
+          >
+            Add
+          </Button>
+        </div>
         <h2 className="text-2xl font-bold mb-4">Fabric Selections</h2>
         <DataTable
           columns={fabricSelectionColumns}
@@ -179,6 +206,18 @@ export function FabricSelectionForm({
         />
         <Button onClick={addStyleRow} className="mt-4">
           Add Style Line
+        </Button>
+      </div>
+      <div>
+        <Button
+          className="m-4"
+          variant={"outline"}
+          onClick={form.handleSubmit(onSubmit)}
+        >
+          Save Selections
+        </Button>
+        <Button className="m-4" onClick={onProceed}>
+          Proceed
         </Button>
       </div>
     </FormProvider>
