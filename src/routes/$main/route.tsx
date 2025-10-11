@@ -1,13 +1,14 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { NotFoundPage } from '@/components/not-found-page';
 import { Button } from "@/components/ui/button"; // Added Button
+import { LogOut } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger, } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/auth";
 import { BRAND_NAMES } from "@/lib/constants";
 import { router } from "@/router";
 import { createFileRoute, notFound, Outlet, redirect, rootRouteId } from '@tanstack/react-router'; // Added Link
-import ErthLogo from "../../assets/erth.svg"; // Import Erth Logo
+import ErthLogo from "../../assets/erth-light.svg"; // Import Erth Logo
 import SakhtbaLogo from "../../assets/Sakkba.png"; // Import Sakhtba Logo
 
 type MainParam = typeof BRAND_NAMES[keyof typeof BRAND_NAMES]
@@ -15,7 +16,7 @@ type MainParam = typeof BRAND_NAMES[keyof typeof BRAND_NAMES]
 export const Route = createFileRoute('/$main')<{
   params: { main: MainParam }
 }>({
-  component: RouteComponent,
+  component: RouteComponent,  
   loader: async ({ params, context }) => {
     const { auth } = context
 
@@ -48,7 +49,7 @@ export const Route = createFileRoute('/$main')<{
   links:[{
     rel:'icon',
     type:"image/svg+xml",
-    href: params.main === 'erth' ? "/erth.svg" :"/Sakkba.png"
+    href: params.main === 'erth' ? "/erth-light.svg" :"/Sakkba.png"
   }]
   }),
 })
@@ -83,7 +84,8 @@ function RouteComponent() {
             className="mr-2 data-[orientation=vertical]:h-4"
           />
           <div className="absolute right-4 top-1/2 -translate-y-1/2"> {/* Positioned to top right */}
-            <Button variant="outline" size="sm" onClick={handleLogout}>
+            <Button variant="destructive" size="sm" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
           </div>

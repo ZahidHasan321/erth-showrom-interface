@@ -41,7 +41,7 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
         className="flex flex-col md:flex-row gap-6 w-full p-4 max-w-7xl"
       >
         {/* Left Section — Payment Types */}
-        <div className="flex-1 bg-gray-100 p-6 rounded-xl">
+        <div className="flex-1 bg-muted p-6 rounded-xl">
         <div className="flex justify-between items-start">
           <h1 className="text-2xl font-bold mb-4">Payment Type</h1>
         </div>
@@ -111,7 +111,7 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
                       <Input placeholder="Enter payment type" {...field} />
                     </FormControl>
                     <FormMessage />
-                  </FormItem>
+                  </FormItem>  
                 )}
               />
             </div>
@@ -119,7 +119,7 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
         </div>
 
         {/* Right Section — Actions */}
-        <div className="flex flex-col justify-between bg-gray-100 p-4 rounded-xl w-full md:w-64 space-y-4">
+        <div className="flex flex-col justify-between bg-muted p-4 rounded-xl w-full md:w-64 space-y-4">
           <FormField
             control={form.control}
             name="paymentRefNo"

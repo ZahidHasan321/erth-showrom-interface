@@ -37,7 +37,7 @@ export function GroupedMeasurementFields({
   wrapperClassName,
 }: GroupedMeasurementFieldsProps) {
   return (
-    <div className={`border rounded-lg p-4 ${wrapperClassName}`}>
+    <div className={`bg-card border rounded-lg p-4 ${wrapperClassName}`}>
       <h4 className="font-bold mb-2">{title}</h4>
       <div className="flex flex-col gap-y-2">
         {fields.map((fieldOrFieldGroup, index) => {
@@ -53,7 +53,7 @@ export function GroupedMeasurementFields({
                     unit={unit}
                     isDisabled={isDisabled || (fieldConfig.isDisabled ?? false)}
                     className={fieldConfig.className}
-                    labelClassName={fieldConfig.labelClassName}
+                    labelClassName={`${fieldConfig.labelClassName ?? ""} min-w-[120px]` }
                   />
                 ))}
               </div>

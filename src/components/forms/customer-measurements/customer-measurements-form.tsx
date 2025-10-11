@@ -71,7 +71,7 @@ export function CustomerMeasurementsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   const { setIsLoading } = useGlobalLoader();
@@ -333,7 +333,7 @@ export function CustomerMeasurementsForm({
         <h1 className="text-2xl font-bold mb-4">Measurement</h1>
 
         {/* ---- Top Controls ---- */}
-        <div className="flex flex-wrap justify-start gap-6 bg-muted p-4 rounded-lg">
+        <div className="flex flex-wrap w-fit justify-start gap-6 bg-muted p-4 rounded-lg">
           <FormField
             control={form.control}
             name="measurementType"
@@ -423,28 +423,30 @@ export function CustomerMeasurementsForm({
         </div>
 
         {/* ---- Middle Section ---- */}
-        <div className="flex flex-wrap gap-4 items-start pt-8">
-          <GroupedMeasurementFields
-            form={form}
-            title="Collar"
-            unit={unit}
-            isDisabled={!isEditing}
-            fields={[
-              { name: "collar.width", label: "Length" },
-              { name: "collar.height", label: "Height" },
-            ]}
-          />
+        <div className="flex flex-col flex-wrap gap-4 items-start pt-8">
+          <div className="flex flex-row gap-6 flex-wrap">
+            <GroupedMeasurementFields
+              form={form}
+              title="Collar"
+              unit={unit}
+              isDisabled={!isEditing}
+              fields={[
+                { name: "collar.width", label: "Length" },
+                { name: "collar.height", label: "Height" },
+              ]}
+            />
 
-          <GroupedMeasurementFields
-            form={form}
-            title="Lengths"
-            unit={unit}
-            isDisabled={!isEditing}
-            fields={[
-              { name: "lengths.front", label: "Front" },
-              { name: "lengths.back", label: "Back" },
-            ]}
-          />
+            <GroupedMeasurementFields
+              form={form}
+              title="Lengths"
+              unit={unit}
+              isDisabled={!isEditing}
+              fields={[
+                { name: "lengths.front", label: "Front" },
+                { name: "lengths.back", label: "Back" },
+              ]}
+            />
+          </div>
 
           <GroupedMeasurementFields
             form={form}
@@ -498,41 +500,43 @@ export function CustomerMeasurementsForm({
             ]}
           />
 
-          <GroupedMeasurementFields
-            form={form}
-            title="Top Pocket"
-            unit={unit}
-            isDisabled={!isEditing}
-            fields={[
-              { name: "topPocket.distance", label: "Distance" },
-              { name: "topPocket.length", label: "Length" },
-              { name: "topPocket.width", label: "Width" },
-            ]}
-          />
+          <div className="flex flex-row gap-6 flex-wrap">
+            <GroupedMeasurementFields
+              form={form}
+              title="Top Pocket"
+              unit={unit}
+              isDisabled={!isEditing}
+              fields={[
+                { name: "topPocket.distance", label: "Distance" },
+                { name: "topPocket.length", label: "Length" },
+                { name: "topPocket.width", label: "Width" },
+              ]}
+            />
 
-          <GroupedMeasurementFields
-            form={form}
-            title="Jabzoor"
-            unit={unit}
-            isDisabled={!isEditing}
-            fields={[
-              { name: "jabzoor.length", label: "Length" },
-              { name: "jabzoor.width", label: "Width" },
-            ]}
-          />
+            <GroupedMeasurementFields
+              form={form}
+              title="Jabzoor"
+              unit={unit}
+              isDisabled={!isEditing}
+              fields={[
+                { name: "jabzoor.length", label: "Length" },
+                { name: "jabzoor.width", label: "Width" },
+              ]}
+            />
 
-          <GroupedMeasurementFields
-            form={form}
-            title="Side Pocket"
-            unit={unit}
-            isDisabled={!isEditing}
-            fields={[
-              { name: "sidePocket.length", label: "Length" },
-              { name: "sidePocket.width", label: "Width" },
-              { name: "sidePocket.distance", label: "Distance" },
-              { name: "sidePocket.opening", label: "Opening" },
-            ]}
-          />
+            <GroupedMeasurementFields
+              form={form}
+              title="Side Pocket"
+              unit={unit}
+              isDisabled={!isEditing}
+              fields={[
+                { name: "sidePocket.length", label: "Length" },
+                { name: "sidePocket.width", label: "Width" },
+                { name: "sidePocket.distance", label: "Distance" },
+                { name: "sidePocket.opening", label: "Opening" },
+              ]}
+            />
+          </div>
         </div>
         <div className="space-y-6 pt-6">
           <FormField

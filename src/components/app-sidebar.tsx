@@ -96,7 +96,13 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
 
     return (
       <SidebarMenuItem>
-        <Link to={to} className={""} tabIndex={disabled ? -1 : 0} aria-disabled={disabled} style={disabled ? { pointerEvents: 'none', opacity: 0.5 } : {}}>
+        <Link
+          to={to}
+          tabIndex={disabled ? -1 : 0}
+          aria-disabled={disabled}
+          style={disabled ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+          className="text-gray-600 hover:font-bold"
+        >
           <SidebarMenuButton isActive={!!match} disabled={disabled}>
             {title}
           </SidebarMenuButton>
@@ -114,7 +120,7 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
         <Link
           to="/$main"
           params={{ main: main ?? BRAND_NAMES.showroom }}
-          className="flex flex-row items-center gap-3 px-3 py-3"
+          className="flex flex-row items-center gap-3 px-3 py-3 text-primary hover:opacity-80"
         >
           <div
             className="text-sidebar-primary-foreground flex aspect-square items-center justify-center rounded-lg"
@@ -134,7 +140,11 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
       </SidebarHeader>
       <SidebarContent>
         {/* Top-level navigation items. */}
-        <SidebarLink key="Homepage" to={mainSegment || "/"} title="Homepage" exactMatch={true} />
+        <SidebarGroup key="top">
+          <SidebarGroupContent>
+            <SidebarLink key="Homepage" to={mainSegment || "/"} title="Homepage" exactMatch={true} />
+          </SidebarGroupContent>
+        </SidebarGroup>
 
         {/* We create a SidebarGroup for each parent. */}
         {data.navMain.map((item) => (

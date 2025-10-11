@@ -88,7 +88,7 @@ function LoginComponent() {
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
         <div className="flex justify-center mb-6">
           <img
-            src={userType === BRAND_NAMES.showroom ? '/erth.svg' : '/Sakkba.png'}
+            src={userType === BRAND_NAMES.showroom ? '/erth-light.svg' : '/Sakkba.png'}
             alt={userType === BRAND_NAMES.showroom ? 'Erth Logo' : 'Sakkba Logo'}
             className="h-20 w-auto"
           />

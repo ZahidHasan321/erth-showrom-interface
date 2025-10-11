@@ -48,7 +48,11 @@ export function DataTable<TData extends ShelvedProduct, TValue>({
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead key={header.id}>
+                  <TableHead key={header.id}
+                    className={`px-4 py-2 text-center bg-muted ${
+                      header.depth === 0 && header.index > 0 ? "ml-4" : ""
+                    }`}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(

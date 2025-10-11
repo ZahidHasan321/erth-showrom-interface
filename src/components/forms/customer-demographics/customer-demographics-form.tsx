@@ -440,12 +440,12 @@ export function CustomerDemographicsForm({
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex flex-col">
+          <div className="flex flex-col rounded-lg bg-muted p-4 gap-4">
             <FormField
               control={form.control}
               name="accountType"
               render={({ field }) => (
-                <FormItem className="w-full bg-muted p-4 rounded-lg">
+                <FormItem className="w-full bg-muted p-4">
                   <FormLabel>Account Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -471,7 +471,7 @@ export function CustomerDemographicsForm({
               control={form.control}
               name="relation"
               render={({ field }) => (
-                <FormItem className="w-full bg-muted p-4 rounded-lg">
+                <FormItem className="w-full bg-muted p-4">
                   <FormLabel>Account Relation</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -484,10 +484,10 @@ export function CustomerDemographicsForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Secondary">Father</SelectItem>
-                      <SelectItem value="Primary">Son</SelectItem>
-                      <SelectItem value="Secondary">Cousin</SelectItem>
-                      <SelectItem value="Secondary">Brother</SelectItem>
+                      <SelectItem value="Father">Father</SelectItem>
+                      <SelectItem value="Son">Son</SelectItem>
+                      <SelectItem value="Cousin">Cousin</SelectItem>
+                      <SelectItem value="Brother">Brother</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

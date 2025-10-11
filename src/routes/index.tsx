@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import ErthLogo from "../assets/erth.svg"; // Import Erth Logo
+import ErthLogo from "../assets/erth-light.svg"; // Import Erth Logo
 import SakhtbaLogo from "../assets/Sakkba.png"; // Import Sakhtba Logo
 import { BRAND_NAMES } from "@/lib/constants";
 
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
   links:[{
     rel:'icon',
     type:"image/svg+xml",
-    href: "/erth.svg"
+    href: "/erth-dark.svg"
   }]
   }),
 });

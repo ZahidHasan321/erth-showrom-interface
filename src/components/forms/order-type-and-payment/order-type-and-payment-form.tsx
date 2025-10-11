@@ -10,13 +10,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { orderTypeAndPaymentSchema } from "./schema";
 import type { UseFormReturn } from "react-hook-form";
 import React from "react";
 import PickUpIcon from "@/assets/pickup.png";
 import HomeDeliveryIcon from "@/assets/home_delivery.png";
+import { CheckIcon } from "lucide-react";
 
 interface OrderTypeAndPaymentFormProps {
   onSubmit: (values: z.infer<typeof orderTypeAndPaymentSchema>) => void;
@@ -81,6 +81,12 @@ export function OrderTypeAndPaymentForm({
     })();
   }
 
+  const discountOptions = [
+    { value: "flat", label: "Flat" },
+    { value: "referral", label: "Referral" },
+    { value: "loyalty", label: "Loyalty" },
+  ] as const;
+
   return (
     <Form {...form}>
       <form
@@ -89,7 +95,7 @@ export function OrderTypeAndPaymentForm({
       >
         {/* Section 1: Order Type & Payment */}
         {optional && (
-          <div className="rounded-lg border p-4">
+          <div className="rounded-lg border p-4 bg-muted space-y-4">
             <h3 className="text-lg font-medium mb-4">Order Type & Payment</h3>
             <FormField
               control={form.control}
@@ -129,11 +135,7 @@ export function OrderTypeAndPaymentForm({
                           </FormLabel>
 
                           {/* Hide the default radio, make the whole label clickable */}
-                          <RadioGroupItem
-                            id={option.value}
-                            value={option.value}
-                            className="sr-only"
-                          />
+                          <RadioGroupItem id={option.value} value={option.value} className="sr-only" />
                         </label>
                       ))}
                     </RadioGroup>
@@ -144,145 +146,182 @@ export function OrderTypeAndPaymentForm({
             />
           </div>
         )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Section 2: Select Discount */}
-          <div className="flex flex-col space-y-4">
-            <div className="bg-blue-500 text-white p-2 rounded-t-lg">
-              <h3 className="text-lg font-medium">Select Discount</h3>
+          {/* Updated Section 2: Select Discount (single FormField for discountType) */}
+          <div className="flex flex-col rounded-2xl border border-border bg-card shadow-md overflow-hidden transition-all hover:shadow-lg w-full">
+            {/* Header */}
+            <div className="bg-primary text-primary-foreground px-6 py-4 rounded-t-2xl">
+              <h3 className="text-xl md:text-2xl font-semibold tracking-wide">
+                Select Discount
+              </h3>
             </div>
-            <div className="bg-green-100 p-4 rounded-b-lg space-y-4">
-              <div className="space-y-2">
-                <FormField
-                  control={form.control}
-                  name="discountType"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value === "flat"}
-                          onCheckedChange={(checked) =>
-                            field.onChange(checked ? "flat" : undefined)
-                          }
-                        />
-                      </FormControl>
-                      <FormLabel>Flat</FormLabel>
-                    </FormItem>
-                  )}
-                />
-                {discountType === "flat" && (
-                  <div className="flex flex-row justify-center gap-4">
-                    <FormField
-                      control={form.control}
-                      name="discountPercentage"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="discount %"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(e.target.valueAsNumber)
-                              }
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="discountInKwd"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="text"
-                              placeholder="discount (in KWD)"
-                              {...field}
-                              readOnly
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
 
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="discountType"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center space-x-2">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value === "referral"}
-                            onCheckedChange={(checked) =>
-                              field.onChange(checked ? "referral" : undefined)
-                            }
-                          />
-                        </FormControl>
-                        <FormLabel>Referral</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                {discountType === "referral" && (
-                  <div className="flex flex-row justify-center gap-4">
-                    <FormField
-                      control={form.control}
-                      name="referralCode"
-                      render={({ field }) => (
-                        <FormItem className="w-full">
-                          <FormControl>
-                            <Input placeholder="Reference Code" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+            {/* Body */}
+            <div className="bg-accent/25 p-6 md:p-8 rounded-b-2xl">
+              <FormField
+                control={form.control}
+                name="discountType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      {/* grid of cards; each cell contains button + its own detail area */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {discountOptions.map((opt) => {
+                          const active = field.value === opt.value;
+                          return (
+                            <div key={opt.label} className="flex flex-col">
+                              <button
+                                type="button"
+                                onClick={() => field.onChange(active ? undefined : opt.value)}
+                                aria-pressed={active}
+                                className={cn(
+                                  "relative flex items-center justify-between p-4 rounded-lg border transition-shadow focus:outline-none focus:ring-2 focus:ring-offset-1",
+                                  active
+                                    ? "border-green-500 ring-2 ring-green-200 shadow-md bg-white"
+                                    : "border-border bg-white/90 hover:shadow-sm"
+                                )}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-center justify-center w-10 h-10 rounded-md bg-accent/10">
+                                    <span className="text-sm font-medium">{opt.label.charAt(0)}</span>
+                                  </div>
+                                  <div className="text-left">
+                                    <div className="font-medium text-sm">{opt.label}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {opt.value === "flat" && "Apply a flat % discount"}
+                                      {opt.value === "referral" && "Use referral code"}
+                                      {opt.value === "loyalty" && "Loyalty benefits"}
+                                    </div>
+                                  </div>
+                                </div>
 
-                    <Input placeholder="discount" />
-                    <Input placeholder="discount(in KWD)" />
-                  </div>
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className={cn(
+                                      "inline-flex items-center justify-center rounded-full w-7 h-7 border",
+                                      active ? "bg-green-500 border-green-500 text-white" : "bg-white border-border"
+                                    )}
+                                    aria-hidden
+                                  >
+                                    {active ? (
+                                      <CheckIcon className="w-4 h-4" />
+                                    ) : (
+                                      <svg className="w-3 h-3 opacity-30" viewBox="0 0 24 24" fill="none">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+                                      </svg>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+
+                              {/* detail area — appears just below this card (confined to this cell) */}
+                              {active && (
+                                <div className="mt-3 bg-white/60 p-3 rounded-md border-border">
+                                  {opt.value === "flat" && (
+                                    <div className="flex flex-wrap justify-start gap-3 items-center">
+                                      <FormField
+                                        control={form.control}
+                                        name="discountPercentage"
+                                        render={({ field: pField }) => (
+                                          <FormItem className="w-32 md:w-40">
+                                            <FormControl>
+                                              <Input
+                                                type="number"
+                                                placeholder="Discount %"
+                                                className="text-base py-2"
+                                                {...pField}
+                                                onChange={(e) =>
+                                                  pField.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)
+                                                }
+                                              />
+                                            </FormControl>
+                                          </FormItem>
+                                        )}
+                                      />
+                                      <FormField
+                                        control={form.control}
+                                        name="discountInKwd"
+                                        render={({ field: kField }) => (
+                                          <FormItem className="w-40 md:w-48">
+                                            <FormControl>
+                                              <Input
+                                                type="text"
+                                                placeholder="Discount (KWD)"
+                                                readOnly
+                                                className="text-base py-2 bg-muted/50"
+                                                {...kField}
+                                              />
+                                            </FormControl>
+                                          </FormItem>
+                                        )}
+                                      />
+                                    </div>
+                                  )}
+
+                                  {opt.value === "referral" && (
+                                    <div className="flex flex-col gap-3">
+                                      <FormField
+                                        control={form.control}
+                                        name="referralCode"
+                                        render={({ field: rField }) => (
+                                          <FormItem>
+                                            <FormControl>
+                                              <Input
+                                                placeholder="Reference Code"
+                                                className="text-base py-2 w-full"
+                                                {...rField}
+                                              />
+                                            </FormControl>
+                                            <FormMessage />
+                                          </FormItem>
+                                        )}
+                                      />
+
+                                      <div className="flex flex-wrap gap-3">
+                                        {/* kept unbound to preserve original logic */}
+                                        <Input placeholder="Discount %" className="w-32 md:w-40 text-base py-2" />
+                                        <Input placeholder="Discount (KWD)" className="w-40 md:w-48 text-base py-2" />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {opt.value === "loyalty" && (
+                                    <div className="flex flex-wrap gap-3 items-center">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="border-border bg-accent/40 hover:bg-accent/60 text-base px-6 py-2 rounded-lg"
+                                      >
+                                        Check Loyalty
+                                      </Button>
+                                      <Input placeholder="Discount %" className="w-32 md:w-40 text-base py-2" />
+                                      <Input placeholder="Discount (KWD)" className="w-40 md:w-48 text-base py-2" />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-                <FormField
-                  control={form.control}
-                  name="discountType"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value === "loyalty"}
-                          onCheckedChange={(checked) =>
-                            field.onChange(checked ? "loyalty" : undefined)
-                          }
-                        />
-                      </FormControl>
-                      <FormLabel>Loyalty</FormLabel>
-                    </FormItem>
-                  )}
-                />
-                {discountType === "loyalty" && (
-                  <div className="flex flex-row gap-4">
-                    <Button type="button">Check Loyalty</Button>
-                    <Input placeholder="discount" />
-                    <Input placeholder="discount(in KWD)" />
-                  </div>
-                )}
-              </div>
-              <div className="text-red-500 italic text-sm">
+              />
+              {/* Info Message */}
+              <div className="text-destructive italic text-sm md:text-base text-center bg-destructive/10 rounded-md py-3 mt-6">
                 Only one discount can be applied. No discounts on Installments.
               </div>
             </div>
           </div>
 
           {/* Section 3: Charges Summary */}
-          <div className="rounded-lg border p-4 space-y-2">
+          <div className="rounded-lg border p-4 space-y-2 bg-muted">
             <h3 className="text-lg font-medium mb-4">Charges Summary</h3>
             {optional && (
               <>
-                {" "}
                 <div className="flex justify-between">
                   <span>Fabric Charges</span>
                   <span>{(charges?.fabric || 0).toFixed(2)} KWD</span>
@@ -302,18 +341,14 @@ export function OrderTypeAndPaymentForm({
                 <div className="flex justify-between">
                   <span>Shelf</span>
                   <span>{(charges?.shelf || 0).toFixed(2)} KWD</span>
-                </div>{" "}
+                </div>
               </>
             )}
-            <div
-              className={cn("flex justify-between font-bold", "text-purple-600")}
-            >
+            <div className={cn("flex justify-between font-bold", "text-purple-600")}>
               <span>Total Due</span>
               <span>{totalDue.toFixed(2)} KWD</span>
             </div>
-            <div
-              className={cn("flex justify-between font-bold", "text-green-600")}
-            >
+            <div className={cn("flex justify-between font-bold", "text-green-600")}>
               <span>Discount</span>
               <span>{discountValue.toFixed(2)} KWD</span>
             </div>
@@ -328,9 +363,14 @@ export function OrderTypeAndPaymentForm({
           </div>
         </div>
 
-        <Button type="button" onClick={handleProceed}>
-          Proceed
-        </Button>
+        {/* Footer: bottom-right aligned Proceed button */}
+        <div className="pt-2">
+          <div className="flex justify-end">
+            <Button type="button" onClick={handleProceed}>
+              Proceed
+            </Button>
+          </div>
+        </div>
       </form>
     </Form>
   );

@@ -74,7 +74,7 @@ function NewSalesOrder() {
       if (response.data) {
         const order = response.data as Order;
         const formattedOrder = mapApiOrderToFormOrder(order);
-        setOrderId(order.id);
+        setOrderId(order.fields?.OrderID??null);
         setOrder(formattedOrder);
         toast.success("New sales order created successfully!");
       }
