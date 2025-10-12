@@ -1,13 +1,23 @@
 "use client";
 
 import * as React from "react";
-import {Check, ChevronsUpDown} from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 
-import {cn} from "@/lib/utils";
-import {Button} from "@/components/ui/button";
-import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem,} from "@/components/ui/command";
-import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
-import {LoadingSpinner} from "../global/loading-spinner";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { LoadingSpinner } from "../global/loading-spinner";
 
 type Option = {
   value: string;
@@ -20,7 +30,8 @@ interface ComboboxProps {
   isLoading?: boolean;
   onChange: (value: string) => void;
   placeholder?: string;
-  disabled?: boolean
+  disabled?: boolean;
+  onSearch?: (query: string) => void;
 }
 
 export function Combobox({
@@ -29,7 +40,8 @@ export function Combobox({
   isLoading = false,
   onChange,
   placeholder = "Select an option...",
-  disabled
+  disabled,
+  onSearch,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -45,13 +57,15 @@ export function Combobox({
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {selectedOption ? selectedOption.label : placeholder}
+          {selectedOption
+            ? selectedOption.label.substring(0, 15) + "..."
+            : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder={placeholder} />
+          <CommandInput placeholder={placeholder} onValueChange={onSearch} />
           <CommandEmpty>No option found.</CommandEmpty>
           <CommandGroup className="max-h-[200px] overflow-y-auto">
             {isLoading ? (
@@ -61,11 +75,13 @@ export function Combobox({
             ) : (
               options.map((option) => (
                 <CommandItem
-                className="pl-0"
+                  className="pl-0"
                   key={option.value}
                   value={option.label} // Search against the label
                   onSelect={(selectedLabel) => {
-                    const selectedOption = options.find(opt => opt.label === selectedLabel);
+                    const selectedOption = options.find(
+                      (opt) => opt.label === selectedLabel
+                    );
                     if (selectedOption) {
                       onChange(selectedOption.value); // Return the actual value
                     }

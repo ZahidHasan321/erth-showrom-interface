@@ -8,8 +8,9 @@ export type Fabric = {
   createdTime: string;
   fields: {
     Name: string;
-    "REAL STOCK": number;
-    COL: string;
-    [key: string]: any;
+    Color: string;
+    RealStock: number;
+    Code: string;
+    PricePerMeter: number;
   };
 };

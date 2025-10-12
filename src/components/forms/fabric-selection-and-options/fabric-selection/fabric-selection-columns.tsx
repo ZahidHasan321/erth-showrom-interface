@@ -1,6 +1,8 @@
 "use client";
 
+import * as React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
+import Fuse from "fuse.js";
 import { type FabricSelectionSchema } from "./fabric-selection-schema";
 import { useFormContext, Controller } from "react-hook-form";
 import { Input } from "@/components/ui/input";
@@ -16,7 +18,6 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { getFabrics } from "@/api/fabrics";
 import { Combobox } from "@/components/ui/combobox";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -78,7 +79,10 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
             name={`fabricSelections.${row.index}.brova`}
             control={control}
             render={({ field }) => (
-              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
             )}
           />
         </div>
@@ -89,7 +93,15 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "fabricSource",
     header: "Source",
     cell: ({ row }) => {
-      const { control } = useFormContext();
+      const { control, watch, setValue } = useFormContext();
+      const fabricSource = watch(`fabricSelections.${row.index}.fabricSource`);
+
+      React.useEffect(() => {
+        if (fabricSource === "Out") {
+          setValue(`fabricSelections.${row.index}.color`, "");
+          setValue(`fabricSelections.${row.index}.fabricId`, "");
+        }
+      }, [fabricSource, row.index, setValue]);
 
       return (
         <div className="flex flex-col space-y-1 w-[200px] min-w-[180px]">
@@ -116,22 +128,51 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "ifInside",
     header: "If inside",
     cell: ({ row }) => {
-      const { control, watch } = useFormContext();
+      const { control, watch, setValue } = useFormContext();
       const fabricSource = watch(`fabricSelections.${row.index}.fabricSource`);
+      const fabricId = watch(`fabricSelections.${row.index}.fabricId`);
       const isDisabled = fabricSource === "Out" || !fabricSource;
+      const [searchQuery, setSearchQuery] = React.useState("");
 
       const { data: fabricsResponse } = useQuery({
         queryKey: ["fabrics"],
         queryFn: getFabrics,
       });
 
-      const fabrics = fabricsResponse;
-      const fabricOptions = fabrics?.data
-        ? fabrics.data?.map((fabric) => ({
-            value: fabric.id,
-            label: fabric.fields.Name,
-          }))
-        : [];
+      const fabrics = fabricsResponse?.data || [];
+
+      // When fabricSource or fabricId changes, update the color field if source is "In"
+      React.useEffect(() => {
+        if (fabricSource === "In" && fabricId) {
+          const selectedFabric = fabrics.find((f) => f.id === fabricId);
+          if (selectedFabric) {
+            setValue(
+              `fabricSelections.${row.index}.color`,
+              selectedFabric.fields.Color
+            );
+          }
+        }
+      }, [fabricId, fabricSource, fabrics, row.index, setValue]);
+
+      const fuse = new Fuse(fabrics, {
+        keys: [
+          "fields.Name",
+          "fields.Code",
+          "fields.Color",
+          "fields.PricePerMeter",
+          "fields.RealStock",
+        ],
+        includeScore: true,
+      });
+
+      const searchResults = searchQuery
+        ? fuse.search(searchQuery).map((result) => result.item)
+        : fabrics;
+
+      const fabricOptions = searchResults.map((fabric) => ({
+        value: fabric.id,
+        label: `${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color} - ${fabric.fields.PricePerMeter} - ${fabric.fields.RealStock}`,
+      }));
 
       return (
         <div className="flex flex-col space-y-1 w-[200px] min-w-[200px]">
@@ -143,12 +184,17 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
             />
           ) : (
             <Controller
-              name={`fabricSelections.${row.index}.fabricCode`}
+              name={`fabricSelections.${row.index}.fabricId`}
               control={control}
               render={({ field }) => (
                 <Combobox
                   options={fabricOptions}
                   {...field}
+                  onChange={(value) => {
+                    field.onChange(value);
+                    setSearchQuery("");
+                  }}
+                  onSearch={setSearchQuery}
                   placeholder="Search fabric..."
                 />
               )}
@@ -162,13 +208,22 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "color",
     header: "Color/ اللون",
     cell: ({ row }) => {
-      const { control } = useFormContext();
+      const { control, watch } = useFormContext();
+      const fabricSource = watch(`fabricSelections.${row.index}.fabricSource`);
+      const isReadOnly = fabricSource === "In";
+
       return (
         <div className="min-w-[120px]">
           <Controller
             name={`fabricSelections.${row.index}.color`}
             control={control}
-            render={({ field }) => <Input className="min-w-[120px]" {...field} />}
+            render={({ field }) => (
+              <Input
+                className="min-w-[120px]"
+                {...field}
+                readOnly={isReadOnly}
+              />
+            )}
           />
         </div>
       );
@@ -178,30 +233,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "fabricLength",
     header: "Fabric Length",
     cell: ({ row }) => {
-      const { control, getValues } = useFormContext();
-      const { data: fabricsResponse } = useQuery({
-        queryKey: ["fabrics"],
-        queryFn: getFabrics,
-      });
-      const fabrics = fabricsResponse;
-
-      const checkStock = (lengthStr: string, code: string, source: string) => {
-        if (source !== "In" || !lengthStr || !code) return;
-        const length = parseFloat(lengthStr);
-        const fabric = fabrics?.data?.find((f) => f.id === code);
-        if (fabric && length > fabric.fields["REAL STOCK"]) {
-          toast.error(
-            `Not Enough Stock! Real Stock: ${fabric.fields["REAL STOCK"]}.`
-          );
-        }
-      };
-
-      const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-        const length = e.target.value;
-        const code = getValues(`fabricSelections.${row.index}.fabricCode`);
-        const source = getValues(`fabricSelections.${row.index}.fabricSource`);
-        checkStock(length, code, source);
-      };
+      const { control } = useFormContext();
 
       return (
         <div className="min-w-[120px]">
@@ -209,7 +241,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
             name={`fabricSelections.${row.index}.fabricLength`}
             control={control}
             render={({ field }) => (
-              <Input {...field} onBlur={handleBlur} className="min-w-[120px]" />
+              <Input {...field} className="min-w-[120px]" />
             )}
           />
         </div>
@@ -227,7 +259,10 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
             name={`fabricSelections.${row.index}.express`}
             control={control}
             render={({ field }) => (
-              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
             )}
           />
         </div>
@@ -263,7 +298,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
             name={`fabricSelections.${row.index}.fabricAmount`}
             control={control}
             render={({ field }) => (
-              <Input type="number" {...field} readOnly className="w-40 min-w-[160px]" />
+              <Input
+                type="number"
+                {...field}
+                readOnly
+                className="w-40 min-w-[160px]"
+              />
             )}
           />
         </div>

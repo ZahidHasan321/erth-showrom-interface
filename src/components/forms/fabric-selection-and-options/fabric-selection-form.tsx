@@ -21,6 +21,8 @@ import { type UseFormReturn } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { getCampaigns } from "@/api/campaigns";
 
 interface FabricSelectionFormProps {
   useCurrentWorkOrderStore: ReturnType<typeof createWorkOrderStore>;
@@ -46,12 +48,27 @@ export function FabricSelectionForm({
   onProceed,
 }: FabricSelectionFormProps) {
   const [numRowsToAdd, setNumRowsToAdd] = React.useState(0);
+  const [selectedCampaign, setSelectedCampaign] = React.useState<string | null>(
+    null
+  );
   const {
     fabricSelections,
     setFabricSelections,
     styleOptions,
     setStyleOptions,
   } = useCurrentWorkOrderStore();
+
+  const { data: campaignsResponse } = useQuery({
+    queryKey: ["campaigns"],
+    queryFn: getCampaigns,
+  });
+
+  const activeCampaigns =
+    campaignsResponse?.data?.filter((c) => c.fields.Active) || [];
+
+  const handleCampaignChange = (campaignId: string) => {
+    setSelectedCampaign((prev) => (prev === campaignId ? null : campaignId));
+  };
 
   const {
     fields: fabricSelectionFields,
@@ -71,14 +88,14 @@ export function FabricSelectionForm({
     name: "styleOptions",
   });
 
-  console.log(fabricSelectionFields)
+  console.log(fabricSelectionFields);
 
   React.useEffect(() => {
     // reset the form if the store's fabricSelections change from an external source.
     if (
       fabricSelections &&
       JSON.stringify(form.getValues("fabricSelections")) !==
-      JSON.stringify(fabricSelections)
+        JSON.stringify(fabricSelections)
     ) {
       form.reset({ fabricSelections });
     }
@@ -136,7 +153,10 @@ export function FabricSelectionForm({
   }, [measurementQuery]);
 
   const addFabricRow = (index: number, orderId?: string) => {
-    appendFabricSelection({ ...fabricSelectionDefaults, garmentId:orderId + '-' + (index + 1) });
+    appendFabricSelection({
+      ...fabricSelectionDefaults,
+      garmentId: orderId + "-" + (index + 1),
+    });
   };
 
   const removeFabricRow = (rowIndex: number) => {
@@ -144,7 +164,10 @@ export function FabricSelectionForm({
   };
 
   const addStyleRow = (index: number) => {
-    appendStyleOption({ ...styleOptionsDefaults, styleOptionId:`S-${index+1}` });
+    appendStyleOption({
+      ...styleOptionsDefaults,
+      styleOptionId: `S-${index + 1}`,
+    });
   };
 
   const removeStyleRow = (rowIndex: number) => {
@@ -154,7 +177,10 @@ export function FabricSelectionForm({
   function syncRows(
     desiredCount: number,
     fields: any[],
-    handlers: { addRow: (index: number, orderId?: string) => void; removeRow: (rowIndex: number) => void }
+    handlers: {
+      addRow: (index: number, orderId?: string) => void;
+      removeRow: (rowIndex: number) => void;
+    }
   ) {
     const currentCount = fields.length;
 
@@ -169,9 +195,10 @@ export function FabricSelectionForm({
     }
   }
   const isSyncDisabled =
-  !numRowsToAdd || numRowsToAdd <= 0 ||
-  (fabricSelectionFields.length === numRowsToAdd &&
-   styleOptionFields.length === numRowsToAdd);
+    !numRowsToAdd ||
+    numRowsToAdd <= 0 ||
+    (fabricSelectionFields.length === numRowsToAdd &&
+      styleOptionFields.length === numRowsToAdd);
 
   return (
     <FormProvider {...form}>
@@ -203,6 +230,19 @@ export function FabricSelectionForm({
           >
             Add / Sync
           </Button>
+        </div>
+        <div className="flex items-center space-x-2 mb-6">
+          <Label>Campaign Offers:</Label>
+          {activeCampaigns.map((campaign) => (
+            <div key={campaign.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={campaign.id}
+                checked={selectedCampaign === campaign.id}
+                onCheckedChange={() => handleCampaignChange(campaign.id)}
+              />
+              <Label htmlFor={campaign.id}>{campaign.fields.Name}</Label>
+            </div>
+          ))}
         </div>
         <h2 className="text-2xl font-bold mb-4">Fabric Selections</h2>
         <DataTable
