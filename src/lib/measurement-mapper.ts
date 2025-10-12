@@ -29,7 +29,6 @@ export const mapMeasurementToFormValues = (
     },
     body: {
       upper_chest: measurement.fields.ChestUpper || 0,
-      chestHalf: measurement.fields.ChestHalf || 0,
       full_chest: {
         value: measurement.fields.ChestFull || 0,
         front: measurement.fields.ChestFront || 0,

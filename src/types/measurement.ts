@@ -14,7 +14,6 @@ export interface Measurement {
     ArmholeFront?: number;
     ArmholeProvision?: number;
     ChestUpper?: number;
-    ChestHalf?: number;
     ChestFull?: number;
     ChestFront?: number;
     ChestProvision?: number;

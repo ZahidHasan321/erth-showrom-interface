@@ -163,7 +163,7 @@ function NewWorkOrder() {
   const stitchingCharges = 20;
 
   const advancePayment = React.useMemo(() => {
-    return fabricCharges + shelfCharges + 0.5 * stitchingCharges;
+    return fabricCharges + shelfCharges + (0.5 * stitchingCharges);
   }, [fabricCharges, shelfCharges, stitchingCharges]);
 
   React.useEffect(() => {
@@ -373,6 +373,7 @@ function NewWorkOrder() {
                 form={fabricSelectionForm}
                 onSubmit={handleFabricSelectionSubmit}
                 onProceed={() => handleProceed(2)}
+                orderId={order?.OrderID?? null}
               />
             )}
 

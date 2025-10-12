@@ -110,10 +110,10 @@ export const jabzourTypes = [
 ];
 
 export const jabzourThicknessOptions = [
-  { label: "S", value: "SINGLE", className: "bg-green-500" },
-  { label: "D", value: "DOUBLE", className: "bg-green-500" },
-  { label: "N", value: "NO HASHWA", className: "text-red-500" },
+  { label: "S", value: "SINGLE", className: "text-green-500" },
+  { label: "D", value: "DOUBLE", className: "text-green-500" },
   { label: "T", value: "TRIPLE", className: "text-green-500" },
+  { label: "N", value: "NO HASHWA", className: "text-red-500" },
 ];
 
 export const collarTypes = [

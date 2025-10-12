@@ -20,10 +20,7 @@ const cuffsTypeValues = sleeveTypes.map((item) => item.value);
 export const styleOptionsSchema = z.object({
   styleOptionId: z.string().optional(),
   style: z.string().optional(),
-  lines: z.object({
-    line1: z.boolean().optional(),
-    line2: z.boolean().optional(),
-  }).optional(),
+  lines: z.string().optional(),
   collar: z.object({
     collarType: z.enum(collarTypeValues).optional(),
     collarButton: z.enum(collarButtonValues).optional(),
@@ -47,7 +44,6 @@ export const styleOptionsSchema = z.object({
     cuffs_type: z.enum(cuffsTypeValues).optional(),
     cuffs_thickness: z.enum(jabzourThicknessShortValues).optional(),
   }).optional(),
-  extraAmount: z.number().optional(),
 });
 
 export type StyleOptionsSchema = z.infer<typeof styleOptionsSchema>;
@@ -55,10 +51,7 @@ export type StyleOptionsSchema = z.infer<typeof styleOptionsSchema>;
 export const styleOptionsDefaults: StyleOptionsSchema = {
   styleOptionId: "",
   style: "",
-  lines: {
-    line1: false,
-    line2: false,
-  },
+  lines: "line1",
   collar: {
     collarType: "JAPANES COLLAR",
     collarButton: "MULTI HOLES",
@@ -82,5 +75,4 @@ export const styleOptionsDefaults: StyleOptionsSchema = {
     cuffs_type: "TYPE1",
     cuffs_thickness: "SINGLE",
   },
-  extraAmount: 0,
 };

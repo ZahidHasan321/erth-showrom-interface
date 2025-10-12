@@ -25,7 +25,6 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
   },
   body: {
     upper_chest: 0,
-    chestHalf: 0,
     full_chest: {
       value: 0,
       front: 0,
@@ -81,7 +80,6 @@ export const customerMeasurementsSchema = z.object({
   }),
   body: z.object({
     upper_chest: z.number().min(0, "Value cannot be negative"),
-    chestHalf: z.number().min(0, "Value cannot be negative"),
     full_chest: z.object({
       value: z.number().min(0, "Value cannot be negative"),
       front: z.number().min(0, "Value cannot be negative"),

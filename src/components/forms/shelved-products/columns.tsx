@@ -97,6 +97,7 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
                 type="number"
                 value={row.original.unitPrice}
                 onChange={(e) => updateData(row.index, 'unitPrice', parseFloat(e.target.value))}
+                placeholder='0.00'
             />
         )
     }
@@ -106,7 +107,7 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
     header: 'Total Amount',
     cell: ({ row }) => {
       const total = row.original.quantity * row.original.unitPrice
-      return <span>{total.toFixed(2)}</span>
+      return <span >{total.toFixed(2)}</span>
     },
   },
   {

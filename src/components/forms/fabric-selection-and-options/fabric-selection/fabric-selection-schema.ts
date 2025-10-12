@@ -13,7 +13,6 @@ export const fabricSelectionSchema = z.object({
   measurementId: z.string().min(1, "Measurement ID is required"),
   express: z.boolean().optional(),
   deliveryDate: z.date().optional(),
-  fabricAmount: z.number().optional(),
   special_request: z.string().optional(),
 });
 
@@ -31,6 +30,5 @@ export const fabricSelectionDefaults: FabricSelectionSchema = {
   measurementId: "",
   express: false,
   deliveryDate: undefined,
-  fabricAmount: 0,
   special_request: "",
 };

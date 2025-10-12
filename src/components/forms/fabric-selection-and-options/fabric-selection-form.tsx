@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 interface FabricSelectionFormProps {
   useCurrentWorkOrderStore: ReturnType<typeof createWorkOrderStore>;
   customerId: string | null;
+  orderId: string | null;
   form: UseFormReturn<{
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
@@ -39,6 +40,7 @@ interface FabricSelectionFormProps {
 export function FabricSelectionForm({
   useCurrentWorkOrderStore,
   customerId,
+  orderId,
   form,
   onSubmit,
   onProceed,
@@ -69,12 +71,14 @@ export function FabricSelectionForm({
     name: "styleOptions",
   });
 
+  console.log(fabricSelectionFields)
+
   React.useEffect(() => {
     // reset the form if the store's fabricSelections change from an external source.
     if (
       fabricSelections &&
       JSON.stringify(form.getValues("fabricSelections")) !==
-        JSON.stringify(fabricSelections)
+      JSON.stringify(fabricSelections)
     ) {
       form.reset({ fabricSelections });
     }
@@ -131,27 +135,49 @@ export function FabricSelectionForm({
     return [];
   }, [measurementQuery]);
 
-  const addFabricRow = () => {
-    appendFabricSelection(fabricSelectionDefaults);
+  const addFabricRow = (index: number, orderId?: string) => {
+    appendFabricSelection({ ...fabricSelectionDefaults, garmentId:orderId + '-' + (index + 1) });
   };
 
   const removeFabricRow = (rowIndex: number) => {
     removeFabricSelection(rowIndex);
   };
 
-  const addStyleRow = () => {
-    appendStyleOption(styleOptionsDefaults);
+  const addStyleRow = (index: number) => {
+    appendStyleOption({ ...styleOptionsDefaults, styleOptionId:`S-${index+1}` });
   };
 
   const removeStyleRow = (rowIndex: number) => {
     removeStyleOption(rowIndex);
   };
 
+  function syncRows(
+    desiredCount: number,
+    fields: any[],
+    handlers: { addRow: (index: number, orderId?: string) => void; removeRow: (rowIndex: number) => void }
+  ) {
+    const currentCount = fields.length;
+
+    if (currentCount < desiredCount) {
+      for (let i = currentCount; i < desiredCount; i++) {
+        handlers.addRow(i, orderId || undefined);
+      }
+    } else if (currentCount > desiredCount) {
+      for (let i = currentCount - 1; i >= desiredCount; i--) {
+        handlers.removeRow(i);
+      }
+    }
+  }
+  const isSyncDisabled =
+  !numRowsToAdd || numRowsToAdd <= 0 ||
+  (fabricSelectionFields.length === numRowsToAdd &&
+   styleOptionFields.length === numRowsToAdd);
+
   return (
     <FormProvider {...form}>
       <div className="p-4 max-w-7xl w-full overflow-x-auto">
         <div className="flex items-center space-x-2 mb-4">
-          <Label htmlFor="num-fabrics">Add Lines</Label>
+          <Label htmlFor="num-fabrics">How many pieces? </Label>
           <Input
             id="num-fabrics"
             type="number"
@@ -159,18 +185,23 @@ export function FabricSelectionForm({
             onChange={(e) => setNumRowsToAdd(parseInt(e.target.value, 10))}
             className="w-24"
           />
+
           <Button
             onClick={() => {
-              if (numRowsToAdd && numRowsToAdd > 0) {
-                for (let i = 0; i < numRowsToAdd; i++) {
-                  appendFabricSelection(fabricSelectionDefaults);
-                  appendStyleOption(styleOptionsDefaults);
-                }
+              if (numRowsToAdd > 0) {
+                syncRows(numRowsToAdd, fabricSelectionFields, {
+                  addRow: addFabricRow,
+                  removeRow: removeFabricRow,
+                });
+                syncRows(numRowsToAdd, styleOptionFields, {
+                  addRow: addStyleRow,
+                  removeRow: removeStyleRow,
+                });
               }
             }}
-            disabled={!numRowsToAdd || numRowsToAdd <= 0}
+            disabled={isSyncDisabled}
           >
-            Add
+            Add / Sync
           </Button>
         </div>
         <h2 className="text-2xl font-bold mb-4">Fabric Selections</h2>
@@ -186,13 +217,13 @@ export function FabricSelectionForm({
             )
           }
         />
-        <Button
+        {/* <Button
           onClick={addFabricRow}
           className="mt-4"
           disabled={!(measurementIDs.length === 0)}
         >
           Add Fabric Line
-        </Button>
+        </Button> */}
 
         <h2 className="text-2xl font-bold mb-4 mt-8">Style Options</h2>
         <DataTable
@@ -204,9 +235,9 @@ export function FabricSelectionForm({
             form.setValue(`styleOptions.${rowIndex}.${columnId}` as any, value)
           }
         />
-        <Button onClick={addStyleRow} className="mt-4">
+        {/* <Button onClick={addStyleRow} className="mt-4">
           Add Style Line
-        </Button>
+        </Button> */}
       </div>
       <div>
         <Button

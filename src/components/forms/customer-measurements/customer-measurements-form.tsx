@@ -154,7 +154,7 @@ export function CustomerMeasurementsForm({
       setSelectedMeasurementId(firstId);
       form.setValue("measurementID", firstId);
     } else {
-      form.reset(customerMeasurementsDefaults);
+      form.reset();
       setIsEditing(false);
     }
   }, [measurementQuery?.data, form]);
@@ -164,19 +164,23 @@ export function CustomerMeasurementsForm({
     if (selectedMeasurementId && measurements) {
       const selected = measurements[selectedMeasurementId];
       // Only reset if the form's current measurementID is different from the selected one
-      if (selected && form.getValues("measurementID") !== selectedMeasurementId) {
+      if (selected) {
         form.reset(selected);
+      }else{
+        form.reset()
       }
     }
+    else{
+      form.reset();
+    }
   }, [selectedMeasurementId, measurements, form]);
+
 
   // ---------------------------------------
   // Handlers
   // ---------------------------------------
   const handleFormSubmit = React.useCallback(
     async (values: z.infer<typeof customerMeasurementsSchema>) => {
-      console.log("Attempting to submit measurement form.");
-      console.log("Customer ID before API call:", customerId);
       if (!customerId) {
         toast.error("Customer ID is required.");
         return;
@@ -424,6 +428,7 @@ export function CustomerMeasurementsForm({
             fields={[
               { name: "arm.shoulder", label: "Shoulder" },
               { name: "arm.sleeve", label: "Sleeve" },
+              { name: "arm.elbow", label: "Elbow" },
               [
                 { name: "arm.armhole.value", label: "Armhole" },
                 { name: "arm.armhole.front", label: "Front" },
@@ -454,6 +459,43 @@ export function CustomerMeasurementsForm({
             ]}
           />
         </div>
+
+        <div className="flex flex-row gap-6 flex-wrap">
+          <GroupedMeasurementFields
+            form={form}
+            title="Top Pocket"
+            unit={unit}
+            isDisabled={!isEditing}
+            fields={[
+              { name: "topPocket.distance", label: "Distance" },
+              { name: "topPocket.length", label: "Length" },
+              { name: "topPocket.width", label: "Width" },
+            ]}
+          />
+          <GroupedMeasurementFields
+            form={form}
+            title="Jabzoor"
+            unit={unit}
+            isDisabled={!isEditing}
+            fields={[
+              { name: "jabzoor.length", label: "Length" },
+              { name: "jabzoor.width", label: "Width" },
+            ]}
+          />
+          <GroupedMeasurementFields
+            form={form}
+            title="Side Pocket"
+            unit={unit}
+            isDisabled={!isEditing}
+            fields={[
+              { name: "sidePocket.length", label: "Length" },
+              { name: "sidePocket.width", label: "Width" },
+              { name: "sidePocket.distance", label: "Distance" },
+              { name: "sidePocket.opening", label: "Opening" },
+            ]}
+          />
+        </div>
+
 
         <FormField
           control={form.control}

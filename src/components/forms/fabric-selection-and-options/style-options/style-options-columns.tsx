@@ -24,7 +24,7 @@ import {
   walletIcon,
   smallTabaggiImage,
   penIcon,
-  jabzourThicknessOptions,
+  jabzourThicknessOptions as ThicknessOptions,
 } from "../constants";
 import type { StyleOptionsSchema } from "./style-options-schema";
 
@@ -33,7 +33,15 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     accessorKey: "styleOptionId",
     header: "Style Option Id",
     cell: ({ row }) => {
-      return <div className="w-20">{row.index + 1}</div>;
+      const { control } = useFormContext();
+      return (
+        <Controller
+          name={`styleOptions.${row.index}.styleOptionId`}
+          control={control}
+          defaultValue={row.original.styleOptionId}
+          render={({ field }) => <span>{field.value}</span>}
+        />
+      );
     },
   },
   {
@@ -47,12 +55,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
           control={control}
           render={({ field }) => (
             <Select onValueChange={field.onChange} value={field.value}>
-              <SelectTrigger>
+              <SelectTrigger className="min-w-[150px]">
                 <SelectValue placeholder="Select Style" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="kuwaiti">Kuwaiti</SelectItem>
-                <SelectItem value="saudi">Saudi</SelectItem>
+                <SelectItem value="saudi">Designer</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -66,33 +74,21 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
-        <div className="w-40 flex items-center space-x-4 px-2">
+        <div className="min-w-[180px] flex items-center space-x-4 px-2">
           <Controller
-            name={`styleOptions.${row.index}.lines.line1`}
+            name={`styleOptions.${row.index}.lines`}
             control={control}
             render={({ field }) => (
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id={`line1-${row.index}`}
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-                <label htmlFor={`line1-${row.index}`}>Line 1</label>
-              </div>
-            )}
-          />
-          <Controller
-            name={`styleOptions.${row.index}.lines.line2`}
-            control={control}
-            render={({ field }) => (
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id={`line2-${row.index}`}
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-                <label htmlFor={`line2-${row.index}`}>Line 2</label>
-              </div>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger className="min-w-[140px]">
+                  <SelectValue placeholder="Select Lines" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="no_lines">No Lines</SelectItem>
+                  <SelectItem value="line1">Line 1</SelectItem>
+                  <SelectItem value="line2">Line 2</SelectItem>
+                </SelectContent>
+              </Select>
             )}
           />
         </div>
@@ -110,20 +106,20 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
       );
 
       return (
-        <div className="w-[350px] flex flex-row space-x-2">
+        <div className="min-w-[350px] flex flex-row space-x-2">
           <Controller
             name={`styleOptions.${row.index}.collar.collarType`}
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="min-w-[120px]">
                   {collarType ? (
                     <img
                       src={
                         collarTypes.find((c) => c.value === collarType)?.image
                       }
                       alt={collarTypes.find((c) => c.value === collarType)?.alt}
-                      className="w-10 h-10 object-contain"
+                      className="min-w-[40px] h-10 object-contain"
                     />
                   ) : (
                     <SelectValue placeholder="Select Type" />
@@ -136,7 +132,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                         <img
                           src={ct.image}
                           alt={ct.alt}
-                          className="w-12 h-12 object-contain"
+                          className="min-w-[48px] h-12 object-contain"
                         />
                         <span>{ct.displayText}</span>
                       </div>
@@ -151,7 +147,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="min-w-[120px]">
                   {collarButton ? (
                     <img
                       src={
@@ -161,7 +157,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                       alt={
                         collarButtons.find((b) => b.value === collarButton)?.alt
                       }
-                      className="w-10 h-10 object-contain"
+                      className="min-w-[40px] h-10 object-contain"
                     />
                   ) : (
                     <SelectValue placeholder="Select Button" />
@@ -174,7 +170,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                         <img
                           src={button.image}
                           alt={button.alt}
-                          className="w-12 h-12 object-contain"
+                          className="min-w-[48px] h-12 object-contain"
                         />
                         <span>{button.displayText}</span>
                       </div>
@@ -188,7 +184,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             name={`styleOptions.${row.index}.collar.smallTabaggi`}
             control={control}
             render={({ field }) => (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 min-w-[60px]">
                 <Checkbox
                   id={`smallTabaggi-${row.index}`}
                   checked={field.value}
@@ -198,7 +194,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   <img
                     src={smallTabaggiImage}
                     alt="Small Tabaggi"
-                    className="w-8 h-8 object-contain"
+                    className="min-w-[32px] h-8 object-contain"
                   />
                 </label>
               </div>
@@ -217,20 +213,20 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
       const jabzour2 = watch(`styleOptions.${row.index}.jabzoor.jabzour2`);
 
       return (
-        <div className="w-[450px] flex flex-row space-x-2">
+        <div className="min-w-[420px] flex flex-row space-x-2">
           <Controller
             name={`styleOptions.${row.index}.jabzoor.jabzour1`}
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="min-w-[120px]">
                   {jabzour1 ? (
                     <img
                       src={
                         jabzourTypes.find((j) => j.value === jabzour1)?.image
                       }
                       alt={jabzourTypes.find((j) => j.value === jabzour1)?.alt}
-                      className="w-12 h-12 object-contain"
+                      className="min-w-[40px] h-10 object-contain"
                     />
                   ) : (
                     <SelectValue placeholder="Select Type" />
@@ -246,7 +242,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                         <img
                           src={jabzourType.image}
                           alt={jabzourType.alt}
-                          className="w-12 h-12 object-contain"
+                          className="min-w-[48px] h-12 object-contain"
                         />
                         <span>{jabzourType.displayText}</span>
                       </div>
@@ -256,20 +252,20 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
               </Select>
             )}
           />
-          <Plus className="w-6 h-6 mt-2" />
+          <Plus className="min-w-[20px] h-6 mt-2" />
           <Controller
             name={`styleOptions.${row.index}.jabzoor.jabzour2`}
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="min-w-[120px]">
                   {jabzour2 ? (
                     <img
                       src={
                         jabzourTypes.find((j) => j.value === jabzour2)?.image
                       }
                       alt={jabzourTypes.find((j) => j.value === jabzour2)?.alt}
-                      className="w-10 h-10 object-contain"
+                      className="min-w-[40px] h-10 object-contain"
                     />
                   ) : (
                     <SelectValue placeholder="Select Type" />
@@ -285,7 +281,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                         <img
                           src={jabzourType.image}
                           alt={jabzourType.alt}
-                          className="w-12 h-12 object-contain"
+                          className="min-w-[48px] h-12 object-contain"
                         />
                         <span>{jabzourType.displayText}</span>
                       </div>
@@ -300,12 +296,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="">
+                <SelectTrigger className="min-w-[60px]">
                   <SelectValue placeholder="Select Thickness" />
                 </SelectTrigger>
                 <SelectContent>
-                  {jabzourThicknessOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                  {ThicknessOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value} className={option.className}>
                       {option.label}
                     </SelectItem>
                   ))}
@@ -323,7 +319,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
-        <div className="w-[250px] flex flex-row space-x-4 justify-center items-center">
+        <div className="min-w-[220px] flex flex-row space-x-4 justify-center items-center">
           <Controller
             name={`styleOptions.${row.index}.sidePocket.phone`}
             control={control}
@@ -338,7 +334,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   <img
                     src={phoneIcon}
                     alt="Phone Pocket"
-                    className="w-14 h-14 object-contain"
+                    className="min-w-[40px] h-14 object-contain"
                   />
                 </label>
               </div>
@@ -358,7 +354,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   <img
                     src={walletIcon}
                     alt="Wallet Pocket"
-                    className="w-14 h-14 object-contain"
+                    className="min-w-[40px] h-14 object-contain"
                   />
                 </label>
               </div>
@@ -378,24 +374,26 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
       );
 
       return (
-        <div className="w-[450px] flex flex-row space-x-2 justify-center items-center">
+        <div className="min-w-[420px] flex flex-row space-x-2 justify-center items-center">
           <Controller
             name={`styleOptions.${row.index}.frontPocket.front_pocket_type`}
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="min-w-[120px]">
                   {frontPocketType ? (
                     <img
                       src={
-                        topPocketTypes.find((j) => j.value === frontPocketType)
-                          ?.image
+                        topPocketTypes.find(
+                          (j) => j.value === frontPocketType
+                        )?.image
                       }
                       alt={
-                        topPocketTypes.find((j) => j.value === frontPocketType)
-                          ?.alt
+                        topPocketTypes.find(
+                          (j) => j.value === frontPocketType
+                        )?.alt
                       }
-                      className="w-7 h-7 object-contain"
+                      className="min-w-[28px] h-7 object-contain"
                     />
                   ) : (
                     <SelectValue placeholder="Select Type" />
@@ -408,7 +406,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                         <img
                           src={tpt.image}
                           alt={tpt.alt}
-                          className="w-12 h-12 object-contain"
+                          className="min-w-[48px] h-12 object-contain"
                         />
                         <span>{tpt.displayText}</span>
                       </div>
@@ -423,12 +421,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="min-w-[60px]">
                   <SelectValue placeholder="Select Thickness" />
                 </SelectTrigger>
                 <SelectContent>
-                  {jabzourThicknessOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                  {ThicknessOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value} className={option.className}>
                       {option.label}
                     </SelectItem>
                   ))}
@@ -440,7 +438,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             name={`styleOptions.${row.index}.frontPocket.pen_holder`}
             control={control}
             render={({ field }) => (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 min-w-[60px]">
                 <Checkbox
                   id={`pen_holder-${row.index}`}
                   checked={field.value}
@@ -450,7 +448,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   <img
                     src={penIcon}
                     alt="Pen Holder"
-                    className="w-14 h-14 object-contain"
+                    className="min-w-[40px] h-14 object-contain"
                   />
                 </label>
               </div>
@@ -468,20 +466,20 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
       const cuffsType = watch(`styleOptions.${row.index}.cuffs.cuffs_type`);
 
       return (
-        <div className="w-[300px] flex flex-row space-x-2">
+        <div className="min-w-[300px] flex flex-row space-x-2">
           <Controller
             name={`styleOptions.${row.index}.cuffs.cuffs_type`}
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="min-w-[120px]">
                   {cuffsType ? (
                     <img
                       src={
                         sleeveTypes.find((c) => c.value === cuffsType)?.image
                       }
                       alt={sleeveTypes.find((c) => c.value === cuffsType)?.alt}
-                      className="w-10 h-10 object-contain"
+                      className="min-w-[40px] h-10 object-contain"
                     />
                   ) : (
                     <SelectValue placeholder="Select Type" />
@@ -494,7 +492,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                         <img
                           src={ct.image}
                           alt={ct.alt}
-                          className="w-12 h-12 object-contain"
+                          className="min-w-[48px] h-12 object-contain"
                         />
                         <span>{ct.displayText}</span>
                       </div>
@@ -509,12 +507,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="min-w-[60px]">
                   <SelectValue placeholder="Select Thickness" />
                 </SelectTrigger>
                 <SelectContent>
-                  {jabzourThicknessOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
+                  {ThicknessOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value} className={option.className}>
                       {option.label}
                     </SelectItem>
                   ))}
@@ -527,13 +525,6 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     },
   },
   {
-    accessorKey: "extraAmount",
-    header: "Extras Amount / سعر الإضافات",
-    cell: () => {
-      return <div className="w-40">100</div>;
-    },
-  },
-  {
     id: "delete",
     cell: ({ row, table }) => {
       const handleDelete = () => {
@@ -542,7 +533,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
 
       return (
         <Button variant="ghost" size="sm" onClick={handleDelete}>
-          <Trash2 className={"w-10 h-10"} />
+          <Trash2 className="min-w-[40px] h-10" />
         </Button>
       );
     },

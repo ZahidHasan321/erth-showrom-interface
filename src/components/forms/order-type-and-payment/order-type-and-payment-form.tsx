@@ -365,11 +365,11 @@ export function OrderTypeAndPaymentForm({
             </div>
             <div className="flex justify-between items-center">
               <span>Advance</span>
-              <span>{(advance || 0).toFixed(2)} KWD</span>
+              <span>{( balance < 0 ? advance + balance : advance).toFixed(2)} KWD</span>
             </div>
             <div className="flex justify-between font-bold">
               <span>Balance</span>
-              <span>{balance.toFixed(2)} KWD</span>
+              <span>{ balance < 0 ? 0 : balance.toFixed(2)} KWD</span>
             </div>
           </div>
         </div>

@@ -311,7 +311,7 @@ function NewSalesOrder() {
                     setOrder(data);
                     toast.success("Order & Payment Info saved ✅");
                   }}
-                  onProceed={() => handleProceed(4)}
+                  onProceed={() => handleProceed(2)}
                 />
               )
             }

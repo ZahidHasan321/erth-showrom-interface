@@ -27,11 +27,14 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
-        <Controller
-          name={`fabricSelections.${row.index}.garmentId`}
-          control={control}
-          render={({ field }) => <Input {...field} />}
-        />
+        <div className="min-w-[100px]">
+          <Controller
+            name={`fabricSelections.${row.index}.garmentId`}
+            control={control}
+            defaultValue={row.original.garmentId}
+            render={({ field }) => <span>{field.value}</span>}
+          />
+        </div>
       );
     },
   },
@@ -41,24 +44,26 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     cell: ({ row, table }) => {
       const { control } = useFormContext();
       return (
-        <Controller
-          name={`fabricSelections.${row.index}.measurementId`}
-          control={control}
-          render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Select ID" />
-              </SelectTrigger>
-              <SelectContent>
-                {table.options.meta?.measurementIDs?.map((id: string) => (
-                  <SelectItem key={id} value={id}>
-                    {id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
+        <div className="min-w-[150px]">
+          <Controller
+            name={`fabricSelections.${row.index}.measurementId`}
+            control={control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger className="w-[150px] min-w-[150px]">
+                  <SelectValue placeholder="Select ID" />
+                </SelectTrigger>
+                <SelectContent>
+                  {table.options.meta?.measurementIDs?.map((id: string) => (
+                    <SelectItem key={id} value={id}>
+                      {id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
       );
     },
   },
@@ -68,15 +73,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
-        <div className="w-full flex justify-center items-center">
+        <div className="w-full flex justify-center items-center min-w-[80px]">
           <Controller
             name={`fabricSelections.${row.index}.brova`}
             control={control}
             render={({ field }) => (
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
+              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
             )}
           />
         </div>
@@ -90,7 +92,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
       const { control } = useFormContext();
 
       return (
-        <div className="flex flex-col space-y-1 w-[200px]">
+        <div className="flex flex-col space-y-1 w-[200px] min-w-[180px]">
           <Controller
             name={`fabricSelections.${row.index}.fabricSource`}
             control={control}
@@ -124,7 +126,6 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
       });
 
       const fabrics = fabricsResponse;
-
       const fabricOptions = fabrics?.data
         ? fabrics.data?.map((fabric) => ({
             value: fabric.id,
@@ -133,7 +134,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
         : [];
 
       return (
-        <div className="flex flex-col space-y-1 w-[200px]">
+        <div className="flex flex-col space-y-1 w-[200px] min-w-[200px]">
           {isDisabled ? (
             <Input
               placeholder="Search fabric..."
@@ -163,11 +164,13 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
-        <Controller
-          name={`fabricSelections.${row.index}.color`}
-          control={control}
-          render={({ field }) => <Input {...field} />}
-        />
+        <div className="min-w-[120px]">
+          <Controller
+            name={`fabricSelections.${row.index}.color`}
+            control={control}
+            render={({ field }) => <Input className="min-w-[120px]" {...field} />}
+          />
+        </div>
       );
     },
   },
@@ -201,11 +204,15 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
       };
 
       return (
-        <Controller
-          name={`fabricSelections.${row.index}.fabricLength`}
-          control={control}
-          render={({ field }) => <Input {...field} onBlur={handleBlur} />}
-        />
+        <div className="min-w-[120px]">
+          <Controller
+            name={`fabricSelections.${row.index}.fabricLength`}
+            control={control}
+            render={({ field }) => (
+              <Input {...field} onBlur={handleBlur} className="min-w-[120px]" />
+            )}
+          />
+        </div>
       );
     },
   },
@@ -215,15 +222,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
-        <div className="w-full flex justify-center items-center">
+        <div className="w-full flex justify-center items-center min-w-[80px]">
           <Controller
             name={`fabricSelections.${row.index}.express`}
             control={control}
             render={({ field }) => (
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
+              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
             )}
           />
         </div>
@@ -236,7 +240,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
-        <div className="w-50">
+        <div className="w-50 min-w-[150px]">
           <Controller
             name={`fabricSelections.${row.index}.deliveryDate`}
             control={control}
@@ -254,13 +258,15 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
-        <Controller
-          name={`fabricSelections.${row.index}.fabricAmount`}
-          control={control}
-          render={({ field }) => (
-            <Input type="number" {...field} readOnly className="w-40" />
-          )}
-        />
+        <div className="min-w-[160px]">
+          <Controller
+            name={`fabricSelections.${row.index}.fabricAmount`}
+            control={control}
+            render={({ field }) => (
+              <Input type="number" {...field} readOnly className="w-40 min-w-[160px]" />
+            )}
+          />
+        </div>
       );
     },
   },
@@ -272,9 +278,11 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
       };
 
       return (
-        <Button variant="ghost" size="sm" onClick={handleDelete}>
-          <Trash2 className={"w-10 h-10"} />
-        </Button>
+        <div className="min-w-[80px] flex justify-center">
+          <Button variant="ghost" size="sm" onClick={handleDelete}>
+            <Trash2 className="w-10 h-10" />
+          </Button>
+        </div>
       );
     },
   },
