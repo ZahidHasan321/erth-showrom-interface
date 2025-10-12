@@ -61,6 +61,7 @@ export function Combobox({
             ) : (
               options.map((option) => (
                 <CommandItem
+                className="pl-0"
                   key={option.value}
                   value={option.label} // Search against the label
                   onSelect={(selectedLabel) => {

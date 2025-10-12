@@ -1,5 +1,7 @@
+import { searchPrimaryAccountByPhone, upsertCustomer } from "@/api/customers";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Combobox } from "@/components/ui/combobox";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -11,9 +13,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Combobox } from "@/components/ui/combobox";
-import { getSortedCountries } from "@/lib/countries";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,31 +20,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { getSortedCountries } from "@/lib/countries";
 import {
   mapCustomerToFormValues,
   mapFormValuesToCustomer,
 } from "@/lib/customer-mapper";
 import type { Customer } from "@/types/customer";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { useState } from "react";
+import { flushSync } from "react-dom";
 import type { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import type z from "zod";
 import {
   customerDemographicsDefaults,
   customerDemographicsSchema,
+  type CustomerDemographicsSchema,
 } from "./schema";
 import { SearchCustomer } from "./search-customer";
-import { upsertCustomer } from "@/api/customers";
-import { useMutation } from "@tanstack/react-query";
-import { flushSync } from "react-dom";
+import { AnimatedMessage } from "@/components/animation/AnimatedMessage";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
   onSubmit: (values: z.infer<typeof customerDemographicsSchema>) => void;
   onEdit?: () => void;
   onCancel?: () => void;
-  onCustomerChange?: (customerId: string | null) => void;
+  onCustomerRecordChange?: (id: string|null) => void,
+  onCustomerIdChange?: (id: string|null) => void;
   onProceed?: () => void;
   onClear?: () => void;
 }
@@ -55,11 +58,13 @@ export function CustomerDemographicsForm({
   onSubmit,
   onEdit,
   onCancel,
-  onCustomerChange,
+  onCustomerIdChange,
+  onCustomerRecordChange,
   onProceed,
   onClear
 }: CustomerDemographicsFormProps) {
   const [isEditing, setIsEditing] = useState(true);
+  const [ customerId, setCustomerId ] = useState<string | null>(null);
   const [customerRecordId, setCustomerRecordId] = useState<string | null>(null);
   const [confirmationDialog, setConfirmationDialog] = useState({
     isOpen: false,
@@ -67,22 +72,66 @@ export function CustomerDemographicsForm({
     description: "",
     onConfirm: () => { },
   });
+  const [warnings, setWarnings] = React.useState<{ [K in keyof CustomerDemographicsSchema]?: string }>({});
+
   const AccountType = form.watch("accountType")
+  const mobileNumber = form.watch("mobileNumber")
   const countries = React.useMemo(() => getSortedCountries(), []);
 
+  const { data: existingUsers, isSuccess, refetch: accountRefetch, isFetching } = useQuery({
+    queryKey: ['existingUsers'],
+    queryFn: async () => { return searchPrimaryAccountByPhone(mobileNumber) },
+    enabled: false
+  })
+
+  function handleMobileChange() {
+    if (mobileNumber === undefined || mobileNumber.trim() === "" || !isEditing) {
+      setWarnings((prev) => ({ ...prev, mobileNumber: undefined }));
+      form.setValue("accountType", undefined);
+      return;
+    }
+    accountRefetch();
+  }
+
   React.useEffect(() => {
-    onCustomerChange?.(customerRecordId ? customerRecordId : null);
-  }, [customerRecordId, onCustomerChange]);
+    if (isSuccess && existingUsers) {
+      const currentAccountType = form.getValues().accountType;
+      if (existingUsers.data && existingUsers.count && existingUsers.count > 0 && existingUsers.data[0].id !== customerRecordId) {
+        setWarnings((prev) => ({
+          ...prev,
+          mobileNumber: "This mobile number is already used in a Primary account. Proceed with caution.",
+        }));
+        if (currentAccountType !== "Secondary") {
+          form.setValue("accountType", "Secondary");
+        }
+      } else {
+        setWarnings((prev) => ({ ...prev, mobileNumber: undefined }));
+        if (currentAccountType !== "Primary") {
+          form.setValue("accountType", "Primary");
+        }
+      }
+    }
+  }, [existingUsers, isSuccess, mobileNumber, form])
+
+
+
 
   const handleCustomerFound = React.useCallback(
     (customer: Customer) => {
       const formValues = mapCustomerToFormValues(customer);
       form.reset(formValues);
       setCustomerRecordId(customer.id);
+      setCustomerId(String(customer.fields.id) || null);
       setIsEditing(false);
     },
     [form]
   );
+
+    React.useEffect(() => {
+      onCustomerRecordChange?.(customerRecordId);
+      onCustomerIdChange?.(customerId)
+  }, [customerRecordId, customerId, onCustomerIdChange, onCustomerRecordChange]);
+
 
   const { mutate: upsertCustomerMutation, isPending: isUpserting } =
     useMutation({
@@ -97,7 +146,10 @@ export function CustomerDemographicsForm({
             `Customer ${wasNewCustomer ? "created" : "updated"} successfully!`
           ); onProceed
           const upsertedCustomerData = response.data.records.at(0) as Customer;
+
           setCustomerRecordId(upsertedCustomerData.id);
+          setCustomerId(upsertedCustomerData.fields.id?.toString() || null);
+
           flushSync(() => {
             setIsEditing(false);
           });
@@ -191,6 +243,10 @@ export function CustomerDemographicsForm({
           onCustomerFound={handleCustomerFound}
           onHandleClear={() => {
             form.reset(customerDemographicsDefaults);
+            setCustomerRecordId(null);
+            setCustomerId(null);
+            setIsEditing(true);
+            setWarnings({});
             onClear?.()
           }}
         />
@@ -282,37 +338,36 @@ export function CustomerDemographicsForm({
                   <FormLabel className="font-bold">
                     <span className="text-red-500">*</span>Mobile No
                   </FormLabel>
-                  <div className="flex flex-nowrap gap-2">
-                    <div className="flex gap-2">
-                      <FormField
-                        control={form.control}
-                        name="countryCode"
-                        disabled={isReadOnly}
-                        render={({ field }) => (
-                          <FormItem>
-                            <Combobox
-                              disabled={isReadOnly}
-                              options={countries.map((country) => ({
-                                value: country.phoneCode,
-                                label: `${country.flag}: ${country.name} ${country.phoneCode}`,
-                              }))}
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              placeholder="Code"
-                            />
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <FormField
+                      control={form.control}
+                      name="countryCode"
+                      disabled={isReadOnly}
+                      render={({ field }) => (
+                        <FormItem>
+                          <Combobox
+                            disabled={isReadOnly}
+                            options={React.useMemo(() => countries.map((country) => ({
+                              value: country.phoneCode,
+                              label: `${country.flag}: ${country.name} ${country.phoneCode}`,
+                            })), [countries])}
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder="Code"
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormControl>
+                      <Input
+                        placeholder="Enter mobile number"
+                        {...field}
+                        className="bg-white"
+                        readOnly={isReadOnly}
+                        onBlur={handleMobileChange}
                       />
-                      <FormControl>
-                        <Input
-                          placeholder="Enter mobile number"
-                          {...field}
-                          className="bg-white"
-                          readOnly={isReadOnly}
-                        />
-                      </FormControl>
-                    </div>
+                    </FormControl>
                     <FormField
                       control={form.control}
                       name="whatsapp"
@@ -332,6 +387,12 @@ export function CustomerDemographicsForm({
                     />
                   </div>
                   <FormMessage />
+
+                  <AnimatedMessage
+                    info={isFetching ? "Checking existing accounts..." : undefined}
+                    warning={warnings.mobileNumber && !isFetching && existingUsers?.count && existingUsers.count > 0 ? warnings.mobileNumber : undefined}
+                  />
+
                 </FormItem>
               )}
             />
@@ -342,36 +403,33 @@ export function CustomerDemographicsForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Alternative Mobile No</FormLabel>
-                  <div className="flex flex-nowrap gap-2">
-                    <div className="flex gap-2">
-                      <FormField
-                        control={form.control}
-                        name="alternativeCountryCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <Combobox
-                              disabled={isReadOnly}
-                              options={countries.map((country) => ({
-                                value: country.phoneCode,
-                                label: `${country.flag}: ${country.name} ${country.phoneCode}`,
-                              }))}
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              placeholder="Code"
-                            />
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <FormField
+                      control={form.control}
+                      name="alternativeCountryCode"
+                      render={({ field }) => (
+                        <FormItem>
+                                                <Combobox
+                                                  disabled={isReadOnly}
+                                                  options={React.useMemo(() => countries.map((country) => ({
+                                                    value: country.phoneCode,
+                                                    label: `${country.flag}: ${country.name} ${country.phoneCode}`,
+                                                  })), [countries])}
+                                                  value={field.value || ""}
+                                                  onChange={field.onChange}
+                                                  placeholder="Code"
+                                                />                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormControl>
+                      <Input
+                        placeholder="Enter alternative mobile number"
+                        {...field}
+                        className="bg-white"
+                        readOnly={isReadOnly}
                       />
-                      <FormControl>
-                        <Input
-                          placeholder="Enter alternative mobile number"
-                          {...field}
-                          className="bg-white"
-                          readOnly={isReadOnly}
-                        />
-                      </FormControl>
-                    </div>
+                    </FormControl>
                     <FormField
                       control={form.control}
                       name="whatsappOnAlt"
@@ -405,10 +463,10 @@ export function CustomerDemographicsForm({
                   </FormLabel>
                   <Combobox
                     disabled={isReadOnly}
-                    options={countries.map((country) => ({
+                    options={React.useMemo(() => countries.map((country) => ({
                       value: country.name,
                       label: `${country.flag} ${country.name}`,
-                    }))}
+                    })), [countries])}
                     value={field.value || ""}
                     onChange={field.onChange}
                     placeholder="Select nationality"
@@ -450,7 +508,7 @@ export function CustomerDemographicsForm({
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
-                    disabled={isReadOnly}
+                    disabled={true}
                   >
                     <FormControl>
                       <SelectTrigger className="bg-white">
@@ -480,7 +538,7 @@ export function CustomerDemographicsForm({
                   >
                     <FormControl>
                       <SelectTrigger className="bg-white">
-                        <SelectValue placeholder={AccountType === "Primary" ? "Account is primary" :"Select account type" } />
+                        <SelectValue placeholder={AccountType === "Primary" ? "Account is primary" : "Select account type"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

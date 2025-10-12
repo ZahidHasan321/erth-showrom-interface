@@ -11,6 +11,10 @@ export const searchCustomerByPhone = (phone: string): Promise<ApiResponse<Custom
   return searchAllRecords<Customer[]>(TABLE_NAME, { Phone: phone });
 };
 
+export const searchPrimaryAccountByPhone = (phone: string): Promise<ApiResponse<Customer[]>> => {
+  return searchAllRecords<Customer[]>(TABLE_NAME, { Phone: phone, accountType: 'Primary' });
+};
+
 export const getCustomerById = (id: string): Promise<ApiResponse<Customer>> => {
   return searchRecords<Customer>(TABLE_NAME, { id: id });
 };

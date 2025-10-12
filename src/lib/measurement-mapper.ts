@@ -8,7 +8,6 @@ export const mapMeasurementToFormValues = (
     measurementID: measurement.fields.MeasurementID || "",
     measurementType: measurement.fields.MeasurementType || "Body",
     measurementReference: measurement.fields.MeasurementReference || "Other",
-    fabricReferenceNo: measurement.fields.FabricReferenceNo || [],
     notes: measurement.fields.Notes || "",
     collar: {
       width: measurement.fields.CollarWidth || 0,
@@ -30,6 +29,7 @@ export const mapMeasurementToFormValues = (
     },
     body: {
       upper_chest: measurement.fields.ChestUpper || 0,
+      chestHalf: measurement.fields.ChestHalf || 0,
       full_chest: {
         value: measurement.fields.ChestFull || 0,
         front: measurement.fields.ChestFront || 0,
@@ -71,7 +71,6 @@ export const mapFormValuesToMeasurement = (
       MeasurementID: formValues.measurementID,
       MeasurementType: formValues.measurementType,
       MeasurementReference: formValues.measurementReference,
-      FabricReferenceNo: formValues.fabricReferenceNo,
       Notes: formValues.notes,
       CollarWidth: formValues.collar.width,
       CollarHeight: formValues.collar.height,

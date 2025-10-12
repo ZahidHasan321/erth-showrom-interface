@@ -1,5 +1,15 @@
+"use client";
+
 import { searchCustomerByPhone } from "@/api/customers";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { Customer } from "@/types/customer";
@@ -7,14 +17,6 @@ import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { DialogDescription } from "@radix-ui/react-dialog";
 
 interface SearchCustomerProps {
   onCustomerFound: (customer: Customer) => void;
@@ -35,6 +37,7 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
       return searchCustomerByPhone(submittedSearch);
     },
     enabled: !!submittedSearch,
+    staleTime: 0, // Data is immediately stale
     retry: false,
   });
 
@@ -91,13 +94,16 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
   }, [showDialog, customerOptions, selectedIndex]);
 
 
-  const handleSearch = () => {
-    if (searchMobile) {
-      setSubmittedSearch(searchMobile);
-    } else {
-      toast.warning("Please enter a Mobile Number to search.");
-    }
-  };
+  const handleSearch = React.useCallback(
+    () => {
+      if (searchMobile.trim() !== "") {
+        setSubmittedSearch(searchMobile.trim());
+      } else {
+        toast.warning("Please enter a Mobile Number to search.");
+      }
+    },
+    [searchMobile]
+  );
 
   const handleClear = () => {
     setSearchMobile("");
@@ -114,7 +120,8 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
   }, [onCustomerFound]);
 
   return (
-    <div className="bg-muted p-4 rounded-lg space-y-4">
+    <div
+      className="bg-muted p-4 rounded-lg space-y-4">
       <h2 className="text-xl font-semibold">Search Customer</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
@@ -125,19 +132,27 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
               placeholder="Enter mobile number..."
               value={searchMobile}
               onChange={(e) => setSearchMobile(e.target.value)}
+              className="bg-white"
+              name="searchMobile"
+              type="tel"
+              autoComplete="tel"
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   e.preventDefault();
                   handleSearch();
                 }
               }}
-              className="bg-white"
             />
           </FormControl>
         </FormItem>
 
         <div className="flex gap-2 flex-wrap justify-end lg:col-span-2">
-          <Button type="button" onClick={handleSearch} disabled={isFetching}>
+          <Button
+            type="button"
+            disabled={isFetching}
+            className="flex items-center"
+            onClick={handleSearch}
+          >
             <SearchIcon className="w-4 h-4 mr-2" />
             {isFetching ? "Searching..." : "Search Customer"}
           </Button>
@@ -153,30 +168,30 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
           <DialogHeader>
             <DialogTitle>Select a Customer</DialogTitle>
           </DialogHeader>
-            {customerOptions.map((customer, index) => (
-              <DialogDescription
-                key={customer.id}
-                onClick={() => handleSelectCustomer(customer)}
-                className={`p-2 border rounded-lg hover:bg-muted cursor-pointer flex flex-col ${selectedIndex === index ? "border-primary border-2" : ""
-                  }`}>
-                <span className="font-medium">{customer.fields.Name}</span>
-                {customer.fields.City && (
-                  <span className="text-xs text-muted-foreground">
-                    <strong>City:</strong> {customer.fields.City}
-                  </span>
-                )}
-                {customer.fields.Relation && (
-                  <span className="text-xs text-muted-foreground">
-                    <strong>Relation:</strong> {customer.fields.Relation}
-                  </span>
-                )}
-                {customer.fields.AccountType && (
-                  <span className="text-xs text-muted-foreground">
-                    <strong>Account Type:</strong> {customer.fields.AccountType}
-                  </span>
-                )}
-              </DialogDescription>
-            ))}
+          {customerOptions.map((customer, index) => (
+            <DialogDescription
+              key={customer.id}
+              onClick={() => handleSelectCustomer(customer)}
+              className={`p-2 border rounded-lg hover:bg-muted cursor-pointer flex flex-col ${selectedIndex === index ? "border-primary border-2" : ""
+                }`}>
+              <span className="font-medium">{customer.fields.Name}</span>
+              {customer.fields.City && (
+                <span className="text-xs text-muted-foreground">
+                  <strong>City:</strong> {customer.fields.City}
+                </span>
+              )}
+              {customer.fields.Relation && (
+                <span className="text-xs text-muted-foreground">
+                  <strong>Relation:</strong> {customer.fields.Relation}
+                </span>
+              )}
+              {customer.fields.AccountType && (
+                <span className="text-xs text-muted-foreground">
+                  <strong>Account Type:</strong> {customer.fields.AccountType}
+                </span>
+              )}
+            </DialogDescription>
+          ))}
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDialog(false)}>

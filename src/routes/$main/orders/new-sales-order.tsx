@@ -55,8 +55,9 @@ function NewSalesOrder() {
     savedSteps,
     addSavedStep,
     removeSavedStep,
-    customerId,
     setCustomerId,
+    customerRecordId,
+    setCustomerRecordId,
     setCustomerDemographics,
     shelvedProducts,
     setShelvedProducts,
@@ -228,10 +229,10 @@ function NewSalesOrder() {
   // MAIN CONTENT (only shown after orderId is set)
   // -------------------------------------------------
 
-  function onHandleProceed(customerId: string | null, orderId: string | null) {
-    if (orderId && customerId) {
-      setOrder({ CustomerID: [customerId] });
-      addSavedStep(0);
+  function onHandleProceed(customerRecordId: string | null, orderId: string | null) {
+    if (orderId && customerRecordId) {
+      setOrder({ CustomerID: [customerRecordId] });
+      handleProceed(0);
     }
   }
 
@@ -287,8 +288,9 @@ function NewSalesOrder() {
                 }}
                 onEdit={() => removeSavedStep(0)}
                 onCancel={() => addSavedStep(0)}
-                onCustomerChange={setCustomerId}
-                onProceed={() => onHandleProceed(customerId, orderId)}
+                onCustomerIdChange={setCustomerId}
+                onCustomerRecordChange={setCustomerRecordId}
+                onProceed={() => onHandleProceed(customerRecordId, orderId)}
                 onClear={() => removeSavedStep(0)}
               />
             )}

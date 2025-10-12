@@ -24,6 +24,7 @@ interface CurrentWorkOrderState {
   measurementId: string | null;
   shelvedProducts: z.infer<typeof shelvedProductsSchema>;
   customerId: string | null;
+  customerRecordId: string | null;
   currentStep: number;
   savedSteps: number[];
 
@@ -40,6 +41,7 @@ interface CurrentWorkOrderState {
   setMeasurementId: (id: string | null) => void;
   setShelvedProducts: (data: z.infer<typeof shelvedProductsSchema>) => void;
   setCustomerId: (id: string | null) => void;
+  setCustomerRecordId: (id: string | null) => void;
   setCurrentStep: (step: number) => void;
 
   // mark step complete
@@ -101,9 +103,12 @@ export const createWorkOrderStore = (name: string) =>
           })),
 
         setMeasurementId: (id) => set({ measurementId: id }),
+        
         setShelvedProducts: (data) => set({ shelvedProducts: data }),
 
         setCustomerId: (id) => set({ customerId: id }),
+
+        setCustomerRecordId: (id) => set({ customerRecordId: id }),  
 
         setCurrentStep: (step) => set({ currentStep: step }),
 

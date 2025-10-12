@@ -27,7 +27,7 @@ const Step: React.FC<StepProps> = ({ title, isCompleted, isActive, onClick, inde
             isCompleted
               ? "border-primary bg-primary text-primary-foreground"
               : isActive
-              ? "border-primary text-primary"
+              ? "border-primary text-primary font-extrabold"
               : "border-muted-foreground/50"
           )}
         >

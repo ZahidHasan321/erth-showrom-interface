@@ -65,14 +65,12 @@ function NewWorkOrder() {
   );
 
   const [askedToCreateOrder, setAskedToCreateOrder] = React.useState(false);
-
   const [confirmationDialog, setConfirmationDialog] = React.useState({
     isOpen: false,
     title: "",
     description: "",
     onConfirm: () => {},
   });
-
   const {
     currentStep,
     setCurrentStep,
@@ -81,7 +79,8 @@ function NewWorkOrder() {
     removeSavedStep,
     customerId,
     setCustomerId,
-    customerDemographics,
+    customerRecordId,
+    setCustomerRecordId,
     setCustomerDemographics,
     setCustomerMeasurements,
     setFabricSelections,
@@ -92,6 +91,7 @@ function NewWorkOrder() {
     setOrderId,
     order,
     setOrder,
+    // resetWorkOrder
   } = useCurrentWorkOrderStore();
 
   const { mutate: createNewOrder, isPending } = useMutation({
@@ -185,11 +185,11 @@ function NewWorkOrder() {
   );
   const activeSection = useScrollSpy(sectionRefs, {
     rootMargin: "0px",
-    threshold: 0.5,
+    threshold: 0.3,
   });
 
   // React.useEffect(() => {
-  //   if (customerId == null) resetWorkOrder();
+  //   if (!customerId) { resetWorkOrder(); }
   // }, [customerId]);
 
   React.useEffect(() => {
@@ -243,10 +243,6 @@ function NewWorkOrder() {
       });
     }
   }, [orderId, askedToCreateOrder, createNewOrder]);
-
-  // -------------------------------------------------
-  // Render states
-  // -------------------------------------------------
 
   // While we haven't asked yet
   if (!orderId && !askedToCreateOrder) {
@@ -309,6 +305,7 @@ function NewWorkOrder() {
     }
   }
 
+
   return (
     <div className="mb-20">
       <ConfirmationDialog
@@ -349,8 +346,12 @@ function NewWorkOrder() {
                 }}
                 onEdit={() => removeSavedStep(0)}
                 onCancel={() => addSavedStep(0)}
-                onCustomerChange={setCustomerId}
-                onProceed={() => onHandleProceed(customerId, orderId)}
+                onCustomerRecordChange={setCustomerRecordId}
+                onCustomerIdChange={setCustomerId}
+                onProceed={() => onHandleProceed(customerRecordId, orderId)}
+                onClear={() => {
+                  removeSavedStep(0)
+                }}
               />
             )}
 
@@ -361,7 +362,7 @@ function NewWorkOrder() {
                   setCustomerMeasurements(data);
                   toast.success("Customer Measurements saved ✅");
                 }}
-                customerId={customerDemographics.id ?? null}
+                customerId={customerId}
                 onProceed={() => handleProceed(1)}
               />
             )}

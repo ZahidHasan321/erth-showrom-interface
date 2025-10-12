@@ -54,7 +54,7 @@ export function ShelvedProductsForm({ setFormData, onProceed }: ShelvedProductsF
   const totalAmount = data.reduce((acc, row) => acc + row.quantity * row.unitPrice, 0)
 
   return (
-    <div className='p-4 max-w-7xl overflow-x-auto w-full'>
+    <div className='p-4 max-w-7xl overflow-x-auto w-full bg-card rounded-lg shadow'>
       <h2 className='text-2xl font-bold mb-4'>Shelves Products</h2>
         <DataTable columns={columns} data={data} updateData={updateData} removeRow={removeRow} />
       <div className="flex justify-between items-center mt-4">

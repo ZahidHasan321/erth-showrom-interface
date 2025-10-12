@@ -11,6 +11,7 @@ interface CurrentSalesOrderState {
   customerDemographics: Partial<z.infer<typeof customerDemographicsSchema>>;
   shelvedProducts: z.infer<typeof shelvedProductsSchema>;
   customerId: string | null;
+  customerRecordId: string | null;
   currentStep: number;
   savedSteps: number[];
   paymentType: string | null;
@@ -26,6 +27,7 @@ interface CurrentSalesOrderState {
   setCustomerDemographics: (data: Partial<z.infer<typeof customerDemographicsSchema>>) => void;
   setShelvedProducts: (data: z.infer<typeof shelvedProductsSchema>) => void;
   setCustomerId: (id: string | null) => void;
+  setCustomerRecordId: (id: string | null) => void;
   setCurrentStep: (step: number) => void;
   setPaymentType: (type: string | null) => void;
   setOtherPaymentType: (type: string | null) => void;
@@ -51,6 +53,7 @@ export const createSalesOrderStore = (name: string) =>
         customerDemographics: {},
         shelvedProducts: [],
         customerId: null,
+        customerRecordId: null,
         currentStep: 0,
         savedSteps: [],
         paymentType: null,
@@ -71,6 +74,7 @@ export const createSalesOrderStore = (name: string) =>
         setShelvedProducts: (data) => set({ shelvedProducts: data }),
 
         setCustomerId: (id) => set({ customerId: id }),
+        setCustomerRecordId: (id) => set({ customerRecordId: id }),
 
         setCurrentStep: (step) => set({ currentStep: step }),
 
@@ -102,6 +106,7 @@ export const createSalesOrderStore = (name: string) =>
             customerDemographics: {},
             shelvedProducts: [],
             customerId: null,
+            customerRecordId: null,
             currentStep: 0,
             savedSteps: [],
             paymentType: null,

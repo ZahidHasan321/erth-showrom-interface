@@ -4,7 +4,6 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
   measurementID: "",
   measurementType: "Body",
   measurementReference: "Other", // fallback
-  fabricReferenceNo: [],
   notes: "",
   collar: {
     width: 0,
@@ -26,6 +25,7 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
   },
   body: {
     upper_chest: 0,
+    chestHalf: 0,
     full_chest: {
       value: 0,
       front: 0,
@@ -60,55 +60,55 @@ export const customerMeasurementsSchema = z.object({
   measurementID: z.string(),
   measurementType: z.enum(["Body", "Dishdasha"]),
   measurementReference: z.enum(["Winter", "Summer", "Eid", "Occasion", "Other"]),
-  fabricReferenceNo: z.array(z.string()).optional(),
   notes: z.string().optional(),
   collar: z.object({
-    width: z.number().positive("InValid Collar Width"),
-    height: z.number().positive("InValid Collar Height"),
+    width: z.number().min(0, "Value cannot be negative"),
+    height: z.number().min(0, "Value cannot be negative"),
   }),
   lengths: z.object({
-    front: z.number().positive("InValid Length Front"),
-    back: z.number().positive("InValid Length Back"),
+    front: z.number().min(0, "Value cannot be negative"),
+    back: z.number().min(0, "Value cannot be negative"),
   }),
   arm: z.object({
-    shoulder: z.number().positive("InValid Shoulder"),
-    sleeve: z.number().positive("InValid Sleeve"),
-    elbow: z.number().positive("InValid Elbow"),
+    shoulder: z.number().min(0, "Value cannot be negative"),
+    sleeve: z.number().min(0, "Value cannot be negative"),
+    elbow: z.number().min(0, "Value cannot be negative"),
     armhole: z.object({
-      value: z.number().positive("InValid Armhole"),
-      front: z.number().positive("InValid Armhole Front"),
+      value: z.number().min(0, "Value cannot be negative"),
+      front: z.number().min(0, "Value cannot be negative"),
       provision: z.number().optional(),
     }),
   }),
   body: z.object({
-    upper_chest: z.number().positive("InValid Chest Upper"),
+    upper_chest: z.number().min(0, "Value cannot be negative"),
+    chestHalf: z.number().min(0, "Value cannot be negative"),
     full_chest: z.object({
-      value: z.number().positive("InValid Chest Full"),
-      front: z.number().positive("InValid Chest Full Front"),
+      value: z.number().min(0, "Value cannot be negative"),
+      front: z.number().min(0, "Value cannot be negative"),
       provision: z.number().optional(),
     }),
     full_waist: z.object({
-      value: z.number().positive("InValid Waist"),
-      front: z.number().positive("InValid Waist Front"),
-      back: z.number().positive("InValid Waist Back"),
+      value: z.number().min(0, "Value cannot be negative"),
+      front: z.number().min(0, "Value cannot be negative"),
+      back: z.number().min(0, "Value cannot be negative"),
       provision: z.number().optional(),
     }),
-    bottom: z.number().positive("InValid Bottom"),
+    bottom: z.number().min(0, "Value cannot be negative"),
   }),
   topPocket: z.object({
-    length: z.number().positive("InValid Top Pocket Length"),
-    width: z.number().positive("InValid Top Pocket Width"),
-    distance: z.number().positive("InValid Top Pocket Distance").optional(),
+    length: z.number().min(0, "Value cannot be negative"),
+    width: z.number().min(0, "Value cannot be negative"),
+    distance: z.number().min(0, "Value cannot be negative").optional(),
   }),
   sidePocket: z.object({
-    length: z.number().positive("InValid Side Pocket Length"),
-    width: z.number().positive("InValid Side Pocket Width"),
-    distance: z.number().positive("InValid Side Pocket Distance").optional(),
-    opening: z.number().positive("InValid Side Pocket Opening").optional(),
+    length: z.number().min(0, "Value cannot be negative"),
+    width: z.number().min(0, "Value cannot be negative"),
+    distance: z.number().min(0, "Value cannot be negative").optional(),
+    opening: z.number().min(0, "Value cannot be negative").optional(),
   }),
   jabzoor: z.object({
-    length: z.number().positive("InValid Jabzoor Length"),
-    width: z.number().positive("InValid Jabzoor Width"),
+    length: z.number().min(0, "Value cannot be negative"),
+    width: z.number().min(0, "Value cannot be negative"),
   }),
 });
 

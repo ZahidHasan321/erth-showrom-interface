@@ -29,7 +29,7 @@ export const customerDemographicsDefaults: CustomerDemographicsSchema = {
 };
 
 export const customerDemographicsSchema = z.object({
-  id: z.string().optional(),
+  id: z.number().optional(),
   name: z.string("Invalid Name").min(1, "Name is required"),
   nickName: z.string().optional(),
   countryCode: z.string(),

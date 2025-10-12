@@ -17,6 +17,7 @@ import React from "react";
 import PickUpIcon from "@/assets/pickup.png";
 import HomeDeliveryIcon from "@/assets/home_delivery.png";
 import { CheckIcon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface OrderTypeAndPaymentFormProps {
   onSubmit: (values: z.infer<typeof orderTypeAndPaymentSchema>) => void;
@@ -113,9 +114,9 @@ export function OrderTypeAndPaymentForm({
                           key={option.value}
                           htmlFor={option.value}
                           className={cn(
-                            "flex flex-col items-center justify-center rounded-lg p-4 bg-white border hover:border-green-500 transition-all cursor-pointer",
+                            "flex flex-col items-center justify-center rounded-lg p-4 bg-white border hover:border-green-500 hover:shadow-lg transition-all cursor-pointer",
                             field.value === option.value &&
-                              "border-green-500 ring-2 ring-green-400"
+                            "border-green-500 ring-2 ring-green-400"
                           )}
                         >
                           <div className="h-16 w-16 flex items-center justify-center">
@@ -158,7 +159,7 @@ export function OrderTypeAndPaymentForm({
             </div>
 
             {/* Body */}
-            <div className="bg-accent/25 p-6 md:p-8 rounded-b-2xl">
+            <div className="flex flex-col justify-between bg-accent/25 p-6 md:p-8 rounded-b-2xl min-h-[400px]">
               <FormField
                 control={form.control}
                 name="discountType"
@@ -216,91 +217,100 @@ export function OrderTypeAndPaymentForm({
                               </button>
 
                               {/* detail area — appears just below this card (confined to this cell) */}
-                              {active && (
-                                <div className="mt-3 bg-white/60 p-3 rounded-md border-border">
-                                  {opt.value === "flat" && (
-                                    <div className="flex flex-wrap justify-start gap-3 items-center">
-                                      <FormField
-                                        control={form.control}
-                                        name="discountPercentage"
-                                        render={({ field: pField }) => (
-                                          <FormItem className="w-32 md:w-40">
-                                            <FormControl>
-                                              <Input
-                                                type="number"
-                                                placeholder="Discount %"
-                                                className="text-base py-2"
-                                                {...pField}
-                                                onChange={(e) =>
-                                                  pField.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)
-                                                }
-                                              />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-                                      <FormField
-                                        control={form.control}
-                                        name="discountInKwd"
-                                        render={({ field: kField }) => (
-                                          <FormItem className="w-40 md:w-48">
-                                            <FormControl>
-                                              <Input
-                                                type="text"
-                                                placeholder="Discount (KWD)"
-                                                readOnly
-                                                className="text-base py-2 bg-muted/50"
-                                                {...kField}
-                                              />
-                                            </FormControl>
-                                          </FormItem>
-                                        )}
-                                      />
-                                    </div>
-                                  )}
+                              <AnimatePresence initial={false} mode="wait">
+                                {active && (
+                                  <motion.div
+                                    key={opt.value}
+                                    initial={{ opacity: 0, height: 0, y: -5 }}
+                                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                                    exit={{ opacity: 0, height: 0, y: -5 }}
+                                    transition={{ duration: 0.25, ease: "easeOut" }}
+                                    className="mt-3 bg-white/60 p-3 rounded-md border-border overflow-hidden"
+                                  >
+                                    {opt.value === "flat" && (
+                                      <div className="flex flex-wrap justify-start gap-3 items-center">
+                                        <FormField
+                                          control={form.control}
+                                          name="discountPercentage"
+                                          render={({ field: pField }) => (
+                                            <FormItem className="w-32 md:w-40">
+                                              <FormControl>
+                                                <Input
+                                                  type="number"
+                                                  placeholder="Discount %"
+                                                  className="text-base py-2"
+                                                  {...pField}
+                                                  onChange={(e) =>
+                                                    pField.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)
+                                                  }
+                                                />
+                                              </FormControl>
+                                            </FormItem>
+                                          )}
+                                        />
+                                        <FormField
+                                          control={form.control}
+                                          name="discountInKwd"
+                                          render={({ field: kField }) => (
+                                            <FormItem className="w-40 md:w-48">
+                                              <FormControl>
+                                                <Input
+                                                  type="text"
+                                                  placeholder="Discount (KWD)"
+                                                  readOnly
+                                                  className="text-base py-2 bg-muted/50"
+                                                  {...kField}
+                                                />
+                                              </FormControl>
+                                            </FormItem>
+                                          )}
+                                        />
+                                      </div>
+                                    )}
 
-                                  {opt.value === "referral" && (
-                                    <div className="flex flex-col gap-3">
-                                      <FormField
-                                        control={form.control}
-                                        name="referralCode"
-                                        render={({ field: rField }) => (
-                                          <FormItem>
-                                            <FormControl>
-                                              <Input
-                                                placeholder="Reference Code"
-                                                className="text-base py-2 w-full"
-                                                {...rField}
-                                              />
-                                            </FormControl>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
-                                      />
+                                    {opt.value === "referral" && (
+                                      <div className="flex flex-col gap-3">
+                                        <FormField
+                                          control={form.control}
+                                          name="referralCode"
+                                          render={({ field: rField }) => (
+                                            <FormItem>
+                                              <FormControl>
+                                                <Input
+                                                  placeholder="Reference Code"
+                                                  className="text-base py-2 w-full"
+                                                  {...rField}
+                                                />
+                                              </FormControl>
+                                              <FormMessage />
+                                            </FormItem>
+                                          )}
+                                        />
 
-                                      <div className="flex flex-wrap gap-3">
-                                        {/* kept unbound to preserve original logic */}
+                                        <div className="flex flex-wrap gap-3">
+                                          {/* kept unbound to preserve original logic */}
+                                          <Input placeholder="Discount %" className="w-32 md:w-40 text-base py-2" />
+                                          <Input placeholder="Discount (KWD)" className="w-40 md:w-48 text-base py-2" />
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {opt.value === "loyalty" && (
+                                      <div className="flex flex-wrap gap-3 items-center">
+                                        <Button
+                                          type="button"
+                                          variant="outline"
+                                          className="border-border bg-accent/40 hover:bg-accent/60 text-base py-2 rounded-lg"
+                                        >
+                                          Check Loyalty
+                                        </Button>
                                         <Input placeholder="Discount %" className="w-32 md:w-40 text-base py-2" />
                                         <Input placeholder="Discount (KWD)" className="w-40 md:w-48 text-base py-2" />
                                       </div>
-                                    </div>
-                                  )}
-
-                                  {opt.value === "loyalty" && (
-                                    <div className="flex flex-wrap gap-3 items-center">
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="border-border bg-accent/40 hover:bg-accent/60 text-base px-6 py-2 rounded-lg"
-                                      >
-                                        Check Loyalty
-                                      </Button>
-                                      <Input placeholder="Discount %" className="w-32 md:w-40 text-base py-2" />
-                                      <Input placeholder="Discount (KWD)" className="w-40 md:w-48 text-base py-2" />
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                                    )}
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
                             </div>
                           );
                         })}
@@ -318,12 +328,13 @@ export function OrderTypeAndPaymentForm({
           </div>
 
           {/* Section 3: Charges Summary */}
-          <div className="rounded-lg border p-4 space-y-2 bg-muted">
+          <div className="rounded-lg border p-4 space-y-2 bg-muted text-lg">
             <h3 className="text-lg font-medium mb-4">Charges Summary</h3>
             {optional && (
               <>
                 <div className="flex justify-between">
                   <span>Fabric Charges</span>
+
                   <span>{(charges?.fabric || 0).toFixed(2)} KWD</span>
                 </div>
                 <div className="flex justify-between">

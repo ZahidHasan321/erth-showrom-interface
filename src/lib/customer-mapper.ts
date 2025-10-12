@@ -6,7 +6,7 @@ export const mapCustomerToFormValues = (customer: Customer): Partial<CustomerDem
   const fields = customer.fields;
 
   return {
-    id: customer.id, // Top-level ID is string
+    id: customer.fields.id, // Top-level ID is string
     name: fields.Name || "",
     nickName: fields.NickName || "",
     countryCode: fields.CountryCode || "",

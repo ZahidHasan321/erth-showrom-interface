@@ -6,7 +6,6 @@ export interface Measurement {
     MeasurementType: "Body" | "Dishdasha";
     MeasurementID: string;
     MeasurementReference: "Winter" | "Summer" | "Eid" | "Occasion" | "Other";
-    FabricReferenceNo?: string[];
     Notes?: string;
     CollarWidth?: number;
     CollarHeight?: number;
