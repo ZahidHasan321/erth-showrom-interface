@@ -55,6 +55,7 @@ function NewSalesOrder() {
     savedSteps,
     addSavedStep,
     removeSavedStep,
+    customerId,
     setCustomerId,
     customerRecordId,
     setCustomerRecordId,
@@ -290,6 +291,8 @@ function NewSalesOrder() {
                 onCancel={() => addSavedStep(0)}
                 onCustomerIdChange={setCustomerId}
                 onCustomerRecordChange={setCustomerRecordId}
+                customerId={customerId}
+                customerRecordId={customerRecordId}
                 onProceed={() => onHandleProceed(customerRecordId, orderId)}
                 onClear={() => removeSavedStep(0)}
               />
