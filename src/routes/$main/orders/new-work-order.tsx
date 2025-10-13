@@ -64,7 +64,6 @@ function NewWorkOrder() {
     [main]
   );
 
-  const [askedToCreateOrder, setAskedToCreateOrder] = React.useState(false);
   const [confirmationDialog, setConfirmationDialog] = React.useState({
     isOpen: false,
     title: "",
@@ -81,8 +80,6 @@ function NewWorkOrder() {
     setCustomerId,
     customerRecordId,
     setCustomerRecordId,
-    setCustomerDemographics,
-    setCustomerMeasurements,
     setFabricSelections,
     setStyleOptions,
     setShelvedProducts,
@@ -91,7 +88,6 @@ function NewWorkOrder() {
     setOrderId,
     order,
     setOrder,
-    // resetWorkOrder
   } = useCurrentWorkOrderStore();
 
   const { mutate: createNewOrder, isPending } = useMutation({
@@ -226,12 +222,8 @@ function NewWorkOrder() {
     toast.success("Fabric Selections and Style Options saved ✅");
   };
 
-  // -------------------------------------------------
-  // Auto-prompt user on first mount if no order exists
-  // -------------------------------------------------
   React.useEffect(() => {
-    if (!orderId && !askedToCreateOrder) {
-      setAskedToCreateOrder(true);
+    if (!orderId) {
       setConfirmationDialog({
         isOpen: true,
         title: "Create New Work Order",
@@ -242,16 +234,7 @@ function NewWorkOrder() {
         },
       });
     }
-  }, [orderId, askedToCreateOrder, createNewOrder]);
-
-  // While we haven't asked yet
-  if (!orderId && !askedToCreateOrder) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Preparing new work order...</p>
-      </div>
-    );
-  }
+  }, [orderId, createNewOrder]);
 
   // If asked but no order created (user canceled)
   if (!orderId) {
@@ -298,12 +281,7 @@ function NewWorkOrder() {
   // MAIN CONTENT (only shown after orderId is set)
   // -------------------------------------------------
 
-  function onHandleProceed(customerId: string | null, orderId: string | null) {
-    if (orderId && customerId) {
-      setOrder({ CustomerID: [customerId] });
-      handleProceed(0);
-    }
-  }
+
 
 
   return (
@@ -340,26 +318,31 @@ function NewWorkOrder() {
             {index === 0 && (
               <CustomerDemographicsForm
                 form={demographicsForm}
-                onSubmit={(data) => {
-                  setCustomerDemographics(data);
+                onSubmit={() => {
                   toast.success("Customer Demographics saved ✅");
                 }}
                 onEdit={() => removeSavedStep(0)}
                 onCancel={() => addSavedStep(0)}
                 onCustomerRecordChange={setCustomerRecordId}
                 onCustomerIdChange={setCustomerId}
-                onProceed={() => onHandleProceed(customerRecordId, orderId)}
+                onProceed={() => {
+                  if (orderId && customerRecordId) {
+                    setOrder({ CustomerID: [customerRecordId] });
+                    handleProceed(0);
+                  }
+                }}
                 onClear={() => {
                   removeSavedStep(0)
                 }}
+                customerId={customerId}
+                customerRecordId={customerRecordId}
               />
             )}
 
             {index === 1 && (
               <CustomerMeasurementsForm
                 form={measurementsForm}
-                onSubmit={(data) => {
-                  setCustomerMeasurements(data);
+                onSubmit={() => {
                   toast.success("Customer Measurements saved ✅");
                 }}
                 customerId={customerId}
@@ -368,12 +351,11 @@ function NewWorkOrder() {
             )}
             {index === 2 && (
               <FabricSelectionForm
-                useCurrentWorkOrderStore={useCurrentWorkOrderStore}
                 customerId={customerId}
                 form={fabricSelectionForm}
                 onSubmit={handleFabricSelectionSubmit}
                 onProceed={() => handleProceed(2)}
-                orderId={order?.OrderID?? null}
+                orderId={order?.OrderID ?? null}
               />
             )}
 

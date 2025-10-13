@@ -1,6 +1,7 @@
 import { type Path, type UseFormReturn } from "react-hook-form";
 import { MeasurementInput } from "./MeasurementInput";
 import type { CustomerMeasurementsSchema } from "./schema";
+import { cn } from "@/lib/utils";
 
 interface GroupedMeasurementFieldsProps {
   form: UseFormReturn<CustomerMeasurementsSchema>;
@@ -38,12 +39,12 @@ export function GroupedMeasurementFields({
 }: GroupedMeasurementFieldsProps) {
   return (
     <div className={`bg-card border rounded-lg p-4 ${wrapperClassName}`}>
-      <h4 className="font-bold mb-2">{title}</h4>
-      <div className="flex flex-col gap-y-2">
+      <h4 className="text-xl font-bold mb-2">{title}</h4>
+      <div className="flex flex-col gap-y-4">
         {fields.map((fieldOrFieldGroup, index) => {
           if (Array.isArray(fieldOrFieldGroup)) {
             return (
-              <div key={index} className="flex flex-wrap gap-x-8 border p-2 rounded-md">
+              <div key={index} className="flex flex-wrap w-fit shadow hover:shadow-lg gap-x-12 border p-2 rounded-md">
                 {fieldOrFieldGroup.map((fieldConfig) => (
                   <MeasurementInput
                     key={fieldConfig.name}
@@ -52,8 +53,8 @@ export function GroupedMeasurementFields({
                     label={fieldConfig.label}
                     unit={unit}
                     isDisabled={isDisabled || (fieldConfig.isDisabled ?? false)}
-                    className={fieldConfig.className}
-                    labelClassName={`${fieldConfig.labelClassName ?? ""} min-w-[120px]` }
+                    className={cn( fieldConfig.className )}
+                    labelClassName={fieldConfig.labelClassName}
                   />
                 ))}
               </div>
@@ -70,7 +71,7 @@ export function GroupedMeasurementFields({
               label={fieldConfig.label}
               unit={unit}
               isDisabled={isDisabled || (fieldConfig.isDisabled ?? false)}
-              className={fieldConfig.className}
+              className={cn( fieldConfig.className, "border shadow p-2 rounded-lg w-fit hover:shadow-lg" )}
               labelClassName={fieldConfig.labelClassName}
             />
           );

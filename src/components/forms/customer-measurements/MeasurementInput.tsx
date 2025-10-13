@@ -52,7 +52,7 @@ export function MeasurementInput({
                     const value = e.target.value;
                     field.onChange(value === "" ? 0 : parseFloat(value));
                   }}
-                  className="w-20 bg-white"
+                  className="w-20 bg-white border-black pr-7 focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
                   disabled={isDisabled}
                   placeholder="xx"
                 />

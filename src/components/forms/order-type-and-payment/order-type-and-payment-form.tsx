@@ -97,7 +97,7 @@ export function OrderTypeAndPaymentForm({
         {/* Section 1: Order Type & Payment */}
         {optional && (
           <div className="rounded-lg border p-4 bg-muted space-y-4">
-            <h3 className="text-lg font-medium mb-4">Order Type & Payment</h3>
+            <h3 className="text-2xl font-bold mb-4">Order Type & Payment</h3>
             <FormField
               control={form.control}
               name="orderType"
@@ -328,10 +328,10 @@ export function OrderTypeAndPaymentForm({
           </div>
 
           {/* Section 3: Charges Summary */}
-          <div className="rounded-lg border p-4 space-y-2 bg-muted text-lg">
-            <h3 className="text-lg font-medium mb-4">Charges Summary</h3>
+          <div className="rounded-lg border p-8 space-y-2 bg-muted text-lg">
+            <h3 className="text-2xl font-bold mb-4">Charges Summary</h3>
             {optional && (
-              <>
+              <div className="italic text-muted-foreground mb-4 border-b border-b-black pb-2">
                 <div className="flex justify-between">
                   <span>Fabric Charges</span>
 
@@ -353,13 +353,13 @@ export function OrderTypeAndPaymentForm({
                   <span>Shelf</span>
                   <span>{(charges?.shelf || 0).toFixed(2)} KWD</span>
                 </div>
-              </>
+              </div>
             )}
-            <div className={cn("flex justify-between font-bold", "text-purple-600")}>
+            <div className={cn("flex justify-between font-semibold", "text-purple-600")}>
               <span>Total Due</span>
               <span>{totalDue.toFixed(2)} KWD</span>
             </div>
-            <div className={cn("flex justify-between font-bold", "text-green-600")}>
+            <div className={cn("flex justify-between font-semibold", "text-green-600")}>
               <span>Discount</span>
               <span>{discountValue.toFixed(2)} KWD</span>
             </div>

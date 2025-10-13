@@ -24,11 +24,11 @@ interface DataTableProps<TData, TValue> {
   removeRow: (rowIndex: number) => void
 }
 
-export function DataTable<TData extends ShelvedProduct, TValue>({ 
-    columns, 
-    data, 
-    updateData, 
-    removeRow 
+export function DataTable<TData extends ShelvedProduct, TValue>({
+  columns,
+  data,
+  updateData,
+  removeRow
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -40,40 +40,41 @@ export function DataTable<TData extends ShelvedProduct, TValue>({
     },
   })
 
+
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
+    <div className="rounded-lg border bg-card overflow-hidden shadow">
+      <Table className="w-full border-collapse">
+        <TableHeader className="bg-primary-foreground">
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}
-                    className={`px-4 py-2 text-center bg-muted ${
-                      header.depth === 0 && header.index > 0 ? "ml-4" : ""
-                    }`}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                )
-              })}
+            <TableRow
+              key={headerGroup.id}
+              className="divide-x divide-border"
+            >
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  key={header.id}
+                  colSpan={header.colSpan}
+                  className="px-4 py-2 text-center font-semibold text-foreground transition-colors hover:bg-primary/10"
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                </TableHead>
+              ))}
             </TableRow>
           ))}
         </TableHeader>
+
+
         <TableBody>
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && 'selected'}
-              >
+              <TableRow key={row.id} className='bg-white/50'>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell key={cell.id} className="px-4 py-2">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

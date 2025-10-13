@@ -133,9 +133,11 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
               value={searchMobile}
               onChange={(e) => setSearchMobile(e.target.value)}
               className="bg-white"
-              name="searchMobile"
+              name="customerSearchMobile"    // important — stable name
               type="tel"
-              autoComplete="tel"
+              autoCorrect="off"
+              spellCheck={false}
+              autoComplete="on"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();

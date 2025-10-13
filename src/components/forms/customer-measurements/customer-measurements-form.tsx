@@ -7,25 +7,36 @@ import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { GroupedMeasurementFields } from "./GroupedMeasurementFields";
 
 import {
-  customerMeasurementsDefaults,
   customerMeasurementsSchema,
-  type CustomerMeasurementsSchema,
+  type CustomerMeasurementsSchema
 } from "./schema";
 
 import {
   getMeasurementsByCustomerId,
-  upsertMeasurement,
+  upsertMeasurement
 } from "@/api/measurements";
-import { useGlobalLoader } from "@/hooks/use-global-loader";
 import {
   mapFormValuesToMeasurement,
-  mapMeasurementToFormValues,
+  mapMeasurementToFormValues
 } from "@/lib/measurement-mapper";
 import { toast } from "sonner";
 
@@ -39,7 +50,6 @@ interface CustomerMeasurementsFormProps {
   onProceed?: () => void;
 }
 
-type MeasurementMap = Record<string, CustomerMeasurementsSchema>;
 
 const unit = "cm";
 
@@ -48,9 +58,18 @@ const unit = "cm";
 // ---------------------------------------
 function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
   // Armhole Provision
-  const armholeValue = useWatch({ control: form.control, name: "arm.armhole.value" });
-  const armholeFront = useWatch({ control: form.control, name: "arm.armhole.front" });
-  const armholeProvision = useWatch({ control: form.control, name: "arm.armhole.provision" });
+  const armholeValue = useWatch({
+    control: form.control,
+    name: "arm.armhole.value",
+  });
+  const armholeFront = useWatch({
+    control: form.control,
+    name: "arm.armhole.front",
+  });
+  const armholeProvision = useWatch({
+    control: form.control,
+    name: "arm.armhole.provision",
+  });
 
   React.useEffect(() => {
     if (armholeValue !== undefined && armholeFront !== undefined) {
@@ -62,9 +81,18 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
   }, [form, armholeValue, armholeFront, armholeProvision]);
 
   // Full Chest Provision
-  const fullChestValue = useWatch({ control: form.control, name: "body.full_chest.value" });
-  const fullChestFront = useWatch({ control: form.control, name: "body.full_chest.front" });
-  const fullChestProvision = useWatch({ control: form.control, name: "body.full_chest.provision" });
+  const fullChestValue = useWatch({
+    control: form.control,
+    name: "body.full_chest.value",
+  });
+  const fullChestFront = useWatch({
+    control: form.control,
+    name: "body.full_chest.front",
+  });
+  const fullChestProvision = useWatch({
+    control: form.control,
+    name: "body.full_chest.provision",
+  });
 
   React.useEffect(() => {
     if (fullChestValue !== undefined && fullChestFront !== undefined) {
@@ -76,20 +104,40 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
   }, [form, fullChestValue, fullChestFront, fullChestProvision]);
 
   // Full Waist Provision
-  const fullWaistValue = useWatch({ control: form.control, name: "body.full_waist.value" });
-  const fullWaistFront = useWatch({ control: form.control, name: "body.full_waist.front" });
-  const fullWaistBack = useWatch({ control: form.control, name: "body.full_waist.back" });
-  const fullWaistProvision = useWatch({ control: form.control, name: "body.full_waist.provision" });
+  const fullWaistValue = useWatch({
+    control: form.control,
+    name: "body.full_waist.value",
+  });
+  const fullWaistFront = useWatch({
+    control: form.control,
+    name: "body.full_waist.front",
+  });
+  const fullWaistBack = useWatch({
+    control: form.control,
+    name: "body.full_waist.back",
+  });
+  const fullWaistProvision = useWatch({
+    control: form.control,
+    name: "body.full_waist.provision",
+  });
 
   React.useEffect(() => {
-    if (fullWaistValue !== undefined && fullWaistFront !== undefined && fullWaistBack !== undefined) {
-      const newProvision = Math.max(0, fullWaistFront + fullWaistBack - fullWaistValue);
+    if (
+      fullWaistValue !== undefined &&
+      fullWaistFront !== undefined &&
+      fullWaistBack !== undefined
+    ) {
+      const newProvision = Math.max(
+        0,
+        fullWaistFront + fullWaistBack - fullWaistValue,
+      );
       if (fullWaistProvision !== newProvision) {
         form.setValue("body.full_waist.provision", newProvision);
       }
     }
   }, [form, fullWaistValue, fullWaistFront, fullWaistBack, fullWaistProvision]);
 }
+
 
 // ---------------------------------------
 // Main Form Component
@@ -100,81 +148,103 @@ export function CustomerMeasurementsForm({
   customerId,
   onProceed,
 }: CustomerMeasurementsFormProps) {
-  const { setIsLoading } = useGlobalLoader();
-  const [measurements, setMeasurements] = React.useState<MeasurementMap | null>(
-    null
+
+  const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<string | null>(null)
+  const [measurements, setMeasurements] = React.useState<Map<string, CustomerMeasurementsSchema>>(
+    new Map()
   );
-  const [selectedMeasurementId, setSelectedMeasurementId] =
-    React.useState<string | null>(null);
   const [isEditing, setIsEditing] = React.useState(false);
   const [isCreatingNew, setIsCreatingNew] = React.useState(false);
-  const [previousMeasurementId, setPreviousMeasurementId] =
-    React.useState<string | null>(null);
+  const [previousMeasurementId, setPreviousMeasurementId] = React.useState<
+    string | null
+  >(null);
   const [confirmationDialog, setConfirmationDialog] = React.useState({
     isOpen: false,
     title: "",
     description: "",
     onConfirm: () => { },
   });
+
   useAutoProvision(form);
 
-  const { data: measurementQuery, isLoading } = useQuery({
+  // For adding a *new* measurement (must be complete)
+  const addMeasurement = (id: string, data: CustomerMeasurementsSchema) => {
+    setMeasurements(prev => {
+      const updated = new Map(prev);
+      updated.set(id, data);
+      return updated;
+    });
+  };
+
+  // For updating (partial allowed)
+  // const updateMeasurement = (id: string, data: Partial<CustomerMeasurementsSchema>) => {
+  //   setMeasurements(prev => ({
+  //     ...prev,
+  //     [id]: { ...prev.get(id), ...data },
+  //   }));
+  // };
+
+  const removeMeasurement = (id: string) => {
+    setMeasurements((prev): Map<string, CustomerMeasurementsSchema> => {
+      if (!prev.has(id)) return prev;
+      const updated = new Map<string, CustomerMeasurementsSchema>(prev);
+      updated.delete(id);
+      return updated;
+    });
+  };
+
+  const { data: measurementQuery, isSuccess } = useQuery({
     queryKey: ["measurements", customerId],
-    queryFn: () => (customerId ? getMeasurementsByCustomerId(customerId) : null),
-    enabled: !!customerId,
-    retry: false
+    queryFn: () => {
+      if (!customerId) {
+        return Promise.resolve(null);
+      }
+      return getMeasurementsByCustomerId(customerId);
+    },
+    enabled: customerId ? true : false,
   });
 
+
   React.useEffect(() => {
-    setIsLoading(isLoading);
-  }, [isLoading, setIsLoading]);
-
-  // reset when customer changes
-  React.useEffect(() => {
-    setMeasurements(null);
-    setSelectedMeasurementId(null);
-  }, [customerId]);
-
-  // Populate measurements
-  React.useEffect(() => {
-    if (!measurementQuery?.data) return;
-
-    if (measurementQuery.data.length > 0) {
-      const measurementMap: MeasurementMap = {};
-      const ids: string[] = [];
-
-      for (const m of measurementQuery.data) {
-        const formVal = mapMeasurementToFormValues(m);
-        measurementMap[m.fields.MeasurementID] = formVal;
-        ids.push(m.fields.MeasurementID);
-      }
-
-      setMeasurements(measurementMap);
-      const firstId = ids[0];
-      setSelectedMeasurementId(firstId);
-      form.setValue("measurementID", firstId);
-    } else {
+    if (!customerId) {
       form.reset();
+      setMeasurements(new Map());
+      setSelectedMeasurementId(null);
       setIsEditing(false);
+      setIsCreatingNew(false);
     }
-  }, [measurementQuery?.data, form]);
+  }, [customerId, form]);
+
+  React.useEffect(() => {
+    if (!customerId || !isSuccess) return;
+    if (!measurementQuery?.data?.length) return;
+
+    setMeasurements(() => {
+      const newMap = new Map();
+      measurementQuery?.data?.forEach((m) => {
+        newMap.set(m.fields.MeasurementID, mapMeasurementToFormValues(m));
+      });
+      return newMap;
+    });
+
+    setSelectedMeasurementId(measurementQuery.data.at(0)?.fields.MeasurementID ?? null)
+
+  }, [customerId, isSuccess, measurementQuery]);
 
   // Reset form when selected measurement changes
   React.useEffect(() => {
     if (selectedMeasurementId && measurements) {
-      const selected = measurements[selectedMeasurementId];
+      const selected = measurements.get(selectedMeasurementId);
       // Only reset if the form's current measurementID is different from the selected one
       if (selected) {
         form.reset(selected);
-      }else{
-        form.reset()
+      } else {
+        form.reset();
       }
-    }
-    else{
+    } else {
       form.reset();
     }
   }, [selectedMeasurementId, measurements, form]);
-
 
   // ---------------------------------------
   // Handlers
@@ -186,15 +256,10 @@ export function CustomerMeasurementsForm({
         return;
       }
       const record = mapFormValuesToMeasurement(values, Number(customerId));
-      console.log("Record to upsert:", record);
       try {
         const response = await upsertMeasurement([record]);
-        console.log("API Response:", response);
-        if (response.status === "success" && response.data) {
-          const saved = response.data.records[0];
-          const mapped = mapMeasurementToFormValues(saved);
-          setMeasurements((prev) => ({ ...prev, [mapped.measurementID]: mapped }));
-          setSelectedMeasurementId(mapped.measurementID);
+
+        if (response.status === "success" && response.data && response.data.records.length > 0) {
           setIsEditing(false);
           setIsCreatingNew(false);
           toast.success("Measurement saved successfully!");
@@ -207,20 +272,10 @@ export function CustomerMeasurementsForm({
       }
       onSubmit(values);
     },
-    [customerId, onSubmit]
+    [customerId, onSubmit],
   );
 
   const handleSave = React.useCallback(async () => {
-    console.log("handleSave called.");
-    const isValid = await form.trigger(); // Manually trigger validation
-    console.log("Validation result (isValid):", isValid);
-    if (!isValid) {
-      console.log("Validation failed, returning early from handleSave.");
-      console.log("Full form state:", form.formState);
-      console.log("Form errors (stringified):", JSON.stringify(form.formState.errors, null, 2));
-      return;
-    }
-
     setConfirmationDialog({
       isOpen: true,
       title: "Confirm Save",
@@ -250,15 +305,11 @@ export function CustomerMeasurementsForm({
             .reduce((a, b) => Math.max(a, b), 0) + 1;
 
         const newId = `${customerId}-${nextNumber}`;
-        const baseMeasurement =
-          (selectedMeasurementId &&
-            measurements?.[selectedMeasurementId]) ||
-          customerMeasurementsDefaults;
+        form.setValue("measurementID", newId);
+        const baseMeasurement = form.getValues()
 
-        const newMeasurement = { ...baseMeasurement, measurementID: newId };
-        setMeasurements((prev) => ({ ...prev, [newId]: newMeasurement }));
+        addMeasurement(newId, baseMeasurement);
         setSelectedMeasurementId(newId);
-        form.reset(newMeasurement);
 
         setConfirmationDialog((d) => ({ ...d, isOpen: false }));
       },
@@ -269,14 +320,10 @@ export function CustomerMeasurementsForm({
     setIsEditing(false);
     setIsCreatingNew(false);
     if (isCreatingNew) {
-      setMeasurements((prev) => {
-        const copy = { ...prev };
-        delete copy?.[form.getValues("measurementID")];
-        return copy;
-      });
+      removeMeasurement(form.getValues("measurementID"));
       setSelectedMeasurementId(previousMeasurementId);
     } else if (selectedMeasurementId && measurements) {
-      form.reset(measurements[selectedMeasurementId]);
+      form.reset(measurements.get(selectedMeasurementId));
     }
   }, [
     isCreatingNew,
@@ -284,6 +331,8 @@ export function CustomerMeasurementsForm({
     measurements,
     previousMeasurementId,
     selectedMeasurementId,
+    removeMeasurement,
+    setSelectedMeasurementId,
   ]);
 
   return (
@@ -354,12 +403,11 @@ export function CustomerMeasurementsForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {measurements &&
-                      Object.keys(measurements).map((id) => (
-                        <SelectItem key={id} value={id}>
-                          {id}
-                        </SelectItem>
-                      ))}
+                    {Array.from(measurements.keys()).map((id) => (
+                      <SelectItem key={id} value={id}>
+                        {id}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </FormItem>
@@ -432,7 +480,11 @@ export function CustomerMeasurementsForm({
               [
                 { name: "arm.armhole.value", label: "Armhole" },
                 { name: "arm.armhole.front", label: "Front" },
-                { name: "arm.armhole.provision", label: "Provision", isDisabled: true },
+                {
+                  name: "arm.armhole.provision",
+                  label: "Provision",
+                  isDisabled: true,
+                },
               ],
             ]}
           />
@@ -447,13 +499,21 @@ export function CustomerMeasurementsForm({
               [
                 { name: "body.full_chest.value", label: "Full Chest" },
                 { name: "body.full_chest.front", label: "Front" },
-                { name: "body.full_chest.provision", label: "Provision", isDisabled: true },
+                {
+                  name: "body.full_chest.provision",
+                  label: "Provision",
+                  isDisabled: true,
+                },
               ],
               [
                 { name: "body.full_waist.value", label: "Full Waist" },
                 { name: "body.full_waist.front", label: "Front" },
                 { name: "body.full_waist.back", label: "Back" },
-                { name: "body.full_waist.provision", label: "Provision", isDisabled: true },
+                {
+                  name: "body.full_waist.provision",
+                  label: "Provision",
+                  isDisabled: true,
+                },
               ],
               { name: "body.bottom", label: "Bottom" },
             ]}
@@ -496,7 +556,6 @@ export function CustomerMeasurementsForm({
           />
         </div>
 
-
         <FormField
           control={form.control}
           name="notes"
@@ -519,11 +578,7 @@ export function CustomerMeasurementsForm({
         {/* ---- Buttons ---- */}
         <div className="flex flex-wrap justify-center gap-6 pt-4">
           {(isEditing || isCreatingNew) && (
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleCancel}
-            >
+            <Button type="button" variant="destructive" onClick={handleCancel}>
               Cancel
             </Button>
           )}
@@ -559,3 +614,4 @@ export function CustomerMeasurementsForm({
     </Form>
   );
 }
+

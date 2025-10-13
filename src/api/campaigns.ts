@@ -1,7 +1,7 @@
 import type { Campaign } from "../types/campaign";
-import { getRecords } from "./baseApi";
+import { searchAllRecords } from "./baseApi";
 
 const TABLE_NAME = "campaign";
 
 export const getCampaigns = () =>
-  getRecords<Campaign>(TABLE_NAME);
+  searchAllRecords<Campaign[]>(TABLE_NAME, {Active: true});

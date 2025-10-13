@@ -1,27 +1,24 @@
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-import { customerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
-import { customerMeasurementsSchema } from "@/components/forms/customer-measurements/schema";
-import { shelvedProductsSchema } from "@/components/forms/shelved-products/schema";
-import { z } from "zod";
 import type { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/fabric-selection/fabric-selection-schema";
 import type { styleOptionsSchema } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
-import type { Order } from "@/types/order";
+import { shelvedProductsSchema } from "@/components/forms/shelved-products/schema";
 import type { OrderSchema } from "@/schemas/schema";
+import type { Order } from "@/types/order";
+import { z } from "zod";
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
-type CustomerDemographics = z.infer<typeof customerDemographicsSchema>;
-type CustomerMeasurements = z.infer<typeof customerMeasurementsSchema>;
+// type CustomerDemographics = z.infer<typeof customerDemographicsSchema>;
+// type CustomerMeasurements = z.infer<typeof customerMeasurementsSchema>;
 type FabricSelection = z.infer<typeof fabricSelectionSchema>;
 type StyleOption = z.infer<typeof styleOptionsSchema>;
 
 interface CurrentWorkOrderState {
   orderId: string | null;
   order: Partial<Order["fields"]>;
-  customerDemographics: Partial<CustomerDemographics>;
-  customerMeasurements: Partial<CustomerMeasurements>;
+  // customerDemographics: Partial<CustomerDemographics>;
+  // customerMeasurements: Partial<CustomerMeasurements>;
   fabricSelections: FabricSelection[];
   styleOptions: StyleOption[];
-  measurementId: string | null;
   shelvedProducts: z.infer<typeof shelvedProductsSchema>;
   customerId: string | null;
   customerRecordId: string | null;
@@ -35,10 +32,7 @@ interface CurrentWorkOrderState {
   addFabricSelection: (data: FabricSelection) => void;
   updateFabricSelection: (data: FabricSelection) => void;
   setOrder: (order: Partial<OrderSchema>) => void;
-  setCustomerDemographics: (data: Partial<z.infer<typeof customerDemographicsSchema>>) => void;
-  setCustomerMeasurements: (data: Partial<z.infer<typeof customerMeasurementsSchema>>) => void;
   removeFabricSelection: (id: string) => void;
-  setMeasurementId: (id: string | null) => void;
   setShelvedProducts: (data: z.infer<typeof shelvedProductsSchema>) => void;
   setCustomerId: (id: string | null) => void;
   setCustomerRecordId: (id: string | null) => void;
@@ -66,19 +60,21 @@ export const createWorkOrderStore = (name: string) =>
         measurementId: null,
         currentStep: 0,
         savedSteps: [],
+        measurements: null,
 
         setOrderId: (id) => set({ orderId: id }),
-        setOrder: (order) => set((state) => ({ order: { ...state.order, ...order } })),
+        setOrder: (order) =>
+          set((state) => ({ order: { ...state.order, ...order } })),
 
-        setCustomerDemographics: (data) =>
-          set((state) => ({
-            customerDemographics: { ...state.customerDemographics, ...data },
-          })),
+        // setCustomerDemographics: (data) =>
+        //   set((state) => ({
+        //     customerDemographics: { ...state.customerDemographics, ...data },
+        //   })),
 
-        setCustomerMeasurements: (data) =>
-          set((state) => ({
-            customerMeasurements: { ...state.customerMeasurements, ...data },
-          })),
+        // setCustomerMeasurements: (data) =>
+        //   set((state) => ({
+        //     customerMeasurements: { ...state.customerMeasurements, ...data },
+        //   })),
 
         setFabricSelections: (data) => set({ fabricSelections: data }),
         setStyleOptions: (data) => set({ styleOptions: data }),
@@ -91,26 +87,42 @@ export const createWorkOrderStore = (name: string) =>
         updateFabricSelection: (data) =>
           set((state) => ({
             fabricSelections: state.fabricSelections.map((item) =>
-              item.id === data.id ? data : item
+              item.id === data.id ? data : item,
             ),
           })),
 
         removeFabricSelection: (id) =>
           set((state) => ({
             fabricSelections: state.fabricSelections.filter(
-              (item) => item.id !== id
+              (item) => item.id !== id,
             ),
           })),
 
-        setMeasurementId: (id) => set({ measurementId: id }),
-        
+
         setShelvedProducts: (data) => set({ shelvedProducts: data }),
 
         setCustomerId: (id) => set({ customerId: id }),
 
-        setCustomerRecordId: (id) => set({ customerRecordId: id }),  
+        setCustomerRecordId: (id) => set({ customerRecordId: id }),
 
         setCurrentStep: (step) => set({ currentStep: step }),
+
+        // setMeasurements: (measurements) => set({ measurements }),
+
+        // addMeasurement: (measurement) =>
+        //   set((state) => ({
+        //     measurements: {
+        //       ...state.measurements,
+        //       [measurement.measurementID]: measurement,
+        //     },
+        //   })),
+
+        // removeMeasurement: (id) =>
+        //   set((state) => {
+        //     const newMeasurements = { ...state.measurements };
+        //     delete newMeasurements[id];
+        //     return { measurements: newMeasurements };
+        //   }),
 
         addSavedStep: (step) =>
           set((state) =>
@@ -118,7 +130,7 @@ export const createWorkOrderStore = (name: string) =>
               ? state
               : {
                   savedSteps: [...state.savedSteps, step].sort((a, b) => a - b),
-                }
+                },
           ),
 
         removeSavedStep: (step) =>
@@ -130,17 +142,17 @@ export const createWorkOrderStore = (name: string) =>
           set({
             orderId: null,
             order: {},
-            customerDemographics: {},
-            customerMeasurements: {},
+            // customerDemographics: {},
+            // customerMeasurements: {},
             fabricSelections: [],
             styleOptions: [],
             shelvedProducts: [],
             customerId: null,
-            measurementId: null,
             currentStep: 0,
             savedSteps: [],
+            // measurements: null,
           }),
       }),
-      { name: `work-order-${name}` }
-    )
+      { name: `work-order-${name}` },
+    ),
   );

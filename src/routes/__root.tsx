@@ -24,7 +24,7 @@ function RootLayout() {
         <LoaderProvider>
           <GlobalLoader />
           <Outlet />
-          <Toaster position="top-center" richColors closeButton />
+          <Toaster position="bottom-right" richColors closeButton expand/>
         </LoaderProvider>
       </ErrorBoundary>
     </>

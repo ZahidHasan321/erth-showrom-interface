@@ -47,10 +47,12 @@ interface CustomerDemographicsFormProps {
   onSubmit: (values: z.infer<typeof customerDemographicsSchema>) => void;
   onEdit?: () => void;
   onCancel?: () => void;
-  onCustomerRecordChange?: (id: string|null) => void,
-  onCustomerIdChange?: (id: string|null) => void;
+  onCustomerRecordChange?: (id: string | null) => void;
+  onCustomerIdChange?: (id: string | null) => void;
   onProceed?: () => void;
   onClear?: () => void;
+  customerId: string | null;
+  customerRecordId: string | null;
 }
 
 export function CustomerDemographicsForm({
@@ -61,11 +63,10 @@ export function CustomerDemographicsForm({
   onCustomerIdChange,
   onCustomerRecordChange,
   onProceed,
-  onClear
+  onClear,
+  customerRecordId,
 }: CustomerDemographicsFormProps) {
   const [isEditing, setIsEditing] = useState(true);
-  const [ customerId, setCustomerId ] = useState<string | null>(null);
-  const [customerRecordId, setCustomerRecordId] = useState<string | null>(null);
   const [confirmationDialog, setConfirmationDialog] = useState({
     isOpen: false,
     title: "",
@@ -120,17 +121,14 @@ export function CustomerDemographicsForm({
     (customer: Customer) => {
       const formValues = mapCustomerToFormValues(customer);
       form.reset(formValues);
-      setCustomerRecordId(customer.id);
-      setCustomerId(String(customer.fields.id) || null);
+      onCustomerRecordChange?.(customer.id);
+      onCustomerIdChange?.(String(customer.fields.id) || null);
       setIsEditing(false);
     },
     [form]
   );
 
-    React.useEffect(() => {
-      onCustomerRecordChange?.(customerRecordId);
-      onCustomerIdChange?.(customerId)
-  }, [customerRecordId, customerId, onCustomerIdChange, onCustomerRecordChange]);
+
 
 
   const { mutate: upsertCustomerMutation, isPending: isUpserting } =
@@ -147,8 +145,8 @@ export function CustomerDemographicsForm({
           ); onProceed
           const upsertedCustomerData = response.data.records.at(0) as Customer;
 
-          setCustomerRecordId(upsertedCustomerData.id);
-          setCustomerId(upsertedCustomerData.fields.id?.toString() || null);
+          onCustomerRecordChange?.(upsertedCustomerData.id);
+          onCustomerIdChange?.(upsertedCustomerData.fields.id?.toString() || null);
 
           flushSync(() => {
             setIsEditing(false);
@@ -243,8 +241,8 @@ export function CustomerDemographicsForm({
           onCustomerFound={handleCustomerFound}
           onHandleClear={() => {
             form.reset(customerDemographicsDefaults);
-            setCustomerRecordId(null);
-            setCustomerId(null);
+            onCustomerRecordChange?.(null);
+            onCustomerIdChange?.(null);
             setIsEditing(true);
             setWarnings({});
             onClear?.()
