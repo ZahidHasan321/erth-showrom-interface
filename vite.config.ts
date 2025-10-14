@@ -1,9 +1,8 @@
-import {defineConfig} from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import tailwindcss from "@tailwindcss/vite";
-import {tanstackRouter} from "@tanstack/router-plugin/vite";
-
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -11,12 +10,31 @@ export default defineConfig({
       target: "react",
       autoCodeSplitting: true,
     }),
-    react(),
+    react({
+      babel: {
+        plugins: ["babel-plugin-react-compiler"],
+      },
+    }),
     tailwindcss(),
   ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: [
+            "react",
+            "react-dom",
+            "@tanstack/react-router",
+            "@tanstack/react-query",
+          ],
+          zod: ["zod"],
+        },
+      },
     },
   },
 });

@@ -25,6 +25,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "garmentId",
     header: "Garment ID",
+    minSize: 100,
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
@@ -42,6 +43,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "measurementId",
     header: "Measurement ID",
+    minSize: 150,
     cell: ({ row, table }) => {
       const { control } = useFormContext();
       return (
@@ -71,6 +73,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "brova",
     header: "Brova",
+    minSize: 80,
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
@@ -92,6 +95,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "fabricSource",
     header: "Source",
+    minSize: 180,
     cell: ({ row }) => {
       const { control, watch, setValue } = useFormContext();
       const fabricSource = watch(`fabricSelections.${row.index}.fabricSource`);
@@ -127,6 +131,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "ifInside",
     header: "If inside",
+    minSize: 200,
     cell: ({ row }) => {
       const { control, watch, setValue } = useFormContext();
       const fabricSource = watch(`fabricSelections.${row.index}.fabricSource`);
@@ -207,6 +212,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "color",
     header: "Color/ اللون",
+    minSize: 120,
     cell: ({ row }) => {
       const { control, watch } = useFormContext();
       const fabricSource = watch(`fabricSelections.${row.index}.fabricSource`);
@@ -232,6 +238,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "fabricLength",
     header: "Fabric Length",
+    minSize: 120,
     cell: ({ row }) => {
       const { control } = useFormContext();
 
@@ -251,6 +258,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "express",
     header: "Express/مستعجل",
+    minSize: 80,
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
@@ -272,6 +280,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "deliveryDate",
     header: "Delivery Date/موعد التسليم",
+    minSize: 150,
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
@@ -290,6 +299,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "fabricAmount",
     header: "Fabric Amount/سعر القماش",
+    minSize: 160,
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
@@ -312,17 +322,16 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   },
   {
     id: "delete",
+    minSize: 80,
     cell: ({ row, table }) => {
       const handleDelete = () => {
         table.options.meta?.removeRow(row.index);
       };
 
       return (
-        <div className="min-w-[80px] flex justify-center">
-          <Button variant="ghost" size="sm" onClick={handleDelete}>
-            <Trash2 className="w-10 h-10" />
-          </Button>
-        </div>
+        <Button variant="ghost" size="icon" onClick={handleDelete}>
+          <Trash2 color="red" />
+        </Button>
       );
     },
   },

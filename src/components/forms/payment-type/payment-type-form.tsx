@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,8 +12,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
-import type { UseFormReturn } from "react-hook-form";
+import { useWatch, type UseFormReturn } from "react-hook-form";
 import { type PaymentTypeSchema } from "./schema";
+import { motion, AnimatePresence } from "framer-motion";
 
 import KNetLogo from "@/assets/payment-assets/knet.png";
 import CashIcon from "@/assets/payment-assets/cash.png";
@@ -24,7 +27,7 @@ interface PaymentTypeFormProps {
 }
 
 export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
-  const paymentType = form.watch("paymentType");
+  const paymentType = useWatch({ control: form.control, name: "paymentType" });
 
   const paymentOptions = [
     { value: "k-net", label: "K-Net", img: KNetLogo },
@@ -41,10 +44,12 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
         className="flex flex-col md:flex-row gap-6 w-full p-4 max-w-7xl"
       >
         {/* Left Section — Payment Types */}
-        <div className="flex-1 bg-muted p-6 rounded-xl">
-        <div className="flex justify-between items-start">
+        <motion.div
+          layout
+          transition={{ layout: { type: "spring", stiffness: 220, damping: 28 } }}
+          className="flex-1 bg-muted p-6 rounded-xl"
+        >
           <h1 className="text-2xl font-bold mb-4">Payment Type</h1>
-        </div>
 
           <FormField
             control={form.control}
@@ -64,7 +69,7 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
                         className={cn(
                           "flex flex-col items-center justify-center rounded-lg p-4 bg-white border hover:border-green-500 transition-all cursor-pointer",
                           field.value === option.value &&
-                            "border-green-500 ring-2 ring-green-400"
+                          "border-green-500 ring-2 ring-green-400"
                         )}
                       >
                         <div className="h-16 w-16 flex items-center justify-center">
@@ -98,28 +103,66 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
             )}
           />
 
-          {/* Show "Others" input only if selected */}
-          {paymentType === "others" && (
-            <div className="mt-6">
-              <FormField
-                control={form.control}
-                name="otherPaymentType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Please Specify</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter payment type" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>  
-                )}
-              />
-            </div>
-          )}
-        </div>
+          {/* Animated Others Input */}
+          {/* Animated Others Input */}
+          <motion.div layout transition={{ layout: { duration: 0.4 } }}>
+            <AnimatePresence mode="wait">
+              {paymentType === "others" && (
+                <motion.div
+                  key="others-input-wrapper"
+                  layout
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{
+                    height: "auto",
+                    opacity: 1,
+                    transition: {
+                      height: { duration: 0.3, ease: "easeOut" },
+                      opacity: { delay: 0.1, duration: 0.25 },
+                    },
+                  }}
+                  exit={{
+                    height: 0,
+                    opacity: 0,
+                    transition: {
+                      height: { duration: 0.25, ease: "easeInOut" },
+                      opacity: { duration: 0.15 },
+                    },
+                  }}
+                  className="overflow-hidden"
+                >
+                  <motion.div
+                    key="others-input"
+                    initial={{ opacity: 0, y: -12 }}
+                    animate={{ opacity: 1, y: 0, transition: { delay: 0.1, duration: 0.3 } }}
+                    exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
+                    className="mt-6"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="otherPaymentType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Please Specify</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter payment type" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </motion.div>
 
         {/* Right Section — Actions */}
-        <div className="flex flex-col justify-between bg-muted p-4 rounded-xl w-full md:w-64 space-y-4">
+        <motion.div
+          layout
+          className="flex flex-col justify-between bg-muted p-4 rounded-xl w-full md:w-64 space-y-4"
+          transition={{ layout: { type: "spring", stiffness: 220, damping: 28 } }}
+        >
           <FormField
             control={form.control}
             name="paymentRefNo"
@@ -134,7 +177,7 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
             )}
           />
 
-          <div className="flex flex-col gap-2">
+          <motion.div layout className="flex flex-col gap-2">
             <Button type="submit" className="bg-green-600 hover:bg-green-700">
               Confirm Order
             </Button>
@@ -144,8 +187,8 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
             <Button type="button" variant="destructive">
               Cancel Order
             </Button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </form>
     </Form>
   );

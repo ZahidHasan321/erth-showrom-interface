@@ -1,4 +1,5 @@
 // src/routes/__root.tsx
+import { ScrollToTopButton } from "@/components/animation/scrollToTop";
 import { ErrorBoundary } from "@/components/global/error-boundary";
 import { GlobalLoader } from "@/components/global/global-loader";
 import { NotFoundPage } from "@/components/not-found-page";
@@ -25,6 +26,7 @@ function RootLayout() {
           <GlobalLoader />
           <Outlet />
           <Toaster position="bottom-right" richColors closeButton expand/>
+      <ScrollToTopButton />
         </LoaderProvider>
       </ErrorBoundary>
     </>

@@ -45,7 +45,7 @@ export function ShelvedProductsForm({ setFormData, onProceed }: ShelvedProductsF
 
   useEffect(() => {
     setFormData(data);
-  }, [data])
+  }, [data, setFormData])
 
   const removeRow = (rowIndex: number) => {
     setData((old) => old.filter((_, index) => index !== rowIndex))

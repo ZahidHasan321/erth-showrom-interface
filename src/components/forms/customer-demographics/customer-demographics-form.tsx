@@ -31,7 +31,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { useState } from "react";
 import { flushSync } from "react-dom";
-import type { UseFormReturn } from "react-hook-form";
+import { useWatch, type UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import type z from "zod";
 import {
@@ -75,9 +75,9 @@ export function CustomerDemographicsForm({
   });
   const [warnings, setWarnings] = React.useState<{ [K in keyof CustomerDemographicsSchema]?: string }>({});
 
-  const AccountType = form.watch("accountType")
-  const mobileNumber = form.watch("mobileNumber")
-  const countries = React.useMemo(() => getSortedCountries(), []);
+  const AccountType = useWatch({ control: form.control, name: "accountType" });
+  const mobileNumber = useWatch({ control: form.control, name: "mobileNumber" });
+  const countries = getSortedCountries();
 
   const { data: existingUsers, isSuccess, refetch: accountRefetch, isFetching } = useQuery({
     queryKey: ['existingUsers'],
@@ -112,21 +112,18 @@ export function CustomerDemographicsForm({
         }
       }
     }
-  }, [existingUsers, isSuccess, mobileNumber, form])
+  }, [existingUsers, isSuccess, mobileNumber, form, customerRecordId])
 
 
 
 
-  const handleCustomerFound = React.useCallback(
-    (customer: Customer) => {
-      const formValues = mapCustomerToFormValues(customer);
-      form.reset(formValues);
-      onCustomerRecordChange?.(customer.id);
-      onCustomerIdChange?.(String(customer.fields.id) || null);
-      setIsEditing(false);
-    },
-    [form]
-  );
+  const handleCustomerFound = (customer: Customer) => {
+    const formValues = mapCustomerToFormValues(customer);
+    form.reset(formValues);
+    onCustomerRecordChange?.(customer.id);
+    onCustomerIdChange?.(String(customer.fields.id) || null);
+    setIsEditing(false);
+  }
 
 
 
@@ -345,10 +342,10 @@ export function CustomerDemographicsForm({
                         <FormItem>
                           <Combobox
                             disabled={isReadOnly}
-                            options={React.useMemo(() => countries.map((country) => ({
+                            options={countries.map((country) => ({
                               value: country.phoneCode,
                               label: `${country.flag}: ${country.name} ${country.phoneCode}`,
-                            })), [countries])}
+                            }))}
                             value={field.value || ""}
                             onChange={field.onChange}
                             placeholder="Code"
@@ -409,10 +406,10 @@ export function CustomerDemographicsForm({
                         <FormItem>
                                                 <Combobox
                                                   disabled={isReadOnly}
-                                                  options={React.useMemo(() => countries.map((country) => ({
+                                                  options={countries.map((country) => ({
                                                     value: country.phoneCode,
                                                     label: `${country.flag}: ${country.name} ${country.phoneCode}`,
-                                                  })), [countries])}
+                                                  }))}
                                                   value={field.value || ""}
                                                   onChange={field.onChange}
                                                   placeholder="Code"
@@ -461,10 +458,10 @@ export function CustomerDemographicsForm({
                   </FormLabel>
                   <Combobox
                     disabled={isReadOnly}
-                    options={React.useMemo(() => countries.map((country) => ({
+                    options={countries.map((country) => ({
                       value: country.name,
                       label: `${country.flag} ${country.name}`,
-                    })), [countries])}
+                    }))}
                     value={field.value || ""}
                     onChange={field.onChange}
                     placeholder="Select nationality"

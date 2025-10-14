@@ -42,7 +42,7 @@ export function DataTable<TData extends ShelvedProduct, TValue>({
 
 
   return (
-    <div className="rounded-lg border bg-card overflow-hidden shadow">
+    <div className="rounded-lg border bg-card overflow-x-auto shadow">
       <Table className="w-full border-collapse">
         <TableHeader className="bg-primary-foreground">
           {table.getHeaderGroups().map((headerGroup) => (

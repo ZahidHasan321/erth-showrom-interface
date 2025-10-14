@@ -78,7 +78,7 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
         form.setValue("arm.armhole.provision", newProvision);
       }
     }
-  }, [form, armholeValue, armholeFront, armholeProvision]);
+  }, [armholeValue, armholeFront, armholeProvision]);
 
   // Full Chest Provision
   const fullChestValue = useWatch({
@@ -101,7 +101,7 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
         form.setValue("body.full_chest.provision", newProvision);
       }
     }
-  }, [form, fullChestValue, fullChestFront, fullChestProvision]);
+  }, [fullChestValue, fullChestFront, fullChestProvision]);
 
   // Full Waist Provision
   const fullWaistValue = useWatch({
@@ -135,7 +135,7 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
         form.setValue("body.full_waist.provision", newProvision);
       }
     }
-  }, [form, fullWaistValue, fullWaistFront, fullWaistBack, fullWaistProvision]);
+  }, [fullWaistValue, fullWaistFront, fullWaistBack, fullWaistProvision]);
 }
 
 
@@ -249,33 +249,30 @@ export function CustomerMeasurementsForm({
   // ---------------------------------------
   // Handlers
   // ---------------------------------------
-  const handleFormSubmit = React.useCallback(
-    async (values: z.infer<typeof customerMeasurementsSchema>) => {
-      if (!customerId) {
-        toast.error("Customer ID is required.");
-        return;
-      }
-      const record = mapFormValuesToMeasurement(values, Number(customerId));
-      try {
-        const response = await upsertMeasurement([record]);
+  const handleFormSubmit = async (values: z.infer<typeof customerMeasurementsSchema>) => {
+    if (!customerId) {
+      toast.error("Customer ID is required.");
+      return;
+    }
+    const record = mapFormValuesToMeasurement(values, Number(customerId));
+    try {
+      const response = await upsertMeasurement([record]);
 
-        if (response.status === "success" && response.data && response.data.records.length > 0) {
-          setIsEditing(false);
-          setIsCreatingNew(false);
-          toast.success("Measurement saved successfully!");
-        } else {
-          toast.error(response.message || "Failed to save measurement.");
-        }
-      } catch (e) {
-        console.error("API Error:", e);
-        toast.error("Error saving measurement.");
+      if (response.status === "success" && response.data && response.data.records.length > 0) {
+        setIsEditing(false);
+        setIsCreatingNew(false);
+        toast.success("Measurement saved successfully!");
+      } else {
+        toast.error(response.message || "Failed to save measurement.");
       }
-      onSubmit(values);
-    },
-    [customerId, onSubmit],
-  );
+    } catch (e) {
+      console.error("API Error:", e);
+      toast.error("Error saving measurement.");
+    }
+    onSubmit(values);
+  };
 
-  const handleSave = React.useCallback(async () => {
+  const handleSave = async () => {
     setConfirmationDialog({
       isOpen: true,
       title: "Confirm Save",
@@ -285,9 +282,9 @@ export function CustomerMeasurementsForm({
         setConfirmationDialog((d) => ({ ...d, isOpen: false }));
       },
     });
-  }, [form, handleFormSubmit]);
+  }
 
-  const handleNewMeasurement = React.useCallback(() => {
+  const handleNewMeasurement = () => {
     setConfirmationDialog({
       isOpen: true,
       title: "Confirm New Measurement",
@@ -314,9 +311,9 @@ export function CustomerMeasurementsForm({
         setConfirmationDialog((d) => ({ ...d, isOpen: false }));
       },
     });
-  }, [measurements, selectedMeasurementId, customerId, form]);
+  }
 
-  const handleCancel = React.useCallback(() => {
+  const handleCancel = () => {
     setIsEditing(false);
     setIsCreatingNew(false);
     if (isCreatingNew) {
@@ -325,15 +322,7 @@ export function CustomerMeasurementsForm({
     } else if (selectedMeasurementId && measurements) {
       form.reset(measurements.get(selectedMeasurementId));
     }
-  }, [
-    isCreatingNew,
-    form,
-    measurements,
-    previousMeasurementId,
-    selectedMeasurementId,
-    removeMeasurement,
-    setSelectedMeasurementId,
-  ]);
+  }
 
   return (
     <Form {...form}>
@@ -577,14 +566,6 @@ export function CustomerMeasurementsForm({
 
         {/* ---- Buttons ---- */}
         <div className="flex flex-wrap justify-center gap-6 pt-4">
-          {(isEditing || isCreatingNew) && (
-            <Button type="button" variant="destructive" onClick={handleCancel}>
-              Cancel
-            </Button>
-          )}
-          <Button type="submit" variant="outline" disabled={!isEditing}>
-            Save
-          </Button>
           <Button
             type="button"
             variant="outline"
@@ -593,22 +574,35 @@ export function CustomerMeasurementsForm({
           >
             Edit
           </Button>
-          {!isEditing && (
-            <Button
-              type="button"
-              onClick={handleNewMeasurement}
-              disabled={!customerId || isCreatingNew}
-            >
-              New Measurement
-            </Button>
+          {(isEditing || isCreatingNew) && (
+            <div className="flex gap-4">
+              <Button type="button" variant="destructive" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="submit" variant="outline" disabled={!isEditing}>
+                Save
+              </Button>
+            </div>
           )}
-          <Button
-            type="button"
-            onClick={onProceed}
-            disabled={!measurements || !Object.keys(measurements).length}
-          >
-            Proceed
-          </Button>
+          {!isEditing && (
+            <div className="flex gap-4">
+              <Button
+                type="button"
+                onClick={handleNewMeasurement}
+                disabled={!customerId || isCreatingNew}
+              >
+                New Measurement
+              </Button>
+              <Button
+                type="button"
+                onClick={onProceed}
+                disabled={!measurements}
+              >
+                Proceed
+              </Button>
+
+            </div>
+          )}
         </div>
       </form>
     </Form>

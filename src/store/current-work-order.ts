@@ -62,7 +62,7 @@ export const createWorkOrderStore = (name: string) =>
         savedSteps: [],
         measurements: null,
 
-        setOrderId: (id) => set({ orderId: id }),
+        setOrderId: (id) => set((state) => ({ ...state, orderId: id })), 
         setOrder: (order) =>
           set((state) => ({ order: { ...state.order, ...order } })),
 

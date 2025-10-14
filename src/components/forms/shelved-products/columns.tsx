@@ -5,16 +5,19 @@ import { type ShelvedProduct } from './schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Trash2 } from 'lucide-react'
 
 export const columns: ColumnDef<ShelvedProduct>[] = [
   {
     accessorKey: 'serialNumber',
     header: 'Serial Number',
+    minSize: 80,
     cell: ({ row }) => <span>{row.index + 1}</span>,
   },
   {
     accessorKey: 'productType',
     header: 'Product Type',
+    minSize: 150,
     cell: ({ row, table }) => {
         const { updateData } = table.options.meta as any
         return (
@@ -37,6 +40,7 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
   {
     accessorKey: 'brand',
     header: 'Brand',
+    minSize: 150,
     cell: ({ row, table }) => {
         const { updateData } = table.options.meta as any
         return (
@@ -59,6 +63,7 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
   {
     accessorKey: 'quantity',
     header: 'Quantity',
+    minSize: 150,
     cell: ({ row, table }) => {
       const { updateData } = table.options.meta as any
       const quantity = row.original.quantity
@@ -90,6 +95,7 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
   {
     accessorKey: 'unitPrice',
     header: 'Unit Price',
+    minSize: 120,
     cell: ({ row, table }) => {
         const { updateData } = table.options.meta as any
         return (
@@ -105,18 +111,20 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
   {
     accessorKey: 'totalAmount',
     header: 'Total Amount',
-    cell: ({ row }) => {
-      const total = row.original.quantity * row.original.unitPrice
-      return <span >{total.toFixed(2)}</span>
-    },
-  },
+    minSize: 120,
+        cell: ({ row }) => {
+          const total = row.original.quantity * row.original.unitPrice
+          return <div className="border rounded-md p-2"><span>{total.toFixed(2)}</span></div>
+        },
+      },
   {
     id: 'actions',
+    minSize: 80,
     cell: ({ row, table }) => {
       const { removeRow } = table.options.meta as any
       return (
         <Button variant="ghost" onClick={() => removeRow(row.index)}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          <Trash2 color='red'/>
         </Button>
       )
     },

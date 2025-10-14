@@ -39,36 +39,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<AuthUser | null>(getStoredUser())
   const isAuthenticated = !!user
 
-  const logout = React.useCallback(async () => {
+  const logout = async () => {
     await sleep(250)
     setStoredUser(null)
     setUser(null)
-  }, [])
+  }
 
-  const login = React.useCallback(
-    async (credentials: { userId?: string; username?: string; password: string; userType: typeof BRAND_NAMES[keyof typeof BRAND_NAMES] }) => {
-      await sleep(500)
+  const login = async (credentials: { userId?: string; username?: string; password: string; userType: typeof BRAND_NAMES[keyof typeof BRAND_NAMES] }) => {
+    await sleep(500)
 
-      // Check that at least one identifier is provided
-      if (!credentials.userId && !credentials.username) {
-        throw new Error('Either userId or username is required')
+    // Check that at least one identifier is provided
+    if (!credentials.userId && !credentials.username) {
+      throw new Error('Either userId or username is required')
+    }
+
+    // 🔑 Example validation logic — replace with real API call
+    if (credentials.password === '123') {
+      const newUser: AuthUser = {
+        userId: credentials.userId,
+        username: credentials.username,
+        userType: credentials.userType,
       }
+      setStoredUser(newUser)
+      setUser(newUser)
+    } else {
+      throw new Error('Invalid credentials')
+    }
+  }
 
-      // 🔑 Example validation logic — replace with real API call
-      if (credentials.password === '123') {
-        const newUser: AuthUser = {
-          userId: credentials.userId,
-          username: credentials.username,
-          userType: credentials.userType,
-        }
-        setStoredUser(newUser)
-        setUser(newUser)
-      } else {
-        throw new Error('Invalid credentials')
-      }
-    },
-    []
-  )
+
 
   React.useEffect(() => {
     setUser(getStoredUser())

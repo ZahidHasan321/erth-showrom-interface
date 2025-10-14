@@ -50,8 +50,8 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="rounded-lg border bg-card overflow-hidden shadow">
-      <Table className="w-full border-collapse">
+    <div className="rounded-lg border bg-card overflow-x-auto shadow">
+      <Table className="">
         {/* Optional: use colgroup if needed for borders */}
         <colgroup>
           {table.getHeaderGroups()[0]?.headers.map((header) => (
@@ -108,7 +108,7 @@ export function DataTable<TData, TValue>({
           ) : (
             <TableRow>
               <TableCell
-                colSpan={columns.length}
+                colSpan={columns.length + 12}
                 className="h-24 text-center text-muted-foreground"
               >
                 No results.

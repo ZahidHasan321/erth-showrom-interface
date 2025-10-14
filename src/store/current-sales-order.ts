@@ -63,7 +63,7 @@ export const createSalesOrderStore = (name: string) =>
         discount: 0,
         balance: 0,
 
-        setOrderId: (id) => set({ orderId: id }),
+        setOrderId: (id) => set((state) => ({ ...state, orderId: id })),
         setOrder: (order) => set((state) => ({ order: { ...state.order, ...order } })),
 
         setCustomerDemographics: (data) =>

@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import type { Customer } from "@/types/customer";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface SearchCustomerProps {
@@ -73,6 +73,24 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
     };
   }, []);
 
+  const handleSelectCustomer = (customer: Customer) => {
+    onCustomerFound(customer);
+    setShowDialog(false);
+    setCustomerOptions([]);
+    setSubmittedSearch(null);
+    toast.success(`Selected ${customer.fields.Name}`);
+  };
+
+  const handleSearch = () => {
+    setSubmittedSearch(searchMobile);
+  };
+
+  const handleClear = () => {
+    setSearchMobile("");
+    setSubmittedSearch(null);
+    onHandleClear();
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!showDialog) return;
@@ -91,33 +109,7 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showDialog, customerOptions, selectedIndex]);
-
-
-  const handleSearch = React.useCallback(
-    () => {
-      if (searchMobile.trim() !== "") {
-        setSubmittedSearch(searchMobile.trim());
-      } else {
-        toast.warning("Please enter a Mobile Number to search.");
-      }
-    },
-    [searchMobile]
-  );
-
-  const handleClear = () => {
-    setSearchMobile("");
-    setSubmittedSearch(null);
-    onHandleClear()
-  };
-
-  const handleSelectCustomer = React.useCallback((customer: Customer) => {
-    onCustomerFound(customer);
-    setShowDialog(false);
-    setCustomerOptions([]);
-    setSubmittedSearch(null);
-    toast.success(`Selected ${customer.fields.Name}`);
-  }, [onCustomerFound]);
+  }, [showDialog, customerOptions, selectedIndex, handleSelectCustomer]);
 
   return (
     <div

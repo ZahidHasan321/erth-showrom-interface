@@ -1,19 +1,28 @@
+"use client";
+
 import { createOrder } from "@/api/orders";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
-import { customerDemographicsDefaults, customerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
-import { orderTypeAndPaymentDefaults, OrderTypeAndPaymentForm, orderTypeAndPaymentSchema } from "@/components/forms/order-type-and-payment";
+import {
+  customerDemographicsDefaults,
+  customerDemographicsSchema,
+} from "@/components/forms/customer-demographics/schema";
+import {
+  orderTypeAndPaymentDefaults,
+  OrderTypeAndPaymentForm,
+  orderTypeAndPaymentSchema,
+} from "@/components/forms/order-type-and-payment";
 import { PaymentTypeForm, paymentTypeSchema } from "@/components/forms/payment-type";
 import { ShelvedProductsForm } from "@/components/forms/shelved-products";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
-import { useScrollSpy } from "@/hooks/use-scrollspy";
 import { mapApiOrderToFormOrder } from "@/lib/order-mapper";
 import { createSalesOrderStore } from "@/store/current-sales-order";
 import { type Order } from "@/types/order";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useInView } from "framer-motion";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -33,42 +42,44 @@ const steps = [
   { title: "Confirmation & Payment", id: "step-3" },
 ];
 
+const useCurrentSalesOrderStore = createSalesOrderStore("main");
+
 function NewSalesOrder() {
-  const { main } = Route.useParams();
-  const useCurrentSalesOrderStore = React.useMemo(
-    () => createSalesOrderStore(main),
-    [main]
-  );
-
   const [askedToCreateOrder, setAskedToCreateOrder] = React.useState(false);
-
   const [confirmationDialog, setConfirmationDialog] = React.useState({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
-  const {
-    currentStep,
-    setCurrentStep,
-    savedSteps,
-    addSavedStep,
-    removeSavedStep,
-    customerId,
-    setCustomerId,
-    customerRecordId,
-    setCustomerRecordId,
-    setCustomerDemographics,
-    shelvedProducts,
-    setShelvedProducts,
-    orderId,
-    setOrderId,
-    setOrder,
-    setPaymentType,
-    setOtherPaymentType,
-    setPaymentRefNo,
-  } = useCurrentSalesOrderStore();
+  // Zustand store
+  const currentStep = useCurrentSalesOrderStore((s) => s.currentStep);
+  const setCurrentStep = useCurrentSalesOrderStore((s) => s.setCurrentStep);
+  const savedSteps = useCurrentSalesOrderStore((s) => s.savedSteps);
+  const addSavedStep = useCurrentSalesOrderStore((s) => s.addSavedStep);
+  const removeSavedStep = useCurrentSalesOrderStore((s) => s.removeSavedStep);
+  const customerId = useCurrentSalesOrderStore((s) => s.customerId);
+  const setCustomerId = useCurrentSalesOrderStore((s) => s.setCustomerId);
+  const customerRecordId = useCurrentSalesOrderStore((s) => s.customerRecordId);
+  const setCustomerRecordId = useCurrentSalesOrderStore(
+    (s) => s.setCustomerRecordId
+  );
+  const setCustomerDemographics = useCurrentSalesOrderStore(
+    (s) => s.setCustomerDemographics
+  );
+  // const shelvedProducts = useCurrentSalesOrderStore((s) => s.shelvedProducts);
+  const setShelvedProducts = useCurrentSalesOrderStore(
+    (s) => s.setShelvedProducts
+  );
+  const orderId = useCurrentSalesOrderStore((s) => s.orderId);
+  const setOrderId = useCurrentSalesOrderStore((s) => s.setOrderId);
+  const setOrder = useCurrentSalesOrderStore((s) => s.setOrder);
+  const setPaymentType = useCurrentSalesOrderStore((s) => s.setPaymentType);
+  const setOtherPaymentType = useCurrentSalesOrderStore(
+    (s) => s.setOtherPaymentType
+  );
+  const setPaymentRefNo = useCurrentSalesOrderStore((s) => s.setPaymentRefNo);
 
   const { mutate: createNewOrder, isPending } = useMutation({
     mutationFn: () => createOrder({ fields: { OrderStatus: "Pending" } }),
@@ -76,17 +87,17 @@ function NewSalesOrder() {
       if (response.data) {
         const order = response.data as Order;
         const formattedOrder = mapApiOrderToFormOrder(order);
-        setOrderId(order.fields?.OrderID??null);
+        setOrderId(order.fields?.OrderID ?? null);
         setOrder(formattedOrder);
         toast.success("New sales order created successfully!");
       }
     },
-    onError: () => {
-      toast.error("Failed to create new sales order.");
-    },
+    onError: () => toast.error("Failed to create new sales order."),
   });
 
+  // ---------------------------
   // Forms
+  // ---------------------------
   const demographicsForm = useForm<z.infer<typeof customerDemographicsSchema>>({
     resolver: zodResolver(customerDemographicsSchema),
     defaultValues: customerDemographicsDefaults,
@@ -101,62 +112,37 @@ function NewSalesOrder() {
     },
   });
 
-
   const OrderForm = useForm<z.infer<typeof orderTypeAndPaymentSchema>>({
     resolver: zodResolver(orderTypeAndPaymentSchema),
     defaultValues: orderTypeAndPaymentDefaults,
   });
 
-  const shelfCharges = React.useMemo(() => {
-    if (!shelvedProducts || shelvedProducts.length === 0) {
-      return 0;
-    }
-    return shelvedProducts.reduce((total, product) => {
-      return total + product.quantity * product.unitPrice;
-    }, 0);
-  }, [shelvedProducts]);
-  // Dummy values for now, as per prompt
-  // const discount = 0;
-  // const balance = totalDue - discount;
-
-  React.useEffect(() => {
-    OrderForm.setValue("charges.shelf", shelfCharges);
-  }, [shelfCharges]);
-  // Refs for scroll sections
+  // ---------------------------
+  // Dynamic step visibility tracking
+  // ---------------------------
   const sectionRefs = steps.map(() => React.useRef<HTMLDivElement | null>(null));
-  const activeSection = useScrollSpy(sectionRefs, {
-    rootMargin: "0px",
-    threshold: 0.5,
-  });
-
-  React.useEffect(() => {
-    if (activeSection) {
-      const nextStep = steps.findIndex((step) => step.id === activeSection);
-      if (nextStep !== -1 && nextStep !== currentStep) {
-        setCurrentStep(nextStep);
-      }
-    }
-  }, [activeSection, currentStep, setCurrentStep]);
-
-  const completedSteps = savedSteps;
-
-  const handleStepChange = (i: number) => {
-    const element = document.getElementById(steps[i].id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  const handleProceed = React.useCallback(
-    (step: number) => {
-      addSavedStep(step);
-    },
-    [addSavedStep]
+  const inViewStates = sectionRefs.map((ref) =>
+    useInView(ref, { amount: 0.5, margin: "-10% 0px -40% 0px" })
   );
 
-  // -------------------------------------------------
-  // Auto-prompt user on first mount if no order exists
-  // -------------------------------------------------
+  React.useEffect(() => {
+    const activeIndex = inViewStates.findIndex((isInView) => isInView);
+    if (activeIndex !== -1 && activeIndex !== currentStep) {
+      setCurrentStep(activeIndex);
+    }
+  }, [inViewStates, currentStep, setCurrentStep]);
+
+  const handleStepChange = (i: number) => {
+    sectionRefs[i].current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const handleProceed = (step: number) => {
+    addSavedStep(step);
+  };
+
+  // ---------------------------
+  // Order creation prompt
+  // ---------------------------
   React.useEffect(() => {
     if (!orderId && !askedToCreateOrder) {
       setAskedToCreateOrder(true);
@@ -172,11 +158,9 @@ function NewSalesOrder() {
     }
   }, [orderId, askedToCreateOrder, createNewOrder]);
 
-  // -------------------------------------------------
-  // Render states
-  // -------------------------------------------------
-
-  // While we haven't asked yet
+  // ---------------------------
+  // Rendering
+  // ---------------------------
   if (!orderId && !askedToCreateOrder) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -185,7 +169,6 @@ function NewSalesOrder() {
     );
   }
 
-  // If asked but no order created (user canceled)
   if (!orderId) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-center space-y-6">
@@ -193,15 +176,13 @@ function NewSalesOrder() {
         <p className="text-gray-600 dark:text-gray-400">
           You need to create a new sales order before proceeding.
         </p>
-
         <Button
           size="lg"
           onClick={() =>
             setConfirmationDialog({
               isOpen: true,
               title: "Create New Sales Order",
-              description:
-                "Do you want to create a new sales order? This will initialize a new order entry.",
+              description: "This will initialize a new order entry.",
               onConfirm: () => {
                 createNewOrder();
                 setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
@@ -212,7 +193,6 @@ function NewSalesOrder() {
         >
           {isPending ? "Creating..." : "Create New Sales Order"}
         </Button>
-
         <ConfirmationDialog
           isOpen={confirmationDialog.isOpen}
           onClose={() =>
@@ -226,31 +206,8 @@ function NewSalesOrder() {
     );
   }
 
-  // -------------------------------------------------
-  // MAIN CONTENT (only shown after orderId is set)
-  // -------------------------------------------------
-
-  function onHandleProceed(customerRecordId: string | null, orderId: string | null) {
-    if (orderId && customerRecordId) {
-      setOrder({ CustomerID: [customerRecordId] });
-      handleProceed(0);
-    }
-  }
-
-  const handlePaymentSubmit = (data: z.infer<typeof paymentTypeSchema>) => {
-    setPaymentType(data.paymentType);
-    setOtherPaymentType(data.otherPaymentType || null);
-    setPaymentRefNo(data.paymentRefNo || null);
-
-    const currentStore = useCurrentSalesOrderStore.getState();
-    console.log("🧾 Full Sales Order Store:", currentStore);
-
-    toast.success("Sales Order Confirmed! ✅");
-    handleProceed(2);
-  };
-
   return (
-    <div className="mb-20">
+    <div className="mb-64">
       <ConfirmationDialog
         isOpen={confirmationDialog.isOpen}
         onClose={() =>
@@ -265,20 +222,22 @@ function NewSalesOrder() {
       <div className="sticky w-full top-0 z-10 bg-white dark:bg-gray-950 shadow-md">
         <HorizontalStepper
           steps={steps}
+          completedSteps={savedSteps}
           currentStep={currentStep}
-          completedSteps={completedSteps}
           onStepChange={handleStepChange}
         />
       </div>
+
       {/* Step Content */}
       <div className="flex flex-col flex-1 items-center space-y-20 p-4 xl:p-0 w-full">
         <p>Order ID: {orderId}</p>
+
         {steps.map((step, index) => (
           <div
             key={step.id}
             id={step.id}
-            className="w-full flex flex-col items-center max-w-7xl"
             ref={sectionRefs[index]}
+            className="w-full flex flex-col items-center max-w-7xl"
           >
             {index === 0 && (
               <CustomerDemographicsForm
@@ -293,7 +252,7 @@ function NewSalesOrder() {
                 onCustomerRecordChange={setCustomerRecordId}
                 customerId={customerId}
                 customerRecordId={customerRecordId}
-                onProceed={() => onHandleProceed(customerRecordId, orderId)}
+                onProceed={() => handleProceed(0)}
                 onClear={() => removeSavedStep(0)}
               />
             )}
@@ -305,24 +264,29 @@ function NewSalesOrder() {
               />
             )}
 
-            {
-              index === 2 && (
-                <OrderTypeAndPaymentForm
-                  form={OrderForm}
-                  optional = {false}
-                  onSubmit={(data) => {
-                    setOrder(data);
-                    toast.success("Order & Payment Info saved ✅");
-                  }}
-                  onProceed={() => handleProceed(2)}
-                />
-              )
-            }
+            {index === 2 && (
+              <OrderTypeAndPaymentForm
+                form={OrderForm}
+                optional={false}
+                onSubmit={(data) => {
+                  setOrder(data);
+                  toast.success("Order & Payment Info saved ✅");
+                }}
+                onProceed={() => handleProceed(2)}
+              />
+            )}
 
             {index === 3 && (
-              <div className="w-full space-y-6">
-                <PaymentTypeForm form={paymentForm} onSubmit={handlePaymentSubmit} />
-              </div>
+              <PaymentTypeForm
+                form={paymentForm}
+                onSubmit={(data) => {
+                  setPaymentType(data.paymentType);
+                  setOtherPaymentType(data.otherPaymentType || null);
+                  setPaymentRefNo(data.paymentRefNo || null);
+                  toast.success("Sales Order Confirmed ✅");
+                  handleProceed(3);
+                }}
+              />
             )}
           </div>
         ))}

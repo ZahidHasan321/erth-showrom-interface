@@ -32,6 +32,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
     accessorKey: "styleOptionId",
     header: "Style Option Id",
+    minSize: 100,
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
@@ -47,6 +48,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
     accessorKey: "style",
     header: "Style",
+    minSize: 150,
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
@@ -71,6 +73,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
     header: "Lines",
     id: "lines",
+    minSize: 180,
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
@@ -98,6 +101,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
     accessorKey: "collar",
     header: "Collar",
+    minSize: 350,
     cell: ({ row }) => {
       const { control, watch } = useFormContext();
       const collarType = watch(`styleOptions.${row.index}.collar.collarType`);
@@ -207,6 +211,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
     accessorKey: "jabzoor",
     header: "Jabzoor",
+    minSize: 420,
     cell: ({ row }) => {
       const { control, watch } = useFormContext();
       const jabzour1 = watch(`styleOptions.${row.index}.jabzoor.jabzour1`);
@@ -316,6 +321,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
     accessorKey: "sidePocket",
     header: "Side Pocket",
+    minSize: 220,
     cell: ({ row }) => {
       const { control } = useFormContext();
       return (
@@ -367,6 +373,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
     accessorKey: "frontPocket",
     header: "Front Pocket",
+    minSize: 420,
     cell: ({ row }) => {
       const { control, watch } = useFormContext();
       const frontPocketType = watch(
@@ -461,6 +468,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
     accessorKey: "cuffs",
     header: "Cuffs",
+    minSize: 300,
     cell: ({ row }) => {
       const { control, watch } = useFormContext();
       const cuffsType = watch(`styleOptions.${row.index}.cuffs.cuffs_type`);
@@ -526,14 +534,15 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
   },
   {
     id: "delete",
+    minSize: 80,
     cell: ({ row, table }) => {
       const handleDelete = () => {
         table.options.meta?.removeRow(row.index);
       };
 
       return (
-        <Button variant="ghost" size="sm" onClick={handleDelete}>
-          <Trash2 className="min-w-[40px] h-10" />
+        <Button variant="ghost" size="icon" onClick={handleDelete}>
+          <Trash2 size={42} color="red"/>
         </Button>
       );
     },
