@@ -4,7 +4,7 @@ import * as React from "react";
 import { type ColumnDef } from "@tanstack/react-table";
 import Fuse from "fuse.js";
 import { type FabricSelectionSchema } from "./fabric-selection-schema";
-import { useFormContext, Controller } from "react-hook-form";
+import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -97,8 +97,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     header: "Source",
     minSize: 180,
     cell: ({ row }) => {
-      const { control, watch, setValue } = useFormContext();
-      const fabricSource = watch(`fabricSelections.${row.index}.fabricSource`);
+      const { control, setValue } = useFormContext();
+
+      // ✅ useWatch instead of watch
+      const fabricSource = useWatch({
+        name: `fabricSelections.${row.index}.fabricSource`,
+      });
 
       React.useEffect(() => {
         if (fabricSource === "Out") {
@@ -133,9 +137,16 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     header: "If inside",
     minSize: 200,
     cell: ({ row }) => {
-      const { control, watch, setValue } = useFormContext();
-      const fabricSource = watch(`fabricSelections.${row.index}.fabricSource`);
-      const fabricId = watch(`fabricSelections.${row.index}.fabricId`);
+      const { control, setValue } = useFormContext();
+
+      // ✅ useWatch for reactivity without compiler warning
+      const [fabricSource, fabricId] = useWatch({
+        name: [
+          `fabricSelections.${row.index}.fabricSource`,
+          `fabricSelections.${row.index}.fabricId`,
+        ],
+      });
+
       const isDisabled = fabricSource === "Out" || !fabricSource;
       const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -146,7 +157,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
 
       const fabrics = fabricsResponse?.data || [];
 
-      // When fabricSource or fabricId changes, update the color field if source is "In"
+      // Auto update color when fabricSource = In
       React.useEffect(() => {
         if (fabricSource === "In" && fabricId) {
           const selectedFabric = fabrics.find((f) => f.id === fabricId);
@@ -159,32 +170,40 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
         }
       }, [fabricId, fabricSource, fabrics, row.index, setValue]);
 
-      const fuse = new Fuse(fabrics, {
-        keys: [
-          "fields.Name",
-          "fields.Code",
-          "fields.Color",
-          "fields.PricePerMeter",
-          "fields.RealStock",
-        ],
-        includeScore: true,
-      });
 
-      const searchResults = searchQuery
-        ? fuse.search(searchQuery).map((result) => result.item)
-        : fabrics;
+      const fuse = React.useMemo(
+        () =>
+          new Fuse(fabrics, {
+            keys: [
+              "fields.Name",
+              "fields.Code",
+              "fields.Color",
+              "fields.PricePerMeter",
+              "fields.RealStock",
+            ],
+            includeScore: true,
+          }),
+        [fabrics]
+      );
+      ;
 
-      const fabricOptions = searchResults.map((fabric) => ({
-        value: fabric.id,
-        label: `${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color} - ${fabric.fields.PricePerMeter} - ${fabric.fields.RealStock}`,
-      }));
+      const fabricOptions = React.useMemo(() => {
+        const results = searchQuery
+          ? fuse.search(searchQuery).map((r) => r.item)
+          : fabrics;
+
+        return results.map((fabric) => ({
+          value: fabric.id,
+          label: `${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color} - ${fabric.fields.PricePerMeter} - ${fabric.fields.RealStock}`,
+        }));
+      }, [fabrics, fuse, searchQuery]);
 
       return (
         <div className="flex flex-col space-y-1 w-[200px] min-w-[200px]">
           {isDisabled ? (
             <Input
               placeholder="Search fabric..."
-              disabled={true}
+              disabled
               className="cursor-not-allowed text-red-500"
             />
           ) : (
@@ -214,8 +233,13 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     header: "Color/ اللون",
     minSize: 120,
     cell: ({ row }) => {
-      const { control, watch } = useFormContext();
-      const fabricSource = watch(`fabricSelections.${row.index}.fabricSource`);
+      const { control } = useFormContext();
+
+      // ✅ useWatch for fabricSource
+      const fabricSource = useWatch({
+        name: `fabricSelections.${row.index}.fabricSource`,
+      });
+
       const isReadOnly = fabricSource === "In";
 
       return (
@@ -241,7 +265,6 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     minSize: 120,
     cell: ({ row }) => {
       const { control } = useFormContext();
-
       return (
         <div className="min-w-[120px]">
           <Controller

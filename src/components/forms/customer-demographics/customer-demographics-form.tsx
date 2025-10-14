@@ -41,6 +41,7 @@ import {
 } from "./schema";
 import { SearchCustomer } from "./search-customer";
 import { AnimatedMessage } from "@/components/animation/AnimatedMessage";
+import WhatsappLogo from "@/assets/whatsapp.svg";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
@@ -75,8 +76,10 @@ export function CustomerDemographicsForm({
   });
   const [warnings, setWarnings] = React.useState<{ [K in keyof CustomerDemographicsSchema]?: string }>({});
 
-  const AccountType = useWatch({ control: form.control, name: "accountType" });
-  const mobileNumber = useWatch({ control: form.control, name: "mobileNumber" });
+  const [AccountType, mobileNumber] = useWatch({
+    control: form.control,
+    name: ["accountType", "mobileNumber"],
+  });
   const countries = getSortedCountries();
 
   const { data: existingUsers, isSuccess, refetch: accountRefetch, isFetching } = useQuery({
@@ -339,7 +342,7 @@ export function CustomerDemographicsForm({
                       name="countryCode"
                       disabled={isReadOnly}
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="min-w-42">
                           <Combobox
                             disabled={isReadOnly}
                             options={countries.map((country) => ({
@@ -376,7 +379,9 @@ export function CustomerDemographicsForm({
                               disabled={isReadOnly}
                             />
                           </FormControl>
-                          <FormLabel>WhatsApp</FormLabel>
+                          <FormLabel>
+                            <img src={WhatsappLogo} alt="WhatsApp" className="min-w-8" />
+                          </FormLabel>
                         </FormItem>
                       )}
                     />
@@ -403,17 +408,18 @@ export function CustomerDemographicsForm({
                       control={form.control}
                       name="alternativeCountryCode"
                       render={({ field }) => (
-                        <FormItem>
-                                                <Combobox
-                                                  disabled={isReadOnly}
-                                                  options={countries.map((country) => ({
-                                                    value: country.phoneCode,
-                                                    label: `${country.flag}: ${country.name} ${country.phoneCode}`,
-                                                  }))}
-                                                  value={field.value || ""}
-                                                  onChange={field.onChange}
-                                                  placeholder="Code"
-                                                />                          <FormMessage />
+                        <FormItem className="min-w-42">
+                          <Combobox
+                            disabled={isReadOnly}
+                            options={countries.map((country) => ({
+                              value: country.phoneCode,
+                              label: `${country.flag}: ${country.name} ${country.phoneCode}`,
+                            }))}
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder="Code"
+                          />                          
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -438,7 +444,9 @@ export function CustomerDemographicsForm({
                               disabled={isReadOnly}
                             />
                           </FormControl>
-                          <FormLabel>WhatsApp</FormLabel>
+                          <FormLabel>
+                            <img src={WhatsappLogo} alt="WhatsApp" className="min-w-8" />
+                          </FormLabel>
                         </FormItem>
                       )}
                     />
@@ -452,7 +460,7 @@ export function CustomerDemographicsForm({
               control={form.control}
               name="nationality"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full">
                   <FormLabel className="font-bold">
                     <span className="text-red-500">*</span>Nationality
                   </FormLabel>
@@ -493,12 +501,12 @@ export function CustomerDemographicsForm({
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex flex-col rounded-lg bg-muted p-4 gap-4">
+          <section className="flex flex-col rounded-lg bg-muted p-4 gap-2">
             <FormField
               control={form.control}
               name="accountType"
               render={({ field }) => (
-                <FormItem className="w-full bg-muted p-4">
+                <FormItem className="w-full bg-muted">
                   <FormLabel>Account Type</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -524,7 +532,7 @@ export function CustomerDemographicsForm({
               control={form.control}
               name="relation"
               render={({ field }) => (
-                <FormItem className="w-full bg-muted p-4">
+                <FormItem className="w-full border bg-muted">
                   <FormLabel>Account Relation</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -547,33 +555,35 @@ export function CustomerDemographicsForm({
                 </FormItem>
               )}
             />
-          </div>
+          </section>
 
-          <FormField
-            control={form.control}
-            name="customerSegment"
-            render={({ field }) => (
-              <FormItem className="w-full bg-muted p-4 rounded-lg">
-                <FormLabel>Customer Segment</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={isReadOnly}
-                >
-                  <FormControl>
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Select customer segment" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="High">High</SelectItem>
-                    <SelectItem value="Low">Low</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <section className="overflow-hidden">
+            <FormField
+              control={form.control}
+              name="customerSegment"
+              render={({ field }) => (
+                <FormItem className="w-full bg-muted p-4 rounded-lg">
+                  <FormLabel>Customer Segment</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={isReadOnly}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-white">
+                        <SelectValue placeholder="Select customer segment" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </section>
         </div>
 
         <div className="bg-muted p-4 rounded-lg space-y-4">

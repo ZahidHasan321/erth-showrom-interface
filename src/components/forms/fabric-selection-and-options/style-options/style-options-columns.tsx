@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { useFormContext, Controller } from "react-hook-form";
+import { useFormContext, Controller, useWatch } from "react-hook-form";
 import {
   Select,
   SelectContent,
@@ -11,8 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
-import { Plus } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 
 import {
   collarButtons,
@@ -103,11 +102,13 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     header: "Collar",
     minSize: 350,
     cell: ({ row }) => {
-      const { control, watch } = useFormContext();
-      const collarType = watch(`styleOptions.${row.index}.collar.collarType`);
-      const collarButton = watch(
-        `styleOptions.${row.index}.collar.collarButton`
-      );
+      const { control } = useFormContext();
+      const [collarType, collarButton] = useWatch({
+        name: [
+          `styleOptions.${row.index}.collar.collarType`,
+          `styleOptions.${row.index}.collar.collarButton`,
+        ],
+      });
 
       return (
         <div className="min-w-[350px] flex flex-row space-x-2">
@@ -213,9 +214,13 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     header: "Jabzoor",
     minSize: 420,
     cell: ({ row }) => {
-      const { control, watch } = useFormContext();
-      const jabzour1 = watch(`styleOptions.${row.index}.jabzoor.jabzour1`);
-      const jabzour2 = watch(`styleOptions.${row.index}.jabzoor.jabzour2`);
+      const { control } = useFormContext();
+      const [jabzour1, jabzour2] = useWatch({
+        name: [
+          `styleOptions.${row.index}.jabzoor.jabzour1`,
+          `styleOptions.${row.index}.jabzoor.jabzour2`,
+        ],
+      });
 
       return (
         <div className="min-w-[420px] flex flex-row space-x-2">
@@ -306,7 +311,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                 </SelectTrigger>
                 <SelectContent>
                   {ThicknessOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className={option.className}>
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className={option.className}
+                    >
                       {option.label}
                     </SelectItem>
                   ))}
@@ -375,10 +384,10 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     header: "Front Pocket",
     minSize: 420,
     cell: ({ row }) => {
-      const { control, watch } = useFormContext();
-      const frontPocketType = watch(
-        `styleOptions.${row.index}.frontPocket.front_pocket_type`
-      );
+      const { control } = useFormContext();
+      const frontPocketType = useWatch({
+        name: `styleOptions.${row.index}.frontPocket.front_pocket_type`,
+      });
 
       return (
         <div className="min-w-[420px] flex flex-row space-x-2 justify-center items-center">
@@ -433,7 +442,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                 </SelectTrigger>
                 <SelectContent>
                   {ThicknessOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className={option.className}>
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className={option.className}
+                    >
                       {option.label}
                     </SelectItem>
                   ))}
@@ -470,8 +483,10 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     header: "Cuffs",
     minSize: 300,
     cell: ({ row }) => {
-      const { control, watch } = useFormContext();
-      const cuffsType = watch(`styleOptions.${row.index}.cuffs.cuffs_type`);
+      const { control } = useFormContext();
+      const cuffsType = useWatch({
+        name: `styleOptions.${row.index}.cuffs.cuffs_type`,
+      });
 
       return (
         <div className="min-w-[300px] flex flex-row space-x-2">
@@ -520,7 +535,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                 </SelectTrigger>
                 <SelectContent>
                   {ThicknessOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value} className={option.className}>
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className={option.className}
+                    >
                       {option.label}
                     </SelectItem>
                   ))}
@@ -542,7 +561,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
 
       return (
         <Button variant="ghost" size="icon" onClick={handleDelete}>
-          <Trash2 size={42} color="red"/>
+          <Trash2 size={42} color="red" />
         </Button>
       );
     },

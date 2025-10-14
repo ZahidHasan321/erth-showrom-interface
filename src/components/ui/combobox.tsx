@@ -55,15 +55,18 @@ export function Combobox({
           role="combobox"
           disabled={disabled}
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className={cn(
+            "w-full justify-between", "overflow-hidden",
+            selectedOption ? "bg-white" : "bg-transparent"
+          )}
         >
           {selectedOption
-            ? selectedOption.label.substring(0, 15) + "..."
+            ? selectedOption.label
             : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
           <CommandInput placeholder={placeholder} onValueChange={onSearch} />
           <CommandEmpty>No option found.</CommandEmpty>

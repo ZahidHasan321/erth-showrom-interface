@@ -287,7 +287,7 @@ function NewWorkOrder() {
   // MAIN RENDER
   // ----------------------------
   return (
-    <div className="mb-40">
+    <div className="mb-56">
       <ConfirmationDialog
         isOpen={confirmationDialog.isOpen}
         onClose={() => setConfirmationDialog((prev) => ({ ...prev, isOpen: false }))}

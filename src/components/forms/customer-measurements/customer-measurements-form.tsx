@@ -58,17 +58,9 @@ const unit = "cm";
 // ---------------------------------------
 function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
   // Armhole Provision
-  const armholeValue = useWatch({
+  const [armholeValue, armholeFront, armholeProvision] = useWatch({
     control: form.control,
-    name: "arm.armhole.value",
-  });
-  const armholeFront = useWatch({
-    control: form.control,
-    name: "arm.armhole.front",
-  });
-  const armholeProvision = useWatch({
-    control: form.control,
-    name: "arm.armhole.provision",
+    name: ["arm.armhole.value", "arm.armhole.front", "arm.armhole.provision"],
   });
 
   React.useEffect(() => {
@@ -81,17 +73,13 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
   }, [armholeValue, armholeFront, armholeProvision]);
 
   // Full Chest Provision
-  const fullChestValue = useWatch({
+  const [fullChestValue, fullChestFront, fullChestProvision] = useWatch({
     control: form.control,
-    name: "body.full_chest.value",
-  });
-  const fullChestFront = useWatch({
-    control: form.control,
-    name: "body.full_chest.front",
-  });
-  const fullChestProvision = useWatch({
-    control: form.control,
-    name: "body.full_chest.provision",
+    name: [
+      "body.full_chest.value",
+      "body.full_chest.front",
+      "body.full_chest.provision",
+    ],
   });
 
   React.useEffect(() => {
@@ -104,22 +92,16 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
   }, [fullChestValue, fullChestFront, fullChestProvision]);
 
   // Full Waist Provision
-  const fullWaistValue = useWatch({
-    control: form.control,
-    name: "body.full_waist.value",
-  });
-  const fullWaistFront = useWatch({
-    control: form.control,
-    name: "body.full_waist.front",
-  });
-  const fullWaistBack = useWatch({
-    control: form.control,
-    name: "body.full_waist.back",
-  });
-  const fullWaistProvision = useWatch({
-    control: form.control,
-    name: "body.full_waist.provision",
-  });
+  const [fullWaistValue, fullWaistFront, fullWaistBack, fullWaistProvision] =
+    useWatch({
+      control: form.control,
+      name: [
+        "body.full_waist.value",
+        "body.full_waist.front",
+        "body.full_waist.back",
+        "body.full_waist.provision",
+      ],
+    });
 
   React.useEffect(() => {
     if (

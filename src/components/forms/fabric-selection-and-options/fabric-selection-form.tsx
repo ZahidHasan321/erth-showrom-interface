@@ -21,6 +21,7 @@ import { getCampaigns } from "@/api/campaigns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface FabricSelectionFormProps {
   customerId: string | null;
@@ -175,7 +176,7 @@ export function FabricSelectionForm({
         <div className="flex flex-col gap-2 mb-6 border shadow-lg w-fit p-4 rounded-lg bg-card">
           <Label className="text-md text-bold">Campaign Offers:</Label>
           {activeCampaigns.map((campaign) => (
-            <div key={campaign.id} className="flex items-center space-x-2">
+            <div key={campaign.id} className={cn(selectedCampaign === campaign.id ? "text-black" : "text-black/30 hover:text-black/70","flex items-center space-x-2")}>
               <Checkbox
                 id={campaign.id}
                 checked={selectedCampaign === campaign.id}
