@@ -1,6 +1,6 @@
-import type { ApiResponse, UpsertApiResponse } from '../types/api';
+import type { ApiResponse } from '../types/api';
 import type { Measurement } from '../types/measurement';
-import { getRecords, searchAllRecords, upsertRecords } from './baseApi';
+import { createRecord, getRecords, searchAllRecords, updateRecord } from './baseApi';
 
 const TABLE_NAME = 'MEASUREMENT'; // New table name for measurements
 
@@ -10,9 +10,15 @@ export const getMeasurementsByCustomerId = async (customerId: string): Promise<A
   return await searchAllRecords<Measurement[]>(TABLE_NAME, { CustomerID: Number(customerId) });
 };
 
-export const upsertMeasurement = (
-  measurements: Array<{ id?: string; fields: Partial<Measurement['fields']> }>,
-  keyFields: string[] = ['CustomerID', 'MeasurementID'], // Key fields for measurements
-): Promise<UpsertApiResponse<Measurement>> => {
-  return upsertRecords<Measurement>(TABLE_NAME, measurements, keyFields) as Promise<UpsertApiResponse<Measurement>>;
-}
+export const createMeasurement = (
+  measurement: Partial<Measurement['fields']>,
+): Promise<ApiResponse<Measurement>> => {
+  return createRecord<Measurement>(TABLE_NAME, { fields: measurement } as Partial<Measurement>);
+};
+
+export const updateMeasurement = (
+  recordId: string,
+  measurement: Partial<Measurement['fields']>,
+): Promise<ApiResponse<Measurement>> => {
+  return updateRecord<Measurement>(TABLE_NAME, recordId, measurement);
+};

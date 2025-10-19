@@ -1,6 +1,5 @@
 import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
 import * as React from 'react'
-import { useGlobalLoader } from '@/hooks/use-global-loader';
 import { z } from 'zod'
 import sleep, { useAuth } from '@/context/auth'
 import { BRAND_NAMES } from '@/lib/constants'
@@ -27,7 +26,6 @@ export const Route = createFileRoute('/(auth)/login')({
 function LoginComponent() {
   const auth = useAuth()
   const router = useRouter()
-  const { setIsLoading } = useGlobalLoader();
   const navigate = Route.useNavigate()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -78,10 +76,6 @@ function LoginComponent() {
       setIsSubmitting(false)
     }
   }
-
-  React.useEffect(() => {
-    setIsLoading(isSubmitting);
-  }, [isSubmitting, setIsLoading]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center">

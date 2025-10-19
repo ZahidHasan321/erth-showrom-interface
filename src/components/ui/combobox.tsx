@@ -22,6 +22,7 @@ import { LoadingSpinner } from "../global/loading-spinner";
 type Option = {
   value: string;
   label: string;
+  node?: React.ReactNode;
 };
 
 interface ComboboxProps {
@@ -57,16 +58,16 @@ export function Combobox({
           aria-expanded={open}
           className={cn(
             "w-full justify-between", "overflow-hidden",
-            selectedOption ? "bg-white" : "bg-transparent"
+            selectedOption ? "bg-white" : "bg-transparent border-foreground/20"
           )}
         >
           {selectedOption
-            ? selectedOption.label
+            ? (selectedOption.node || selectedOption.label)
             : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+      <PopoverContent align="start" className="w-[--radix-popover-trigger-width] p-0">
         <Command>
           <CommandInput placeholder={placeholder} onValueChange={onSearch} />
           <CommandEmpty>No option found.</CommandEmpty>
@@ -97,7 +98,7 @@ export function Combobox({
                       value === option.value ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  {option.label}
+                  {option.node || option.label}
                 </CommandItem>
               ))
             )}

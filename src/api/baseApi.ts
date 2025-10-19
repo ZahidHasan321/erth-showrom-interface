@@ -142,3 +142,31 @@ export const upsertRecords = async <T extends { fields: any }>(
   const data = await response.json();
   return data as ApiResponse<T[]>;
 };
+
+/**
+ * Updates an existing record in a given Airtable table.
+ * @param tableName The name of the table to update the record in.
+ * @param recordId The ID of the record to update.
+ * @param fields The fields to update.
+ * @returns A promise that resolves to the updated record.
+ */
+export const updateRecord = async <T extends {fields:any}>(
+  tableName: string,
+  recordId: string,
+  fields: Partial<T['fields']>
+): Promise<ApiResponse<T>> => {
+  const response = await fetch(`${BASE_URL}/airtable/${tableName}/records/${recordId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ fields }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update record ${recordId} in ${tableName}`);
+  }
+
+  const data = await response.json();
+  return data as ApiResponse<T>;
+};

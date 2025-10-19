@@ -2,9 +2,10 @@ import type { CustomerMeasurementsSchema } from "@/components/forms/customer-mea
 import type { Measurement } from "@/types/measurement";
 
 export const mapMeasurementToFormValues = (
-  measurement: Measurement
+  measurement: Measurement,
 ): CustomerMeasurementsSchema => {
   return {
+    measurementRecord: measurement.id,
     measurementID: measurement.fields.MeasurementID || "",
     measurementType: measurement.fields.MeasurementType || "Body",
     measurementReference: measurement.fields.MeasurementReference || "Other",
@@ -62,11 +63,11 @@ export const mapMeasurementToFormValues = (
 
 export const mapFormValuesToMeasurement = (
   formValues: CustomerMeasurementsSchema,
-  customerId: number
+  customerId: string,
 ): { id?: string; fields: Partial<Measurement["fields"]> } => {
   return {
     fields: {
-      CustomerID: customerId,
+      CustomerID: [customerId],
       MeasurementID: formValues.measurementID,
       MeasurementType: formValues.measurementType,
       MeasurementReference: formValues.measurementReference,

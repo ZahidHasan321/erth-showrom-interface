@@ -90,9 +90,21 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
     exactMatch?: boolean; // New prop
   };
 
-  const SidebarLink: React.FC<SidebarLinkProps> = ({ to, title, disabled = false, exactMatch = false }) => {
+  const SidebarLink: React.FC<SidebarLinkProps> = ({
+    to,
+    title,
+    disabled = false,
+    exactMatch = false,
+  }) => {
     const matchRoute = useMatchRoute();
-    const match = exactMatch ? matchRoute({ to }) : matchRoute({ to, fuzzy: true });
+    const match = exactMatch
+      ? matchRoute({ to })
+      : matchRoute({ to, fuzzy: true });
+
+    // Check if the current page is a "new-order" type page:
+    const isNewOrderPage =
+      typeof window !== "undefined" &&
+      /^\/orders\/new-/.test(window.location.pathname);
 
     return (
       <SidebarMenuItem>
@@ -100,8 +112,10 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
           to={to}
           tabIndex={disabled ? -1 : 0}
           aria-disabled={disabled}
-          style={disabled ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+          style={disabled ? { pointerEvents: "none", opacity: 0.5 } : {}}
           className="text-gray-600 hover:font-bold"
+          // When on new-order page, open in a new tab:
+          {...(isNewOrderPage ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         >
           <SidebarMenuButton isActive={!!match} disabled={disabled}>
             {title}
@@ -110,6 +124,7 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
       </SidebarMenuItem>
     );
   };
+
 
   const { main } = useParams({ strict: false }); // Get the dynamic 'main' parameter
   const mainSegment = main ? `/${main}` : BRAND_NAMES.showroom; // Construct the main segment

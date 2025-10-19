@@ -2,14 +2,6 @@
 
 import { searchCustomerByPhone } from "@/api/customers";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { Customer } from "@/types/customer";
@@ -17,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { CustomerSelectionDialog } from "./customer-selection-dialog";
 
 interface SearchCustomerProps {
   onCustomerFound: (customer: Customer) => void;
@@ -28,7 +21,6 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
   const [submittedSearch, setSubmittedSearch] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [customerOptions, setCustomerOptions] = useState<Customer[]>([]);
-  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const { data, isFetching, isSuccess, isError, error } = useQuery({
     queryKey: ["customerSearch", submittedSearch],
@@ -50,7 +42,6 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
         } else if (data.count && data.count > 1) {
           setCustomerOptions(data.data);
           setShowDialog(true);
-          setSelectedIndex(0); // Reset index when dialog opens
           toast.info("Multiple customers found. Please select one.");
         } else {
           toast.error("Customer not found.");
@@ -78,7 +69,6 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
     setShowDialog(false);
     setCustomerOptions([]);
     setSubmittedSearch(null);
-    toast.success(`Selected ${customer.fields.Name}`);
   };
 
   const handleSearch = () => {
@@ -90,26 +80,6 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
     setSubmittedSearch(null);
     onHandleClear();
   };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!showDialog) return;
-
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev + 1) % customerOptions.length);
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev - 1 + customerOptions.length) % customerOptions.length);
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        handleSelectCustomer(customerOptions[selectedIndex]);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [showDialog, customerOptions, selectedIndex, handleSelectCustomer]);
 
   return (
     <div
@@ -156,44 +126,12 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
         </div>
       </div>
 
-      {/* Dialog for multiple customers */}
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Select a Customer</DialogTitle>
-          </DialogHeader>
-          {customerOptions.map((customer, index) => (
-            <DialogDescription
-              key={customer.id}
-              onClick={() => handleSelectCustomer(customer)}
-              className={`p-2 border rounded-lg hover:bg-muted cursor-pointer flex flex-col ${selectedIndex === index ? "border-primary border-2" : ""
-                }`}>
-              <span className="font-medium">{customer.fields.Name}</span>
-              {customer.fields.City && (
-                <span className="text-xs text-muted-foreground">
-                  <strong>City:</strong> {customer.fields.City}
-                </span>
-              )}
-              {customer.fields.Relation && (
-                <span className="text-xs text-muted-foreground">
-                  <strong>Relation:</strong> {customer.fields.Relation}
-                </span>
-              )}
-              {customer.fields.AccountType && (
-                <span className="text-xs text-muted-foreground">
-                  <strong>Account Type:</strong> {customer.fields.AccountType}
-                </span>
-              )}
-            </DialogDescription>
-          ))}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialog(false)}>
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CustomerSelectionDialog
+        isOpen={showDialog}
+        onOpenChange={setShowDialog}
+        customers={customerOptions}
+        onSelectCustomer={handleSelectCustomer}
+      />
     </div>
   );
 }

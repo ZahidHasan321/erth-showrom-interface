@@ -1,6 +1,6 @@
-import type { ApiResponse, UpsertApiResponse } from '../types/api';
+import type { ApiResponse } from '../types/api';
 import type { Order } from '../types/order';
-import { createRecord, getRecords, searchAllRecords, searchRecords, upsertRecords } from './baseApi';
+import { createRecord, getRecords, searchAllRecords, searchRecords, updateRecord } from './baseApi';
 
 const TABLE_NAME = 'ORDERS';
 
@@ -17,9 +17,6 @@ export const createOrder = (order: Partial<Order>): Promise<ApiResponse<Order>> 
   return createRecord<Order>(TABLE_NAME, order);
 };
 
-export const upsertOrder = (
-  orders: Array<{ id?: string; fields: Partial<Order['fields']> }>,
-  keyFields: string[] = ['OrderID'],
-): Promise<UpsertApiResponse<Order>> => {
-  return upsertRecords<Order>(TABLE_NAME, orders, keyFields) as Promise<UpsertApiResponse<Order>>;
-};
+export const updateOrder = (order: Partial<Order['fields']>, orderId: string): Promise<ApiResponse<Order>> => {
+  return updateRecord<Order>(TABLE_NAME, orderId, order) as Promise<ApiResponse<Order>>
+}

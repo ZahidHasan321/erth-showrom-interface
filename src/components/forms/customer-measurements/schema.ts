@@ -56,59 +56,59 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
 };
 
 export const customerMeasurementsSchema = z.object({
+  measurementRecord: z.string().optional(),
   measurementID: z.string(),
   measurementType: z.enum(["Body", "Dishdasha"]),
   measurementReference: z.enum(["Winter", "Summer", "Eid", "Occasion", "Other"]),
   notes: z.string().optional(),
   collar: z.object({
-    width: z.number().min(0, "Value cannot be negative"),
-    height: z.number().min(0, "Value cannot be negative"),
+    width: z.number().min(1, "Width is required"),
+    height: z.number().min(1, "Height is required"),
   }),
   lengths: z.object({
-    front: z.number().min(0, "Value cannot be negative"),
-    back: z.number().min(0, "Value cannot be negative"),
+    front: z.number().min(1, "Front length is required"),
+    back: z.number().min(1, "Back length is required"),
   }),
   arm: z.object({
-    shoulder: z.number().min(0, "Value cannot be negative"),
-    sleeve: z.number().min(0, "Value cannot be negative"),
-    elbow: z.number().min(0, "Value cannot be negative"),
+    shoulder: z.number().min(1, "Shoulder is required"),
+    sleeve: z.number().min(1, "Sleeve is required"),
+    elbow: z.number().min(1, "Elbow is required"),
     armhole: z.object({
-      value: z.number().min(0, "Value cannot be negative"),
-      front: z.number().min(0, "Value cannot be negative"),
+      value: z.number().min(1, "Armhole value is required"),
+      front: z.number().min(1, "Armhole front is required"),
       provision: z.number().optional(),
     }),
   }),
   body: z.object({
-    upper_chest: z.number().min(0, "Value cannot be negative"),
+    upper_chest: z.number().min(1, "Upper chest is required"),
     full_chest: z.object({
-      value: z.number().min(0, "Value cannot be negative"),
-      front: z.number().min(0, "Value cannot be negative"),
+      value: z.number().min(1, "Full chest value is required"),
+      front: z.number().min(1, "Full chest front is required"),
       provision: z.number().optional(),
     }),
     full_waist: z.object({
-      value: z.number().min(0, "Value cannot be negative"),
-      front: z.number().min(0, "Value cannot be negative"),
-      back: z.number().min(0, "Value cannot be negative"),
+      value: z.number().min(1, "Full waist value is required"),
+      front: z.number().min(1, "Full waist front is required"),
+      back: z.number().min(1, "Full waist back is required"),
       provision: z.number().optional(),
     }),
-    bottom: z.number().min(0, "Value cannot be negative"),
+    bottom: z.number().min(1, "Bottom is required"),
   }),
   topPocket: z.object({
-    length: z.number().min(0, "Value cannot be negative"),
-    width: z.number().min(0, "Value cannot be negative"),
-    distance: z.number().min(0, "Value cannot be negative").optional(),
+    length: z.number().min(1, "Top pocket length is required"),
+    width: z.number().min(1, "Top pocket width is required"),
+    distance: z.number().min(1, "Top pocket distance is required"),
   }),
   sidePocket: z.object({
-    length: z.number().min(0, "Value cannot be negative"),
-    width: z.number().min(0, "Value cannot be negative"),
-    distance: z.number().min(0, "Value cannot be negative").optional(),
-    opening: z.number().min(0, "Value cannot be negative").optional(),
+    length: z.number().min(1, "Side pocket length is required"),
+    width: z.number().min(1, "Side pocket width is required"),
+    distance: z.number().min(1, "Side pocket distance is required"),
+    opening: z.number().min(1, "Side pocket opening is required"),
   }),
   jabzoor: z.object({
-    length: z.number().min(0, "Value cannot be negative"),
-    width: z.number().min(0, "Value cannot be negative"),
+    length: z.number().min(1, "Jabzoor length is required"),
+    width: z.number().min(1, "Jabzoor width is required"),
   }),
 });
 
 export type CustomerMeasurementsSchema = z.infer<typeof customerMeasurementsSchema>;
-

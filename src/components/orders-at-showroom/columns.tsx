@@ -45,7 +45,6 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
-    size: 50,
   },
   {
     accessorKey: "orderId",
@@ -53,17 +52,14 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
     cell: ({ row }) => (
       <span className="font-medium">{row.original.orderId}</span>
     ),
-    size: 120,
   },
   {
     accessorKey: "customerId",
     header: "Customer ID",
-    size: 120,
   },
   {
     accessorKey: "customerNickName",
     header: "Customer Nick name",
-    size: 180,
   },
   {
     accessorKey: "orderType",
@@ -90,7 +86,6 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
         </span>
       );
     },
-    size: 120,
   },
   {
     accessorKey: "mobileNumber",
@@ -99,7 +94,6 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
       const mobile = row.original.mobileNumber;
       return <span className="text-sm">{mobile}</span>;
     },
-    size: 140,
   },
   {
     accessorKey: "remainingPayment",
@@ -114,7 +108,6 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
       </span>
     ),
     filterFn: inNumberRange,
-    size: 160,
   },
   {
     accessorKey: "quantity",
@@ -125,7 +118,6 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
       </span>
     ),
     filterFn: inNumberRange,
-    size: 100,
   },
   {
     accessorKey: "promisedDeliveryDate",
@@ -134,7 +126,6 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
       <span>{formatDate(row.original.promisedDeliveryDate)}</span>
     ),
     filterFn: inDateRange,
-    size: 180,
   },
   {
     accessorKey: "receivedAtShowroom",
@@ -145,7 +136,6 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
       ) : (
         <span className="text-muted-foreground">Pending</span>
       ),
-    size: 180,
   },
   {
     accessorKey: "delayInDays",
@@ -166,19 +156,16 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
           : "On time"}
       </span>
     ),
-    size: 120,
   },
   {
     id: "r1",
     header: "R1",
     cell: ({ row }) => <ReminderCell label="R1" reminder={row.original.r1} />,
-    size: 200,
   },
   {
     id: "r2",
     header: "R2",
     cell: ({ row }) => <ReminderCell label="R2" reminder={row.original.r2} />,
-    size: 200,
   },
   {
     id: "call-reminders",
@@ -186,13 +173,11 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
     cell: ({ row }) => (
       <CallReminderCell reminders={row.original.callReminders} />
     ),
-    size: 280,
   },
   {
     id: "escalations",
     header: "Escalations",
     cell: ({ row }) => <EscalationCell escalation={row.original.escalation} />,
-    size: 150,
   },
   {
     id: "remainders",

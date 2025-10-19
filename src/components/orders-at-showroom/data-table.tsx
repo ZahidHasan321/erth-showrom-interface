@@ -215,7 +215,7 @@ export function OrdersDataTable({
     remainderFilters.length > 0;
 
   return (
-    <div className="space-y-4 max-w-[1440px]">
+    <div className="space-y-4">
       {/* Search section */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end max-w-4xl rounded-lg border bg-muted/50 p-4">
         <div className="w-full sm:flex-1 space-y-1.5">

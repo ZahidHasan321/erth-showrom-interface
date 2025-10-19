@@ -34,7 +34,7 @@ export function mapFormOrderToApiOrder(formOrder: Partial<OrderSchema>, orderId?
             OrderID: formOrder.OrderID,
             CustomerID: formOrder.CustomerID,
             OrderDate: formOrder.OrderDate,
-            OrderStatus: formOrder.OrderStatus,
+            OrderStatus: formOrder.OrderStatus === 'Processing' ? 'Pending' : formOrder.OrderStatus,
             OrderTotal: formOrder.OrderTotal,
             Notes: formOrder.Notes,
         }

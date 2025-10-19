@@ -59,12 +59,7 @@ function NewSalesOrder() {
   const savedSteps = useCurrentSalesOrderStore((s) => s.savedSteps);
   const addSavedStep = useCurrentSalesOrderStore((s) => s.addSavedStep);
   const removeSavedStep = useCurrentSalesOrderStore((s) => s.removeSavedStep);
-  const customerId = useCurrentSalesOrderStore((s) => s.customerId);
-  const setCustomerId = useCurrentSalesOrderStore((s) => s.setCustomerId);
-  const customerRecordId = useCurrentSalesOrderStore((s) => s.customerRecordId);
-  const setCustomerRecordId = useCurrentSalesOrderStore(
-    (s) => s.setCustomerRecordId
-  );
+  const customerDemographics = useCurrentSalesOrderStore((s) => s.customerDemographics);
   const setCustomerDemographics = useCurrentSalesOrderStore(
     (s) => s.setCustomerDemographics
   );
@@ -80,6 +75,13 @@ function NewSalesOrder() {
     (s) => s.setOtherPaymentType
   );
   const setPaymentRefNo = useCurrentSalesOrderStore((s) => s.setPaymentRefNo);
+  const resetSalesOrder = useCurrentSalesOrderStore((s) => s.resetSalesOrder);
+
+  React.useEffect(() => {
+    return () => {
+      resetSalesOrder();
+    };
+  }, [resetSalesOrder]);
 
   const { mutate: createNewOrder, isPending } = useMutation({
     mutationFn: () => createOrder({ fields: { OrderStatus: "Pending" } }),
@@ -242,17 +244,18 @@ function NewSalesOrder() {
             {index === 0 && (
               <CustomerDemographicsForm
                 form={demographicsForm}
-                onSubmit={(data) => {
+                onSave={(data) => {
                   setCustomerDemographics(data);
                   toast.success("Customer Demographics saved ✅");
                 }}
                 onEdit={() => removeSavedStep(0)}
                 onCancel={() => addSavedStep(0)}
-                onCustomerIdChange={setCustomerId}
-                onCustomerRecordChange={setCustomerRecordId}
-                customerId={customerId}
-                customerRecordId={customerRecordId}
-                onProceed={() => handleProceed(0)}
+                onProceed={() => {
+                  if (orderId && customerDemographics.customerRecordId) {
+                    setOrder({ CustomerID: [customerDemographics.customerRecordId] });
+                    handleProceed(0);
+                  }
+                }}
                 onClear={() => removeSavedStep(0)}
               />
             )}

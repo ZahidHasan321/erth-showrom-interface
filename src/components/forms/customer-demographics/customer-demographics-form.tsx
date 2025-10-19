@@ -1,9 +1,15 @@
-import { searchPrimaryAccountByPhone, upsertCustomer } from "@/api/customers";
+import { debounce } from "@/lib/utils";
+import {
+  createCustomer,
+  searchPrimaryAccountByPhone,
+  updateCustomer,
+} from "@/api/customers";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { DatePicker } from "@/components/ui/date-picker";
+import Flag from "react-world-flags";
 import {
   Form,
   FormControl,
@@ -30,7 +36,6 @@ import type { Customer } from "@/types/customer";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { useState } from "react";
-import { flushSync } from "react-dom";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
 import type z from "zod";
@@ -42,68 +47,81 @@ import {
 import { SearchCustomer } from "./search-customer";
 import { AnimatedMessage } from "@/components/animation/AnimatedMessage";
 import WhatsappLogo from "@/assets/whatsapp.svg";
+import { motion } from "framer-motion";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
-  onSubmit: (values: z.infer<typeof customerDemographicsSchema>) => void;
   onEdit?: () => void;
   onCancel?: () => void;
-  onCustomerRecordChange?: (id: string | null) => void;
-  onCustomerIdChange?: (id: string | null) => void;
   onProceed?: () => void;
   onClear?: () => void;
-  customerId: string | null;
-  customerRecordId: string | null;
+  onSave?: (data: Partial<CustomerDemographicsSchema>) => void;
 }
 
 export function CustomerDemographicsForm({
   form,
-  onSubmit,
   onEdit,
   onCancel,
-  onCustomerIdChange,
-  onCustomerRecordChange,
   onProceed,
   onClear,
-  customerRecordId,
+  onSave,
 }: CustomerDemographicsFormProps) {
   const [isEditing, setIsEditing] = useState(true);
   const [confirmationDialog, setConfirmationDialog] = useState({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
-  const [warnings, setWarnings] = React.useState<{ [K in keyof CustomerDemographicsSchema]?: string }>({});
+  const [warnings, setWarnings] = React.useState<{
+    [K in keyof CustomerDemographicsSchema]?: string;
+  }>({});
 
-  const [AccountType, mobileNumber] = useWatch({
+  const [AccountType, mobileNumber, customerRecordId] = useWatch({
     control: form.control,
-    name: ["accountType", "mobileNumber"],
+    name: ["accountType", "mobileNumber", "customerRecordId"],
   });
   const countries = getSortedCountries();
 
-  const { data: existingUsers, isSuccess, refetch: accountRefetch, isFetching } = useQuery({
-    queryKey: ['existingUsers'],
-    queryFn: async () => { return searchPrimaryAccountByPhone(mobileNumber) },
-    enabled: false
-  })
+  const {
+    data: existingUsers,
+    isSuccess,
+    refetch: accountRefetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ["existingUsers", mobileNumber],
+    queryFn: async () => {
+      return searchPrimaryAccountByPhone(mobileNumber);
+    },
+    enabled: false,
+  });
 
-  function handleMobileChange() {
-    if (mobileNumber === undefined || mobileNumber.trim() === "" || !isEditing) {
+  const debouncedRefetch = debounce(() => {
+    accountRefetch();
+  }, 500);
+
+  function handleMobileChange(value: string) {
+    if (value.trim() === "" || !isEditing) {
       setWarnings((prev) => ({ ...prev, mobileNumber: undefined }));
       form.setValue("accountType", undefined);
       return;
     }
-    accountRefetch();
+    debouncedRefetch();
   }
 
   React.useEffect(() => {
     if (isSuccess && existingUsers) {
       const currentAccountType = form.getValues().accountType;
-      if (existingUsers.data && existingUsers.count && existingUsers.count > 0 && existingUsers.data[0].id !== customerRecordId) {
+      if (
+        existingUsers.data &&
+        existingUsers.count &&
+        existingUsers.count > 0 &&
+        existingUsers.data[0].id !== customerRecordId
+      ) {
         setWarnings((prev) => ({
           ...prev,
-          mobileNumber: "This mobile number is already used in a Primary account. Proceed with caution.",
+          mobileNumber:
+            "This mobile number is already used in a Primary account. Proceed with caution.",
         }));
         if (currentAccountType !== "Secondary") {
           form.setValue("accountType", "Secondary");
@@ -115,62 +133,89 @@ export function CustomerDemographicsForm({
         }
       }
     }
-  }, [existingUsers, isSuccess, mobileNumber, form, customerRecordId])
+  }, [existingUsers, isSuccess, mobileNumber, form, customerRecordId]);
 
-
-
+  React.useEffect(() => {
+    if (AccountType === "Primary") {
+      form.setValue("relation", undefined);
+    }
+  }, [AccountType, form]);
 
   const handleCustomerFound = (customer: Customer) => {
     const formValues = mapCustomerToFormValues(customer);
+    onSave?.(formValues);
+    setTimeout(() => {
+      setIsEditing(false);
+    }, 0);
+    setWarnings({});
     form.reset(formValues);
-    onCustomerRecordChange?.(customer.id);
-    onCustomerIdChange?.(String(customer.fields.id) || null);
-    setIsEditing(false);
-  }
+  };
 
+  const { mutate: createCustomerMutation, isPending: isCreating } = useMutation({
+    mutationFn: (customerToCreate: Partial<Customer["fields"]>) =>
+      createCustomer(customerToCreate),
+    onSuccess: (response) => {
+      if (response.status === "success" && response.data) {
+        toast.success("Customer created successfully!");
+        const createdCustomer = mapCustomerToFormValues(response.data);
+        onSave?.(createdCustomer);
+        form.reset(createdCustomer);
+        setTimeout(() => {
+          setIsEditing(false);
+        }, 0);
+      } else {
+        toast.error(response.message || "Failed to create customer.");
+      }
+    },
+    onError: () => {
+      toast.error("Failed to create customer.");
+    },
+  });
 
-
-
-  const { mutate: upsertCustomerMutation, isPending: isUpserting } =
-    useMutation({
-      mutationFn: (customerToUpsert: {
-        id?: string;
-        fields: Partial<Customer["fields"]>;
-      }) => upsertCustomer([customerToUpsert], ["Phone"]),
-      onSuccess: (response) => {
-        if (response.status === "success" && response.data) {
-          const wasNewCustomer = !customerRecordId;
-          toast.success(
-            `Customer ${wasNewCustomer ? "created" : "updated"} successfully!`
-          ); onProceed
-          const upsertedCustomerData = response.data.records.at(0) as Customer;
-
-          onCustomerRecordChange?.(upsertedCustomerData.id);
-          onCustomerIdChange?.(upsertedCustomerData.fields.id?.toString() || null);
-
-          flushSync(() => {
-            setIsEditing(false);
-          });
-          onSubmit(form.getValues());
-        } else {
-          toast.error(
-            response.message ||
-            `Failed to ${customerRecordId ? "update" : "create"} customer.`
-          );
-        }
-      },
-      onError: () => {
-        toast.error(
-          `Failed to ${customerRecordId ? "update" : "create"} customer.`
-        );
-      },
-    });
+  const { mutate: updateCustomerMutation, isPending: isUpdating } = useMutation({
+    mutationFn: (customerToUpdate: {
+      id: string;
+      fields: Partial<Customer["fields"]>;
+    }) => updateCustomer(customerToUpdate.id, customerToUpdate.fields),
+    onSuccess: (response) => {
+      if (response.status === "success" && response.data) {
+        toast.success("Customer updated successfully!");
+        const customer = mapCustomerToFormValues(response.data);
+        onSave?.(customer);
+        form.reset(customer);
+        setTimeout(() => {
+          setIsEditing(false);
+        }, 0);
+      } else {
+        toast.error(response.message || "Failed to update customer.");
+      }
+    },
+    onError: () => {
+      toast.error("Failed to update customer.");
+    },
+  });
 
   const handleFormSubmit = (
-    values: z.infer<typeof customerDemographicsSchema>
+    values: z.infer<typeof customerDemographicsSchema>,
   ) => {
-    const customerToUpsert = mapFormValuesToCustomer(values, customerRecordId);
-    upsertCustomerMutation(customerToUpsert);
+    const onConfirm = () => {
+      const customerToSave = mapFormValuesToCustomer(values, customerRecordId);
+      if (customerRecordId) {
+        updateCustomerMutation({ ...customerToSave, id: customerRecordId });
+      } else {
+        createCustomerMutation(customerToSave.fields);
+      }
+      setConfirmationDialog({ ...confirmationDialog, isOpen: false });
+    };
+
+    setConfirmationDialog({
+      isOpen: true,
+      title: customerRecordId ? "Update Customer" : "Create Customer",
+      description: `Are you sure you want to ${
+        customerRecordId ? "update" : "create"
+      } this customer?`,
+      onConfirm,
+    });
   };
 
   const handleEdit = () => {
@@ -186,27 +231,30 @@ export function CustomerDemographicsForm({
     });
   };
 
-  const handleCancel = () => {
+  const handleCancelEdit = () => {
     setConfirmationDialog({
       isOpen: true,
       title: "Confirm Cancel",
       description:
-        "Are you sure you want to cancel? Any unsaved changes will be lost.",
+        "Are you sure you want to cancel editing? Any unsaved changes will be lost.",
       onConfirm: () => {
-        setIsEditing(false);
+        setIsEditing(false); // This will show the original customer data
         onCancel?.();
         setConfirmationDialog({ ...confirmationDialog, isOpen: false });
       },
     });
   };
 
-  const handleSave = () => {
+  const handleCancelCreation = () => {
     setConfirmationDialog({
       isOpen: true,
-      title: "Confirm Save",
-      description: "Are you sure you want to save these details?",
+      title: "Confirm Cancel",
+      description:
+        "Are you sure you want to cancel creating a new customer? The form will be cleared.",
       onConfirm: () => {
-        form.handleSubmit(handleFormSubmit)();
+        form.reset(customerDemographicsDefaults);
+        setWarnings({});
+        onClear?.();
         setConfirmationDialog({ ...confirmationDialog, isOpen: false });
       },
     });
@@ -214,13 +262,28 @@ export function CustomerDemographicsForm({
 
   const isReadOnly = !isEditing;
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+  };
+
   return (
     <Form {...form}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSave();
-        }}
+      <motion.form
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-8 w-full"
       >
         <ConfirmationDialog
@@ -233,51 +296,62 @@ export function CustomerDemographicsForm({
           description={confirmationDialog.description}
         />
 
-        <div className="flex justify-between items-start">
+        <motion.div
+          variants={itemVariants}
+          className="flex justify-between items-start"
+        >
           <h1 className="text-2xl font-bold mb-4">Demographics</h1>
-        </div>
+        </motion.div>
 
-        <SearchCustomer
-          onCustomerFound={handleCustomerFound}
-          onHandleClear={() => {
-            form.reset(customerDemographicsDefaults);
-            onCustomerRecordChange?.(null);
-            onCustomerIdChange?.(null);
-            setIsEditing(true);
-            setWarnings({});
-            onClear?.()
-          }}
-        />
+        <motion.div variants={itemVariants}>
+          <SearchCustomer
+            onCustomerFound={handleCustomerFound}
+            onHandleClear={() => {
+              form.reset(customerDemographicsDefaults);
+              setIsEditing(true);
+              setWarnings({});
+              onClear?.();
+            }}
+          />
+        </motion.div>
 
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem className="bg-muted p-4 rounded-lg">
-              <FormLabel className="font-bold">
-                <span className="text-red-500">*</span>Name
-              </FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter full name (e.g., Nasser Al-Sabah)"
-                  {...field}
-                  className="bg-white"
-                  readOnly={isReadOnly}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <motion.div variants={itemVariants}>
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem className="bg-muted p-4 rounded-lg">
+                <FormLabel className="font-bold">
+                  <span className="text-red-500">*</span>Name
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter full name (e.g., Nasser Al-Sabah)"
+                    {...field}
+                    className="bg-white"
+                    readOnly={isReadOnly}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
           <div className="space-y-4 bg-muted p-4 rounded-lg">
             <FormField
               control={form.control}
               name="nickName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nick Name</FormLabel>
+                  <FormLabel className="font-bold">
+                    <span className="text-red-500">*</span>
+                    Nick Name
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter nickname (e.g., Abu Nasser)"
@@ -348,6 +422,17 @@ export function CustomerDemographicsForm({
                             options={countries.map((country) => ({
                               value: country.phoneCode,
                               label: `${country.flag}: ${country.name} ${country.phoneCode}`,
+                              node: (
+                                <div className="flex items-center">
+                                  <Flag
+                                    code={country.code}
+                                    className="w-4 h-4 mr-2"
+                                  />
+                                  <span>
+                                    {country.name} ({country.phoneCode})
+                                  </span>
+                                </div>
+                              ),
                             }))}
                             value={field.value || ""}
                             onChange={field.onChange}
@@ -363,7 +448,10 @@ export function CustomerDemographicsForm({
                         {...field}
                         className="bg-white"
                         readOnly={isReadOnly}
-                        onBlur={handleMobileChange}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleMobileChange(e.target.value);
+                        }}
                       />
                     </FormControl>
                     <FormField
@@ -380,7 +468,11 @@ export function CustomerDemographicsForm({
                             />
                           </FormControl>
                           <FormLabel>
-                            <img src={WhatsappLogo} alt="WhatsApp" className="min-w-8" />
+                            <img
+                              src={WhatsappLogo}
+                              alt="WhatsApp"
+                              className="min-w-8"
+                            />
                           </FormLabel>
                         </FormItem>
                       )}
@@ -389,10 +481,18 @@ export function CustomerDemographicsForm({
                   <FormMessage />
 
                   <AnimatedMessage
-                    info={isFetching ? "Checking existing accounts..." : undefined}
-                    warning={warnings.mobileNumber && !isFetching && existingUsers?.count && existingUsers.count > 0 ? warnings.mobileNumber : undefined}
+                    info={
+                      isFetching ? "Checking existing accounts..." : undefined
+                    }
+                    warning={
+                      warnings.mobileNumber &&
+                      !isFetching &&
+                      existingUsers?.count &&
+                      existingUsers.count > 0
+                        ? warnings.mobileNumber
+                        : undefined
+                    }
                   />
-
                 </FormItem>
               )}
             />
@@ -414,11 +514,22 @@ export function CustomerDemographicsForm({
                             options={countries.map((country) => ({
                               value: country.phoneCode,
                               label: `${country.flag}: ${country.name} ${country.phoneCode}`,
+                              node: (
+                                <div className="flex items-center">
+                                  <Flag
+                                    code={country.code}
+                                    className="w-4 h-4 mr-2"
+                                  />
+                                  <span>
+                                    {country.name} ({country.phoneCode})
+                                  </span>
+                                </div>
+                              ),
                             }))}
                             value={field.value || ""}
                             onChange={field.onChange}
                             placeholder="Code"
-                          />                          
+                          />
                           <FormMessage />
                         </FormItem>
                       )}
@@ -445,7 +556,11 @@ export function CustomerDemographicsForm({
                             />
                           </FormControl>
                           <FormLabel>
-                            <img src={WhatsappLogo} alt="WhatsApp" className="min-w-8" />
+                            <img
+                              src={WhatsappLogo}
+                              alt="WhatsApp"
+                              className="min-w-8"
+                            />
                           </FormLabel>
                         </FormItem>
                       )}
@@ -469,6 +584,12 @@ export function CustomerDemographicsForm({
                     options={countries.map((country) => ({
                       value: country.name,
                       label: `${country.flag} ${country.name}`,
+                      node: (
+                        <div className="flex items-center">
+                          <Flag code={country.code} className="w-4 h-4 mr-2" />
+                          <span>{country.name}</span>
+                        </div>
+                      ),
                     }))}
                     value={field.value || ""}
                     onChange={field.onChange}
@@ -479,28 +600,33 @@ export function CustomerDemographicsForm({
               )}
             />
           </div>
-        </div>
+        </motion.div>
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem className="bg-muted p-4 rounded-lg">
-              <FormLabel>E-mail</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter email (e.g., nasser@erth.com)"
-                  {...field}
-                  className="bg-white"
-                  readOnly={isReadOnly}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <motion.div variants={itemVariants}>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="bg-muted p-4 rounded-lg">
+                <FormLabel>E-mail</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter email (e.g., nasser@erth.com)"
+                    {...field}
+                    className="bg-white"
+                    readOnly={isReadOnly}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
           <section className="flex flex-col rounded-lg bg-muted p-4 gap-2">
             <FormField
               control={form.control}
@@ -532,8 +658,13 @@ export function CustomerDemographicsForm({
               control={form.control}
               name="relation"
               render={({ field }) => (
-                <FormItem className="w-full border bg-muted">
-                  <FormLabel>Account Relation</FormLabel>
+                <FormItem className="w-full bg-muted">
+                  <FormLabel className={AccountType === "Secondary" ? "font-bold" : ""}>
+                    {AccountType === "Secondary" && (
+                      <span className="text-red-500">*</span>
+                    )}
+                    Account Relation
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -541,7 +672,13 @@ export function CustomerDemographicsForm({
                   >
                     <FormControl>
                       <SelectTrigger className="bg-white">
-                        <SelectValue placeholder={AccountType === "Primary" ? "Account is primary" : "Select account type"} />
+                        <SelectValue
+                          placeholder={
+                            AccountType === "Primary"
+                              ? "Account is primary"
+                              : "Select account type"
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -557,12 +694,12 @@ export function CustomerDemographicsForm({
             />
           </section>
 
-          <section className="overflow-hidden">
+          <section className="overflow-hidden rounded-lg">
             <FormField
               control={form.control}
               name="customerSegment"
               render={({ field }) => (
-                <FormItem className="w-full bg-muted p-4 rounded-lg">
+                <FormItem className="w-full bg-muted p-4">
                   <FormLabel>Customer Segment</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -583,10 +720,31 @@ export function CustomerDemographicsForm({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="note"
+              render={({ field }) => (
+                <FormItem className="bg-muted p-4">
+                  <FormLabel>Note</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Add any notes about the customer"
+                      {...field}
+                      className="bg-white"
+                      readOnly={isReadOnly}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </section>
-        </div>
+        </motion.div>
 
-        <div className="bg-muted p-4 rounded-lg space-y-4">
+        <motion.div
+          variants={itemVariants}
+          className="bg-muted p-4 rounded-lg space-y-4"
+        >
           <h2 className="text-lg font-semibold">Address</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -703,32 +861,17 @@ export function CustomerDemographicsForm({
               />
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <FormField
-          control={form.control}
-          name="note"
-          render={({ field }) => (
-            <FormItem className="bg-muted p-4 rounded-lg">
-              <FormLabel>Note</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Add any notes about the customer"
-                  {...field}
-                  className="bg-white"
-                  readOnly={isReadOnly}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex gap-6 justify-center">
+        <motion.div
+          variants={itemVariants}
+          className="flex gap-6 justify-center"
+        >
+          {/* Customer loaded, not editing */}
           {!isEditing && customerRecordId && (
             <>
               <Button type="button" variant="outline" onClick={handleEdit}>
-                Edit Details
+                Edit Customer
               </Button>
               <Button
                 type="button"
@@ -739,18 +882,41 @@ export function CustomerDemographicsForm({
               </Button>
             </>
           )}
+
+          {/* Editing an existing customer */}
           {isEditing && customerRecordId && (
-            <Button type="button" variant="destructive" onClick={handleCancel}>
-              Cancel
-            </Button>
+            <>
+              <Button type="submit" disabled={isUpdating}>
+                {isUpdating ? "Updating..." : "Update Customer"}
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleCancelEdit}
+              >
+                Cancel Edit
+              </Button>
+            </>
           )}
-          {isEditing && (
-            <Button type="submit" disabled={isUpserting}>
-              {isUpserting ? "Saving..." : "Save"}
-            </Button>
+
+          {/* Creating a new customer */}
+          {isEditing && !customerRecordId && (
+            <>
+              <Button type="submit" disabled={isCreating}>
+                {isCreating ? "Creating..." : "Create Customer"}
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleCancelCreation}
+              >
+                Cancel Creation
+              </Button>
+            </>
           )}
-        </div>
-      </form>
+        </motion.div>
+      </motion.form>
     </Form>
   );
 }
+

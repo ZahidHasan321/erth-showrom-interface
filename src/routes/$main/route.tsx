@@ -16,13 +16,13 @@ type MainParam = typeof BRAND_NAMES[keyof typeof BRAND_NAMES]
 export const Route = createFileRoute('/$main')<{
   params: { main: MainParam }
 }>({
-  component: RouteComponent,  
+  component: RouteComponent,
   loader: async ({ params, context }) => {
     const { auth } = context
 
-      if (params.main !== BRAND_NAMES.showroom && params.main !== BRAND_NAMES.fromHome) {
-        throw notFound({routeId: rootRouteId});
-      }
+    if (params.main !== BRAND_NAMES.showroom && params.main !== BRAND_NAMES.fromHome) {
+      throw notFound({ routeId: rootRouteId });
+    }
 
     if (auth?.user?.userType !== params.main) {
       throw redirect({
@@ -45,12 +45,12 @@ export const Route = createFileRoute('/$main')<{
     meta: [{
       title: params.main,
     }
-  ],
-  links:[{
-    rel:'icon',
-    type:"image/svg+xml",
-    href: params.main === 'erth' ? "/erth-light.svg" :"/Sakkba.png"
-  }]
+    ],
+    links: [{
+      rel: 'icon',
+      type: "image/svg+xml",
+      href: params.main === 'erth' ? "/erth-light.svg" : "/Sakkba.png"
+    }]
   }),
 })
 
@@ -72,28 +72,30 @@ function RouteComponent() {
   }
   return (
     <SidebarProvider>
-      <AppSidebar
-        brandLogo={main === BRAND_NAMES.showroom ? ErthLogo : SakhtbaLogo}
-        brandName={main === BRAND_NAMES.showroom ? BRAND_NAMES.showroom : BRAND_NAMES.fromHome}
-      />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 relative"> {/* Added relative for positioning */}
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
-          <div className="absolute right-4 top-1/2 -translate-y-1/2"> {/* Positioned to top right */}
-            <Button variant="destructive" size="sm" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </header>
-        <main className="flex-1 justify-start">
-          <Outlet />
-        </main>
-      </SidebarInset>
+      <div className="flex h-screen w-screen">
+        <AppSidebar
+          brandLogo={main === BRAND_NAMES.showroom ? ErthLogo : SakhtbaLogo}
+          brandName={main === BRAND_NAMES.showroom ? BRAND_NAMES.showroom : BRAND_NAMES.fromHome}
+        />
+        <SidebarInset  className="flex-1 flex flex-col min-w-0">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 relative"> {/* Added relative for positioning */}
+            <SidebarTrigger className="-ml-1" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-[orientation=vertical]:h-4"
+            />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2"> {/* Positioned to top right */}
+              <Button variant="destructive" size="sm" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </header>
+          <main className="flex-1">
+            <Outlet />
+          </main>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }

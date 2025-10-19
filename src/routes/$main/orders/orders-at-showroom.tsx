@@ -21,7 +21,7 @@ function RouteComponent() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 mx-20">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
           Orders at Showroom

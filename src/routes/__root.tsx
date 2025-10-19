@@ -1,10 +1,8 @@
 // src/routes/__root.tsx
 import { ScrollToTopButton } from "@/components/animation/scrollToTop";
 import { ErrorBoundary } from "@/components/global/error-boundary";
-import { GlobalLoader } from "@/components/global/global-loader";
 import { NotFoundPage } from "@/components/not-found-page";
 import type { AuthContext } from "@/context/auth";
-import { LoaderProvider } from "@/context/loader";
 import { createRootRouteWithContext, HeadContent, Outlet } from "@tanstack/react-router";
 import { Toaster } from "sonner";
 
@@ -22,12 +20,9 @@ function RootLayout() {
     <>
       <HeadContent />
       <ErrorBoundary>
-        <LoaderProvider>
-          <GlobalLoader />
           <Outlet />
           <Toaster position="bottom-right" richColors closeButton expand/>
       <ScrollToTopButton />
-        </LoaderProvider>
       </ErrorBoundary>
     </>
   );

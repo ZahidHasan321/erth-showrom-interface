@@ -1,6 +1,6 @@
 "use client";
 
-import { createOrder } from "@/api/orders";
+import { createOrder, updateOrder } from "@/api/orders";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
 import {
   customerDemographicsDefaults,
@@ -31,7 +31,11 @@ import { ShelvedProductsForm } from "@/components/forms/shelved-products";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import HorizontalStepper from "@/components/ui/horizontal-stepper";
-import { mapApiOrderToFormOrder } from "@/lib/order-mapper";
+import {
+  mapApiOrderToFormOrder,
+  mapFormOrderToApiOrder,
+} from "@/lib/order-mapper";
+import type { OrderSchema } from "@/schemas/schema";
 import { createWorkOrderStore } from "@/store/current-work-order";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -65,7 +69,7 @@ function NewWorkOrder() {
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
 
   // store selectors
@@ -74,18 +78,26 @@ function NewWorkOrder() {
   const savedSteps = useCurrentWorkOrderStore((s) => s.savedSteps);
   const addSavedStep = useCurrentWorkOrderStore((s) => s.addSavedStep);
   const removeSavedStep = useCurrentWorkOrderStore((s) => s.removeSavedStep);
-  const customerId = useCurrentWorkOrderStore((s) => s.customerId);
-  const setCustomerId = useCurrentWorkOrderStore((s) => s.setCustomerId);
-  const customerRecordId = useCurrentWorkOrderStore((s) => s.customerRecordId);
-  const setCustomerRecordId = useCurrentWorkOrderStore((s) => s.setCustomerRecordId);
-  const setFabricSelections = useCurrentWorkOrderStore((s) => s.setFabricSelections);
+  const customerDemographics = useCurrentWorkOrderStore(
+    (s) => s.customerDemographics,
+  );
+  const setCustomerDemographics = useCurrentWorkOrderStore(
+    (s) => s.setCustomerDemographics,
+  );
+  const fabricSelections = useCurrentWorkOrderStore((s) => s.fabricSelections);
+  const setFabricSelections = useCurrentWorkOrderStore(
+    (s) => s.setFabricSelections,
+  );
   const setStyleOptions = useCurrentWorkOrderStore((s) => s.setStyleOptions);
-  const setShelvedProducts = useCurrentWorkOrderStore((s) => s.setShelvedProducts);
+  const setShelvedProducts = useCurrentWorkOrderStore(
+    (s) => s.setShelvedProducts,
+  );
   const shelvedProducts = useCurrentWorkOrderStore((s) => s.shelvedProducts);
   const orderId = useCurrentWorkOrderStore((s) => s.orderId);
   const setOrderId = useCurrentWorkOrderStore((s) => s.setOrderId);
   const order = useCurrentWorkOrderStore((s) => s.order);
   const setOrder = useCurrentWorkOrderStore((s) => s.setOrder);
+  const resetWorkOrder = useCurrentWorkOrderStore((s) => s.resetWorkOrder);
 
   // mutation to create order
   const { mutate: createNewOrder, isPending } = useMutation({
@@ -96,6 +108,9 @@ function NewWorkOrder() {
         const formattedOrder = mapApiOrderToFormOrder(order);
         setOrderId(order.id);
         setOrder(formattedOrder);
+
+        demographicsForm.reset();
+        measurementsForm.reset();
         toast.success("New work order created successfully!");
       }
     },
@@ -115,6 +130,10 @@ function NewWorkOrder() {
     defaultValues: customerMeasurementsDefaults,
   });
 
+  React.useEffect(() => {
+    measurementsForm.reset(customerMeasurementsDefaults);
+  }, [customerDemographics.id, measurementsForm]);
+
   const fabricSelectionForm = useForm<{
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
@@ -123,7 +142,7 @@ function NewWorkOrder() {
       z.object({
         fabricSelections: z.array(fabricSelectionSchema),
         styleOptions: z.array(styleOptionsSchema),
-      })
+      }),
     ),
     defaultValues: { fabricSelections: [], styleOptions: [] },
   });
@@ -141,7 +160,10 @@ function NewWorkOrder() {
   // charges
   const shelfCharges =
     shelvedProducts && shelvedProducts.length > 0
-      ? shelvedProducts.reduce((total, product) => total + product.quantity * product.unitPrice, 0)
+      ? shelvedProducts.reduce(
+          (total, product) => total + product.quantity * product.unitPrice,
+          0,
+        )
       : 0;
 
   const fabricCharges = 100;
@@ -154,7 +176,13 @@ function NewWorkOrder() {
     OrderForm.setValue("charges.stitching", stitchingCharges);
     OrderForm.setValue("charges.style", 0);
     OrderForm.setValue("advance", advancePayment);
-  }, [shelfCharges, fabricCharges, stitchingCharges, advancePayment, OrderForm]);
+  }, [
+    shelfCharges,
+    fabricCharges,
+    stitchingCharges,
+    advancePayment,
+    OrderForm,
+  ]);
 
   // ----------------------------
   // stable refs for sections
@@ -163,6 +191,11 @@ function NewWorkOrder() {
   // ensure array length
   React.useEffect(() => {
     sectionRefs.current = steps.map((_, i) => sectionRefs.current[i] ?? null);
+
+    return () => {
+      demographicsForm.reset();
+      resetWorkOrder();
+    };
   }, []);
 
   // ----------------------------
@@ -219,11 +252,22 @@ function NewWorkOrder() {
   // scroll to step when clicked
   const handleStepChange = (i: number) => {
     const el = sectionRefs.current[i];
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      const headerOffset = 120; // height of your sticky header
+      const offsetPosition = window.scrollY + rect.top - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
   };
 
-  const handleProceed = (step: number) => addSavedStep(step);
-
+  const handleProceed = (step: number) => {
+    addSavedStep(step);
+    handleStepChange(step + 1);
+  };
   const handleFabricSelectionSubmit = (data: {
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
@@ -247,12 +291,42 @@ function NewWorkOrder() {
     }
   }, [orderId, createNewOrder]);
 
+  type UpdateOrderPayload = {
+    fields: Partial<OrderSchema>;
+    orderId: string;
+    onSuccessAction?: "customer" | "payment" | "fabric" | null;
+  };
+
+  const { mutate: updateOrderFn } = useMutation({
+    mutationFn: ({ fields, orderId }: UpdateOrderPayload) => {
+      const orderMapped = mapFormOrderToApiOrder(fields);
+      return updateOrder(orderMapped["fields"], orderId);
+    },
+    onSuccess: (_response, variables) => {
+      // variables contains what you passed to mutate()
+      if (variables.onSuccessAction === "customer") {
+        toast.success("Customer updated ✅");
+        setOrder(variables.fields);
+        setCustomerDemographics(demographicsForm.getValues());
+        handleProceed(0); // move to next step
+      } else if (variables.onSuccessAction === "payment") {
+        toast.success("Payment info saved ✅");
+        handleProceed(4);
+      } else {
+        toast.success("Order updated successfully ✅");
+      }
+    },
+    onError: () => toast.error("Failed to update order"),
+  });
+
   // If not created yet
   if (!orderId) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-center space-y-6">
         <h2 className="text-2xl font-semibold">No order created yet 📝</h2>
-        <p className="text-gray-600 dark:text-gray-400">You need to create a new work order before proceeding.</p>
+        <p className="text-gray-600 dark:text-gray-400">
+          You need to create a new work order before proceeding.
+        </p>
 
         <Button
           size="lg"
@@ -260,7 +334,8 @@ function NewWorkOrder() {
             setConfirmationDialog({
               isOpen: true,
               title: "Create New Work Order",
-              description: "Do you want to create a new work order? This will initialize a new order entry.",
+              description:
+                "Do you want to create a new work order? This will initialize a new order entry.",
               onConfirm: () => {
                 createNewOrder();
                 setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
@@ -274,7 +349,9 @@ function NewWorkOrder() {
 
         <ConfirmationDialog
           isOpen={confirmationDialog.isOpen}
-          onClose={() => setConfirmationDialog((prev) => ({ ...prev, isOpen: false }))}
+          onClose={() =>
+            setConfirmationDialog((prev) => ({ ...prev, isOpen: false }))
+          }
           onConfirm={confirmationDialog.onConfirm}
           title={confirmationDialog.title}
           description={confirmationDialog.description}
@@ -290,32 +367,48 @@ function NewWorkOrder() {
     <div className="mb-56">
       <ConfirmationDialog
         isOpen={confirmationDialog.isOpen}
-        onClose={() => setConfirmationDialog((prev) => ({ ...prev, isOpen: false }))}
+        onClose={() =>
+          setConfirmationDialog((prev) => ({ ...prev, isOpen: false }))
+        }
         onConfirm={confirmationDialog.onConfirm}
         title={confirmationDialog.title}
         description={confirmationDialog.description}
       />
 
-      {/* Stepper (sticky) */}
-      <HorizontalStepper steps={steps} completedSteps={completedSteps} currentStep={currentStep} onStepChange={handleStepChange} />
-
-      {/* Make space so sticky header does not overlap content */}
-      <div className="pt-10" />
-
-      {/* Step Content */}
-      <div className="flex flex-col flex-1 items-center space-y-20 p-4 xl:p-0">
-        {/* After the sticky stepper */}
-        <div className="border-b border-border rounded-lg shadow-lg bg-muted/40 py-3 px-4 md:px-8 flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold tracking-tight">
+      <div className="sticky top-0 z-20">
+        <HorizontalStepper
+          steps={steps}
+          completedSteps={completedSteps}
+          currentStep={currentStep}
+          onStepChange={handleStepChange}
+        />
+        <div className="w-full flex justify-end mt-2">
+          <div className="bg-card p-4 shadow-lg rounded-lg z-10 border-b border-border max-w-xs mr-4">
+            <h2 className="text-lg font-semibold tracking-tight">
               Work Order #{order.OrderID}
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Status: <span className="font-medium text-green-600">{order.OrderStatus ?? "Pending"}</span>
+            <p className="text-sm text-muted-foreground">
+              Status:{" "}
+              <span className="font-medium text-green-600">
+                {order.OrderStatus ?? "Pending"}
+              </span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Customer:{" "}
+              <span className="font-medium">
+                {order.CustomerID?.length
+                  ? customerDemographics.nickName
+                  : "No customer yet"}
+              </span>
             </p>
           </div>
         </div>
+      </div>
 
+      {/* Make space so sticky header does not overlap content */}
+
+      {/* Step Content */}
+      <div className="flex flex-col flex-1 items-center space-y-10 p-4 xl:p-0 mx-20">
         {steps.map((step, index) => (
           <div
             key={step.id}
@@ -323,38 +416,58 @@ function NewWorkOrder() {
             ref={(el) => {
               sectionRefs.current[index] = el;
             }}
-            className="w-full flex flex-col items-center max-w-7xl"
+            className="w-full flex flex-col items-center"
           >
             {/* Render the appropriate form for each step */}
             {index === 0 && (
               <CustomerDemographicsForm
                 form={demographicsForm}
-                onSubmit={() => toast.success("Customer Demographics saved ✅")}
                 onEdit={() => removeSavedStep(0)}
                 onCancel={() => addSavedStep(0)}
-                onCustomerRecordChange={setCustomerRecordId}
-                onCustomerIdChange={setCustomerId}
                 onProceed={() => {
-                  if (orderId && customerRecordId) {
-                    setOrder({ CustomerID: [customerRecordId] });
-                    handleProceed(0);
+                  const recordID =
+                    demographicsForm.getValues("customerRecordId");
+                  if (orderId && recordID) {
+                    updateOrderFn({
+                      fields: {
+                        CustomerID: [recordID],
+                      },
+                      orderId: orderId!,
+                      onSuccessAction: "customer",
+                    });
                   }
                 }}
                 onClear={() => removeSavedStep(0)}
-                customerId={customerId}
-                customerRecordId={customerRecordId}
               />
             )}
 
             {index === 1 && (
-              <CustomerMeasurementsForm form={measurementsForm} onSubmit={() => toast.success("Customer Measurements saved ✅")} customerId={customerId} onProceed={() => handleProceed(1)} />
+              <CustomerMeasurementsForm
+                form={measurementsForm}
+                onSubmit={() => toast.success("Customer Measurements saved ✅")}
+                customerId={customerDemographics.id?.toString() || null}
+                customerRecordId={customerDemographics.customerRecordId}
+                onProceed={() => handleProceed(1)}
+              />
             )}
 
             {index === 2 && (
-              <FabricSelectionForm customerId={customerId} form={fabricSelectionForm} onSubmit={handleFabricSelectionSubmit} onProceed={() => handleProceed(2)} orderId={order?.OrderID ?? null} />
+              <FabricSelectionForm
+                customerId={customerDemographics.id?.toString() || null}
+                form={fabricSelectionForm}
+                onSubmit={handleFabricSelectionSubmit}
+                onProceed={() => handleProceed(2)}
+                orderId={order?.OrderID ?? null}
+                isProceedDisabled={fabricSelections.length === 0}
+              />
             )}
 
-            {index === 3 && <ShelvedProductsForm setFormData={setShelvedProducts} onProceed={() => handleProceed(3)} />}
+            {index === 3 && (
+              <ShelvedProductsForm
+                setFormData={setShelvedProducts}
+                onProceed={() => handleProceed(3)}
+              />
+            )}
 
             {index === 4 && (
               <OrderTypeAndPaymentForm

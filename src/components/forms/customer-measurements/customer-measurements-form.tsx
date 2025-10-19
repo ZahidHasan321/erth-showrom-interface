@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { type UseFormReturn, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -27,18 +27,20 @@ import { GroupedMeasurementFields } from "./GroupedMeasurementFields";
 
 import {
   customerMeasurementsSchema,
-  type CustomerMeasurementsSchema
+  type CustomerMeasurementsSchema,
 } from "./schema";
 
 import {
+  createMeasurement,
   getMeasurementsByCustomerId,
-  upsertMeasurement
+  updateMeasurement,
 } from "@/api/measurements";
 import {
   mapFormValuesToMeasurement,
-  mapMeasurementToFormValues
+  mapMeasurementToFormValues,
 } from "@/lib/measurement-mapper";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 // ---------------------------------------
 // Type definitions
@@ -47,9 +49,9 @@ interface CustomerMeasurementsFormProps {
   form: UseFormReturn<z.infer<typeof customerMeasurementsSchema>>;
   onSubmit: (values: z.infer<typeof customerMeasurementsSchema>) => void;
   customerId: string | null;
+  customerRecordId: string | undefined;
   onProceed?: () => void;
 }
-
 
 const unit = "cm";
 
@@ -70,7 +72,7 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
         form.setValue("arm.armhole.provision", newProvision);
       }
     }
-  }, [armholeValue, armholeFront, armholeProvision]);
+  }, [armholeValue, armholeFront, armholeProvision, form]);
 
   // Full Chest Provision
   const [fullChestValue, fullChestFront, fullChestProvision] = useWatch({
@@ -89,7 +91,7 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
         form.setValue("body.full_chest.provision", newProvision);
       }
     }
-  }, [fullChestValue, fullChestFront, fullChestProvision]);
+  }, [fullChestValue, fullChestFront, fullChestProvision, form]);
 
   // Full Waist Provision
   const [fullWaistValue, fullWaistFront, fullWaistBack, fullWaistProvision] =
@@ -117,9 +119,12 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
         form.setValue("body.full_waist.provision", newProvision);
       }
     }
-  }, [fullWaistValue, fullWaistFront, fullWaistBack, fullWaistProvision]);
+  }, [fullWaistValue, fullWaistFront, fullWaistBack, fullWaistProvision, form]);
 }
 
+const SmallSpinner = () => (
+  <div className="w-5 h-5 border-2 border-dashed rounded-full animate-spin border-primary" />
+);
 
 // ---------------------------------------
 // Main Form Component
@@ -128,13 +133,16 @@ export function CustomerMeasurementsForm({
   form,
   onSubmit,
   customerId,
+  customerRecordId,
   onProceed,
 }: CustomerMeasurementsFormProps) {
-
-  const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<string | null>(null)
-  const [measurements, setMeasurements] = React.useState<Map<string, CustomerMeasurementsSchema>>(
-    new Map()
-  );
+  const queryClient = useQueryClient();
+  const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<
+    string | null
+  >(null);
+  const [measurements, setMeasurements] = React.useState<
+    Map<string, CustomerMeasurementsSchema>
+  >(new Map());
   const [isEditing, setIsEditing] = React.useState(false);
   const [isCreatingNew, setIsCreatingNew] = React.useState(false);
   const [previousMeasurementId, setPreviousMeasurementId] = React.useState<
@@ -144,27 +152,19 @@ export function CustomerMeasurementsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
 
   useAutoProvision(form);
 
   // For adding a *new* measurement (must be complete)
   const addMeasurement = (id: string, data: CustomerMeasurementsSchema) => {
-    setMeasurements(prev => {
+    setMeasurements((prev) => {
       const updated = new Map(prev);
       updated.set(id, data);
       return updated;
     });
   };
-
-  // For updating (partial allowed)
-  // const updateMeasurement = (id: string, data: Partial<CustomerMeasurementsSchema>) => {
-  //   setMeasurements(prev => ({
-  //     ...prev,
-  //     [id]: { ...prev.get(id), ...data },
-  //   }));
-  // };
 
   const removeMeasurement = (id: string) => {
     setMeasurements((prev): Map<string, CustomerMeasurementsSchema> => {
@@ -175,7 +175,51 @@ export function CustomerMeasurementsForm({
     });
   };
 
-  const { data: measurementQuery, isSuccess } = useQuery({
+  const { mutate: createMeasurementMutation, isPending: isCreating } = useMutation({
+    mutationFn: createMeasurement,
+    onSuccess: (response, values) => {
+      if (response.status === "success") {
+        setIsEditing(false);
+        setIsCreatingNew(false);
+        toast.success("Measurement created successfully!");
+        queryClient.invalidateQueries({
+          queryKey: ["measurements", customerId],
+        });
+        onSubmit(values as unknown as CustomerMeasurementsSchema);
+      } else {
+        toast.error(response.message || "Failed to create measurement.");
+      }
+    },
+    onError: (e: Error) => {
+      console.error("API Error:", e);
+      toast.error("Error creating measurement.");
+    },
+  });
+
+  const { mutate: updateMeasurementMutation, isPending: isUpdating } = useMutation({
+    mutationFn: ({ recordId, values }: { recordId: string, values: any }) => updateMeasurement(recordId, values),
+    onSuccess: (response, { values }) => {
+      if (response.status === "success") {
+        setIsEditing(false);
+        setIsCreatingNew(false);
+        toast.success("Measurement updated successfully!");
+        queryClient.invalidateQueries({
+          queryKey: ["measurements", customerId],
+        });
+        onSubmit(values as unknown as CustomerMeasurementsSchema);
+      } else {
+        toast.error(response.message || "Failed to update measurement.");
+      }
+    },
+    onError: (e: Error) => {
+      console.error("API Error:", e);
+      toast.error("Error updating measurement.");
+    },
+  });
+
+  const isSaving = isCreating || isUpdating;
+
+  const { data: measurementQuery, isSuccess, isFetching } = useQuery({
     queryKey: ["measurements", customerId],
     queryFn: () => {
       if (!customerId) {
@@ -183,45 +227,37 @@ export function CustomerMeasurementsForm({
       }
       return getMeasurementsByCustomerId(customerId);
     },
-    enabled: customerId ? true : false,
+    enabled: !!customerId,
   });
 
-
   React.useEffect(() => {
-    if (!customerId) {
-      form.reset();
-      setMeasurements(new Map());
-      setSelectedMeasurementId(null);
-      setIsEditing(false);
-      setIsCreatingNew(false);
+    if (customerId && isSuccess) {
+      if (measurementQuery?.data?.length) {
+        const newMap = new Map<string, CustomerMeasurementsSchema>();
+        measurementQuery.data.forEach((m) => {
+          if (m.fields.MeasurementID) {
+            newMap.set(m.fields.MeasurementID, mapMeasurementToFormValues(m));
+          }
+        });
+        setMeasurements(newMap);
+        setSelectedMeasurementId(
+          measurementQuery.data[0]?.fields.MeasurementID ?? null,
+        );
+      } else {
+        // No measurements for this customer, so reset everything.
+        setMeasurements(new Map());
+        setSelectedMeasurementId(null);
+        form.reset();
+      }
     }
-  }, [customerId, form]);
-
-  React.useEffect(() => {
-    if (!customerId || !isSuccess) return;
-    if (!measurementQuery?.data?.length) return;
-
-    setMeasurements(() => {
-      const newMap = new Map();
-      measurementQuery?.data?.forEach((m) => {
-        newMap.set(m.fields.MeasurementID, mapMeasurementToFormValues(m));
-      });
-      return newMap;
-    });
-
-    setSelectedMeasurementId(measurementQuery.data.at(0)?.fields.MeasurementID ?? null)
-
-  }, [customerId, isSuccess, measurementQuery]);
+  }, [customerId, isSuccess, measurementQuery?.data, form]);
 
   // Reset form when selected measurement changes
   React.useEffect(() => {
-    if (selectedMeasurementId && measurements) {
+    if (selectedMeasurementId && measurements.has(selectedMeasurementId)) {
       const selected = measurements.get(selectedMeasurementId);
-      // Only reset if the form's current measurementID is different from the selected one
       if (selected) {
         form.reset(selected);
-      } else {
-        form.reset();
       }
     } else {
       form.reset();
@@ -231,53 +267,56 @@ export function CustomerMeasurementsForm({
   // ---------------------------------------
   // Handlers
   // ---------------------------------------
-  const handleFormSubmit = async (values: z.infer<typeof customerMeasurementsSchema>) => {
-    if (!customerId) {
-      toast.error("Customer ID is required.");
-      return;
-    }
-    const record = mapFormValuesToMeasurement(values, Number(customerId));
-    try {
-      const response = await upsertMeasurement([record]);
-
-      if (response.status === "success" && response.data && response.data.records.length > 0) {
-        setIsEditing(false);
-        setIsCreatingNew(false);
-        toast.success("Measurement saved successfully!");
-      } else {
-        toast.error(response.message || "Failed to save measurement.");
+  const handleFormSubmit = (
+    values: z.infer<typeof customerMeasurementsSchema>,
+  ) => {
+    const onConfirm = () => {
+      if (!customerId || !customerRecordId) {
+        toast.error("Customer ID is required.");
+        return;
       }
-    } catch (e) {
-      console.error("API Error:", e);
-      toast.error("Error saving measurement.");
-    }
-    onSubmit(values);
-  };
 
-  const handleSave = async () => {
+      const record = mapFormValuesToMeasurement(values, customerRecordId);
+
+      if (isCreatingNew) {
+        createMeasurementMutation(record.fields);
+      } else {
+        if (!selectedMeasurementId) {
+          toast.error("No measurement selected for updating.");
+          return;
+        }
+        
+        const recordId = measurements.get(selectedMeasurementId)?.measurementRecord
+        if (!recordId) {
+          toast.error("No measurement selected for updating.");
+          return;
+        }
+        updateMeasurementMutation({ recordId: recordId, values: record.fields });
+      }
+
+      setConfirmationDialog((d) => ({ ...d, isOpen: false }));
+    };
+
     setConfirmationDialog({
       isOpen: true,
-      title: "Confirm Save",
-      description: "Are you sure you want to save these measurements?",
-      onConfirm: () => {
-        form.handleSubmit(handleFormSubmit)();
-        setConfirmationDialog((d) => ({ ...d, isOpen: false }));
-      },
+      title: `Confirm ${isCreatingNew ? "New" : "Update"}`,
+      description: `Are you sure you want to ${isCreatingNew ? "create this new" : "update this"} measurement?`,
+      onConfirm: onConfirm,
     });
-  }
+  };
 
   const handleNewMeasurement = () => {
     setConfirmationDialog({
       isOpen: true,
       title: "Confirm New Measurement",
       description:
-        "Are you sure you want to create a new measurement? Unsaved changes will be lost.",
+        "This will create a copy of the currently selected measurement. Are you sure you want to proceed? Unsaved changes will be lost.",
       onConfirm: () => {
         setPreviousMeasurementId(selectedMeasurementId);
         setIsCreatingNew(true);
         setIsEditing(true);
 
-        const existingIds = measurements ? Object.keys(measurements) : [];
+        const existingIds = Array.from(measurements.keys());
         const nextNumber =
           existingIds
             .map((id) => parseInt(id.split("-")[1] || "0", 10))
@@ -285,7 +324,7 @@ export function CustomerMeasurementsForm({
 
         const newId = `${customerId}-${nextNumber}`;
         form.setValue("measurementID", newId);
-        const baseMeasurement = form.getValues()
+        const baseMeasurement = form.getValues();
 
         addMeasurement(newId, baseMeasurement);
         setSelectedMeasurementId(newId);
@@ -293,26 +332,44 @@ export function CustomerMeasurementsForm({
         setConfirmationDialog((d) => ({ ...d, isOpen: false }));
       },
     });
-  }
+  };
 
   const handleCancel = () => {
     setIsEditing(false);
     setIsCreatingNew(false);
-    if (isCreatingNew) {
+    if (isCreatingNew && form.getValues("measurementID")) {
       removeMeasurement(form.getValues("measurementID"));
       setSelectedMeasurementId(previousMeasurementId);
-    } else if (selectedMeasurementId && measurements) {
+    } else if (
+      selectedMeasurementId &&
+      measurements.has(selectedMeasurementId)
+    ) {
       form.reset(measurements.get(selectedMeasurementId));
     }
-  }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+  };
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSave();
-        }}
+      <motion.form
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-8 w-full"
       >
         <ConfirmationDialog
@@ -325,10 +382,15 @@ export function CustomerMeasurementsForm({
           description={confirmationDialog.description}
         />
 
-        <h1 className="text-2xl font-bold mb-4">Measurement</h1>
+        <motion.h1 variants={itemVariants} className="text-2xl font-bold mb-4">
+          Measurement
+        </motion.h1>
 
         {/* ---- Top Controls ---- */}
-        <div className="flex flex-wrap w-fit justify-start gap-6 bg-muted p-4 rounded-lg">
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-wrap w-fit justify-start gap-6 bg-muted p-4 rounded-lg"
+        >
           <FormField
             control={form.control}
             name="measurementType"
@@ -341,7 +403,7 @@ export function CustomerMeasurementsForm({
                   disabled={!isEditing}
                 >
                   <FormControl>
-                    <SelectTrigger className="bg-white w-auto">
+                    <SelectTrigger className="bg-white w-auto min-w-24">
                       <SelectValue placeholder="Select Type" />
                     </SelectTrigger>
                   </FormControl>
@@ -360,27 +422,30 @@ export function CustomerMeasurementsForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Measurement ID</FormLabel>
-                <Select
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    if (value) setSelectedMeasurementId(value);
-                  }}
-                  value={field.value}
-                  disabled={!customerId || isCreatingNew}
-                >
-                  <FormControl>
-                    <SelectTrigger className="bg-white w-auto">
-                      <SelectValue placeholder="Select ID" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Array.from(measurements.keys()).map((id) => (
-                      <SelectItem key={id} value={id}>
-                        {id}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      if (value) setSelectedMeasurementId(value);
+                    }}
+                    value={field.value}
+                    disabled={!customerId || isCreatingNew || isFetching}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-white w-auto min-w-24">
+                        <SelectValue placeholder="Select ID" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Array.from(measurements.keys()).map((id) => (
+                        <SelectItem key={id} value={id}>
+                          {id}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {isFetching && <SmallSpinner />}
+                </div>
               </FormItem>
             )}
           />
@@ -397,7 +462,7 @@ export function CustomerMeasurementsForm({
                   disabled={!isEditing}
                 >
                   <FormControl>
-                    <SelectTrigger className="bg-white w-auto">
+                    <SelectTrigger className="bg-white w-auto min-w-24">
                       <SelectValue placeholder="Reference" />
                     </SelectTrigger>
                   </FormControl>
@@ -412,10 +477,13 @@ export function CustomerMeasurementsForm({
               </FormItem>
             )}
           />
-        </div>
+        </motion.div>
 
         {/* ---- Measurement Groups ---- */}
-        <div className="flex flex-col flex-wrap gap-4 items-start pt-8">
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col 2xl:flex-row  2xl:flex-wrap gap-4 items-start pt-8"
+        >
           <div className="flex flex-row gap-6 flex-wrap">
             <GroupedMeasurementFields
               form={form}
@@ -489,9 +557,12 @@ export function CustomerMeasurementsForm({
               { name: "body.bottom", label: "Bottom" },
             ]}
           />
-        </div>
+        </motion.div>
 
-        <div className="flex flex-row gap-6 flex-wrap">
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-row gap-6 flex-wrap"
+        >
           <GroupedMeasurementFields
             form={form}
             title="Top Pocket"
@@ -525,29 +596,34 @@ export function CustomerMeasurementsForm({
               { name: "sidePocket.opening", label: "Opening" },
             ]}
           />
-        </div>
+        </motion.div>
 
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Notes</FormLabel>
-              <FormControl>
-                <Textarea
-                  rows={5}
-                  placeholder="Special requests or notes"
-                  {...field}
-                  disabled={!isEditing}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <motion.div variants={itemVariants}>
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Notes</FormLabel>
+                <FormControl>
+                  <Textarea
+                    rows={5}
+                    placeholder="Special requests or notes"
+                    {...field}
+                    disabled={!isEditing}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </motion.div>
 
         {/* ---- Buttons ---- */}
-        <div className="flex flex-wrap justify-center gap-6 pt-4">
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-wrap justify-center gap-6 pt-4"
+        >
           <Button
             type="button"
             variant="outline"
@@ -558,11 +634,22 @@ export function CustomerMeasurementsForm({
           </Button>
           {(isEditing || isCreatingNew) && (
             <div className="flex gap-4">
-              <Button type="button" variant="destructive" onClick={handleCancel}>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
-              <Button type="submit" variant="outline" disabled={!isEditing}>
-                Save
+              <Button type="submit" variant="outline" disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <SmallSpinner />
+                    <span className="ml-2">Saving...</span>
+                  </>
+                ) : (
+                  "Save"
+                )}
               </Button>
             </div>
           )}
@@ -571,23 +658,21 @@ export function CustomerMeasurementsForm({
               <Button
                 type="button"
                 onClick={handleNewMeasurement}
-                disabled={!customerId || isCreatingNew}
+                disabled={!customerId}
               >
                 New Measurement
               </Button>
               <Button
                 type="button"
                 onClick={onProceed}
-                disabled={!measurements}
+                disabled={measurements.size === 0}
               >
                 Proceed
               </Button>
-
             </div>
           )}
-        </div>
-      </form>
+        </motion.div>
+      </motion.form>
     </Form>
   );
 }
-

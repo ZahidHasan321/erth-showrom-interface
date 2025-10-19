@@ -19,6 +19,7 @@ const cuffsTypeValues = sleeveTypes.map((item) => item.value);
 
 export const styleOptionsSchema = z.object({
   styleOptionId: z.string().optional(),
+  garmentId: z.string().optional(),
   style: z.string().optional(),
   lines: z.string().optional(),
   collar: z.object({
@@ -50,6 +51,7 @@ export type StyleOptionsSchema = z.infer<typeof styleOptionsSchema>;
 
 export const styleOptionsDefaults: StyleOptionsSchema = {
   styleOptionId: "",
+  garmentId: "",
   style: "",
   lines: "line1",
   collar: {

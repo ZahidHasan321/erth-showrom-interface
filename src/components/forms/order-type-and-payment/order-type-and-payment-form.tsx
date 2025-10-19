@@ -109,7 +109,7 @@ export function OrderTypeAndPaymentForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-10 w-full p-4 max-w-7xl"
+        className="space-y-10 w-full"
       >
         {/* === Order Type === */}
         {optional && (

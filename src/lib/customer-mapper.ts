@@ -1,12 +1,14 @@
 import type { Customer } from "@/types/customer";
 import type { CustomerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
 
-
-export const mapCustomerToFormValues = (customer: Customer): Partial<CustomerDemographicsSchema> => {
+export const mapCustomerToFormValues = (
+  customer: Customer,
+): Partial<CustomerDemographicsSchema> => {
   const fields = customer.fields;
 
   return {
     id: customer.fields.id, // Top-level ID is string
+    customerRecordId: customer.id,
     name: fields.Name || "",
     nickName: fields.NickName || "",
     countryCode: fields.CountryCode || "",
@@ -30,11 +32,14 @@ export const mapCustomerToFormValues = (customer: Customer): Partial<CustomerDem
     customerSegment: fields.CustomerSegment || "",
     note: fields.Note || "",
     whatsappOnAlt: fields.WhatsappAlt || false,
-    relation: fields.Relation || undefined
+    relation: fields.Relation || undefined,
   };
 };
 
-export const mapFormValuesToCustomer = (values: CustomerDemographicsSchema, customerRecordId?: string | null): { id?: string; fields: Partial<Customer["fields"]> } => {
+export const mapFormValuesToCustomer = (
+  values: CustomerDemographicsSchema,
+  customerRecordId?: string | null,
+): { id?: string; fields: Partial<Customer["fields"]> } => {
   return {
     id: customerRecordId || undefined,
     fields: {
@@ -63,4 +68,3 @@ export const mapFormValuesToCustomer = (values: CustomerDemographicsSchema, cust
     },
   };
 };
-

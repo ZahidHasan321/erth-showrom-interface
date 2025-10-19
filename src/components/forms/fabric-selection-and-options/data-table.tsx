@@ -50,7 +50,7 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="rounded-lg border bg-card overflow-x-auto shadow">
+    <div className="rounded-lg border bg-card overflow-x-auto w-full shadow">
       <Table className="">
         {/* Optional: use colgroup if needed for borders */}
         <colgroup>

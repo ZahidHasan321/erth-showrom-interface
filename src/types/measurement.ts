@@ -2,7 +2,7 @@ export interface Measurement {
   id?: string; // Airtable record ID
   createdTime?: string;
   fields: {
-    CustomerID: number; // Link to Customer record
+    CustomerID: [string]; // Link to Customer record
     MeasurementType: "Body" | "Dishdasha";
     MeasurementID: string;
     MeasurementReference: "Winter" | "Summer" | "Eid" | "Occasion" | "Other";
@@ -37,3 +37,4 @@ export interface Measurement {
     JabzoorWidth?: number;
   };
 }
+

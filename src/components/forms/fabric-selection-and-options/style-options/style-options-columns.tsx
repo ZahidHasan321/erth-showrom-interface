@@ -29,6 +29,21 @@ import type { StyleOptionsSchema } from "./style-options-schema";
 
 export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
+    accessorKey: "garmentId",
+    header: "Garment ID",
+    minSize: 150,
+    cell: ({ row }) => {
+      const { control } = useFormContext();
+      return (
+        <Controller
+          name={`styleOptions.${row.index}.garmentId`}
+          control={control}
+          render={({ field }) => <span>{field.value}</span>}
+        />
+      );
+    },
+  },
+  {
     accessorKey: "styleOptionId",
     header: "Style Option Id",
     minSize: 100,

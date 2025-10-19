@@ -41,7 +41,7 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col md:flex-row gap-6 w-full p-4 max-w-7xl"
+        className="flex flex-col md:flex-row gap-6 w-full"
       >
         {/* Left Section — Payment Types */}
         <motion.div
