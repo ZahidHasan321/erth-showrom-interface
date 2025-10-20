@@ -79,18 +79,18 @@ function NewWorkOrder() {
   const addSavedStep = useCurrentWorkOrderStore((s) => s.addSavedStep);
   const removeSavedStep = useCurrentWorkOrderStore((s) => s.removeSavedStep);
   const customerDemographics = useCurrentWorkOrderStore(
-    (s) => s.customerDemographics,
+    (s) => s.customerDemographics
   );
   const setCustomerDemographics = useCurrentWorkOrderStore(
-    (s) => s.setCustomerDemographics,
+    (s) => s.setCustomerDemographics
   );
   const fabricSelections = useCurrentWorkOrderStore((s) => s.fabricSelections);
   const setFabricSelections = useCurrentWorkOrderStore(
-    (s) => s.setFabricSelections,
+    (s) => s.setFabricSelections
   );
   const setStyleOptions = useCurrentWorkOrderStore((s) => s.setStyleOptions);
   const setShelvedProducts = useCurrentWorkOrderStore(
-    (s) => s.setShelvedProducts,
+    (s) => s.setShelvedProducts
   );
   const shelvedProducts = useCurrentWorkOrderStore((s) => s.shelvedProducts);
   const orderId = useCurrentWorkOrderStore((s) => s.orderId);
@@ -142,7 +142,7 @@ function NewWorkOrder() {
       z.object({
         fabricSelections: z.array(fabricSelectionSchema),
         styleOptions: z.array(styleOptionsSchema),
-      }),
+      })
     ),
     defaultValues: { fabricSelections: [], styleOptions: [] },
   });
@@ -162,7 +162,7 @@ function NewWorkOrder() {
     shelvedProducts && shelvedProducts.length > 0
       ? shelvedProducts.reduce(
           (total, product) => total + product.quantity * product.unitPrice,
-          0,
+          0
         )
       : 0;
 
@@ -458,6 +458,16 @@ function NewWorkOrder() {
                 onSubmit={handleFabricSelectionSubmit}
                 onProceed={() => handleProceed(2)}
                 orderId={order?.OrderID ?? null}
+                onCampaignsChange={(campaigns) => {
+                  if (orderId) {
+                    updateOrderFn({
+                      fields: {
+                        Campaigns: campaigns,
+                      },
+                      orderId: orderId,
+                    });
+                  }
+                }}
                 isProceedDisabled={fabricSelections.length === 0}
               />
             )}

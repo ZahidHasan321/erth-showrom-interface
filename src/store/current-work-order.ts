@@ -55,7 +55,6 @@ export const createWorkOrderStore = (name: string) =>
         fabricSelections: [],
         styleOptions: [],
         shelvedProducts: [],
-        currentStep: 0,
         savedSteps: [],
 
         setOrderId: (id) => set((state) => ({ ...state, orderId: id })),

@@ -6,6 +6,7 @@ import Fuse from "fuse.js";
 import { type FabricSelectionSchema } from "./fabric-selection-schema";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -18,7 +19,9 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { getFabrics } from "@/api/fabrics";
 import { Combobox } from "@/components/ui/combobox";
 import { useQuery } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Trash2, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const columns: ColumnDef<FabricSelectionSchema>[] = [
@@ -170,7 +173,6 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
         }
       }, [fabricId, fabricSource, fabrics, row.index, setValue]);
 
-
       const fuse = React.useMemo(
         () =>
           new Fuse(fabrics, {
@@ -185,8 +187,6 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
           }),
         [fabrics]
       );
-      ;
-
       const fabricOptions = React.useMemo(() => {
         const results = searchQuery
           ? fuse.search(searchQuery).map((r) => r.item)
@@ -195,6 +195,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
         return results.map((fabric) => ({
           value: fabric.id,
           label: `${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color} - ${fabric.fields.PricePerMeter} - ${fabric.fields.RealStock}`,
+          node: (
+            <div className="flex justify-between w-full">
+              <span>{`${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color}`}</span>
+              <span className="text-gray-500">{`Stock: ${fabric.fields.RealStock}`}</span>
+            </div>
+          ),
         }));
       }, [fabrics, fuse, searchQuery]);
 
@@ -264,14 +270,49 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     header: "Fabric Length",
     minSize: 120,
     cell: ({ row }) => {
-      const { control } = useFormContext();
+      const { control, setError, clearErrors } = useFormContext();
+      const { data: fabricsResponse } = useQuery({
+        queryKey: ["fabrics"],
+        queryFn: getFabrics,
+      });
+      const fabrics = fabricsResponse?.data || [];
+
+      const [fabricSource, fabricId, fabricLength] = useWatch({
+        name: [
+          `fabricSelections.${row.index}.fabricSource`,
+          `fabricSelections.${row.index}.fabricId`,
+          `fabricSelections.${row.index}.fabricLength`,
+        ],
+      });
+
+      React.useEffect(() => {
+        if (fabricSource === "In" && fabricId && fabricLength) {
+          const selectedFabric = fabrics.find((f) => f.id === fabricId);
+          if (selectedFabric) {
+            const stock = selectedFabric.fields.RealStock || 0;
+            if (parseFloat(fabricLength) > stock) {
+              toast.error(`Stock unavailable. Available stock: ${stock}`);
+              setError(`fabricSelections.${row.index}.fabricLength`, {
+                type: "manual",
+                message: "Stock unavailable",
+              });
+            } else {
+              clearErrors(`fabricSelections.${row.index}.fabricLength`);
+            }
+          }
+        }
+      }, [fabricId, fabricLength, fabricSource, fabrics, setError, clearErrors, row.index]);
+
       return (
         <div className="min-w-[120px]">
           <Controller
             name={`fabricSelections.${row.index}.fabricLength`}
             control={control}
-            render={({ field }) => (
-              <Input {...field} className="min-w-[120px]" />
+            render={({ field, fieldState: { error } }) => (
+              <Input
+                {...field}
+                className={cn("min-w-[120px]", error ? "border-red-500" : "")}
+              />
             )}
           />
         </div>
@@ -340,6 +381,46 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
             )}
           />
         </div>
+      );
+    },
+  },
+  {
+    accessorKey: "note",
+    header: "Note",
+    minSize: 150,
+    cell: ({ row }) => {
+      const { control } = useFormContext();
+      return (
+        <div className="min-w-[150px]">
+          <Controller
+            name={`fabricSelections.${row.index}.note`}
+            control={control}
+            render={({ field }) => (
+              <Textarea
+                {...field}
+                className="min-w-[190px] min-h-[40px] max-h-[190px]"
+              />
+            )}
+          />
+        </div>
+      );
+    },
+  },
+  {
+    id: "print",
+    header: "Print",
+    minSize: 80,
+    cell: ({ row }) => {
+      const handlePrint = () => {
+        // Add print logic here
+        console.log("Printing row: ", row.original);
+      };
+
+      return (
+        <Button variant="outline" onClick={handlePrint}>
+          <Printer />
+          Print
+        </Button>
       );
     },
   },

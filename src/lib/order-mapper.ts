@@ -10,6 +10,7 @@ export function mapApiOrderToFormOrder(apiOrder: Order): OrderSchema {
     OrderStatus: apiOrder.fields.OrderStatus,
     OrderTotal: apiOrder.fields.OrderTotal,
     Notes: apiOrder.fields.Notes,
+    Campaigns: apiOrder.fields.Campaigns,
 
     // Default values for payment fields
     orderType: "pickUp",
@@ -28,19 +29,26 @@ export function mapApiOrderToFormOrder(apiOrder: Order): OrderSchema {
   };
 }
 
-export function mapFormOrderToApiOrder(formOrder: Partial<OrderSchema>, orderId?: string): { id?: string, fields: Partial<Order['fields']> } {
-    const apiOrder: { id?: string, fields: Partial<Order['fields']> } = {
-        fields: {
-            OrderID: formOrder.OrderID,
-            CustomerID: formOrder.CustomerID,
-            OrderDate: formOrder.OrderDate,
-            OrderStatus: formOrder.OrderStatus === 'Processing' ? 'Pending' : formOrder.OrderStatus,
-            OrderTotal: formOrder.OrderTotal,
-            Notes: formOrder.Notes,
-        }
-    };
-    if (orderId) {
-        apiOrder.id = orderId;
-    }
-    return apiOrder;
+export function mapFormOrderToApiOrder(
+  formOrder: Partial<OrderSchema>,
+  orderId?: string
+): { id?: string; fields: Partial<Order["fields"]> } {
+  const apiOrder: { id?: string; fields: Partial<Order["fields"]> } = {
+    fields: {
+      OrderID: formOrder.OrderID,
+      CustomerID: formOrder.CustomerID,
+      OrderDate: formOrder.OrderDate,
+      OrderStatus:
+        formOrder.OrderStatus === "Processing"
+          ? "Pending"
+          : formOrder.OrderStatus,
+      OrderTotal: formOrder.OrderTotal,
+      Notes: formOrder.Notes,
+      Campaigns: formOrder.Campaigns,
+    },
+  };
+  if (orderId) {
+    apiOrder.id = orderId;
+  }
+  return apiOrder;
 }

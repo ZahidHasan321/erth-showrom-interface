@@ -51,6 +51,12 @@ export const topPocketTypes = [
 
 export const sleeveTypes = [
   {
+    value: "NO_CUFF",
+    alt: "No Cuff",
+    displayText: "No Cuff",
+    image: null,
+  },
+  {
     value: "TYPE1",
     alt: "Type 1",
     displayText: "Type 1",

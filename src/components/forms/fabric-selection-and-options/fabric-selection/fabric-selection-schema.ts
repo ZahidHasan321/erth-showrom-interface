@@ -3,6 +3,7 @@ import { fabricSourceValues } from "../constants";
 
 export const fabricSelectionSchema = z.object({
   id: z.string(),
+  orderId: z.array(z.string()),
   garmentId: z.string().min(1, "Garment ID is required"),
   brova: z.boolean(),
   fabricSource: z.enum(fabricSourceValues),
@@ -14,12 +15,14 @@ export const fabricSelectionSchema = z.object({
   express: z.boolean().optional(),
   deliveryDate: z.date().optional(),
   special_request: z.string().optional(),
+  note: z.string().optional(),
 });
 
 export type FabricSelectionSchema = z.infer<typeof fabricSelectionSchema>;
 
 export const fabricSelectionDefaults: FabricSelectionSchema = {
   id: "",
+  orderId: [],
   garmentId: "",
   brova: false,
   fabricSource: "",
@@ -31,4 +34,5 @@ export const fabricSelectionDefaults: FabricSelectionSchema = {
   express: false,
   deliveryDate: undefined,
   special_request: "",
+  note: "",
 };

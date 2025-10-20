@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 import { type ColumnDef } from "@tanstack/react-table";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 import {
@@ -229,13 +231,19 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     header: "Jabzoor",
     minSize: 420,
     cell: ({ row }) => {
-      const { control } = useFormContext();
+      const { control, setValue } = useFormContext();
       const [jabzour1, jabzour2] = useWatch({
         name: [
           `styleOptions.${row.index}.jabzoor.jabzour1`,
           `styleOptions.${row.index}.jabzoor.jabzour2`,
         ],
       });
+
+      React.useEffect(() => {
+        if (jabzour1 !== "ZIP") {
+          setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, "");
+        }
+      }, [jabzour1, setValue, row.index]);
 
       return (
         <div className="min-w-[420px] flex flex-row space-x-2">
@@ -278,44 +286,52 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             )}
           />
           <Plus className="min-w-[20px] h-6 mt-2" />
-          <Controller
-            name={`styleOptions.${row.index}.jabzoor.jabzour2`}
-            control={control}
-            render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
-                <SelectTrigger className="min-w-[120px]">
-                  {jabzour2 ? (
-                    <img
-                      src={
-                        jabzourTypes.find((j) => j.value === jabzour2)?.image
-                      }
-                      alt={jabzourTypes.find((j) => j.value === jabzour2)?.alt}
-                      className="min-w-[40px] h-10 object-contain"
-                    />
-                  ) : (
-                    <SelectValue placeholder="Select Type" />
-                  )}
-                </SelectTrigger>
-                <SelectContent>
-                  {jabzourTypes.map((jabzourType) => (
-                    <SelectItem
-                      key={jabzourType.value}
-                      value={jabzourType.value}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <img
-                          src={jabzourType.image}
-                          alt={jabzourType.alt}
-                          className="min-w-[48px] h-12 object-contain"
-                        />
-                        <span>{jabzourType.displayText}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
+          {jabzour1 === "ZIP" ? (
+            <Controller
+              name={`styleOptions.${row.index}.jabzoor.jabzour2`}
+              control={control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <SelectTrigger className="min-w-[120px]">
+                    {jabzour2 ? (
+                      <img
+                        src={
+                          jabzourTypes.find((j) => j.value === jabzour2)?.image
+                        }
+                        alt={
+                          jabzourTypes.find((j) => j.value === jabzour2)?.alt
+                        }
+                        className="min-w-[40px] h-10 object-contain"
+                      />
+                    ) : (
+                      <SelectValue placeholder="Select Type" />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {jabzourTypes
+                      .filter((j) => j.value !== "ZIP")
+                      .map((jabzourType) => (
+                        <SelectItem
+                          key={jabzourType.value}
+                          value={jabzourType.value}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <img
+                              src={jabzourType.image}
+                              alt={jabzourType.alt}
+                              className="min-w-[48px] h-12 object-contain"
+                            />
+                            <span>{jabzourType.displayText}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          ) : (
+            <div className="min-w-[120px] h-10 border rounded-md bg-gray-100" />
+          )}
           <Controller
             name={`styleOptions.${row.index}.jabzoor.jabzour_thickness`}
             control={control}
@@ -415,14 +431,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   {frontPocketType ? (
                     <img
                       src={
-                        topPocketTypes.find(
-                          (j) => j.value === frontPocketType
-                        )?.image
+                        topPocketTypes.find((j) => j.value === frontPocketType)
+                          ?.image
                       }
                       alt={
-                        topPocketTypes.find(
-                          (j) => j.value === frontPocketType
-                        )?.alt
+                        topPocketTypes.find((j) => j.value === frontPocketType)
+                          ?.alt
                       }
                       className="min-w-[28px] h-7 object-contain"
                     />
@@ -512,13 +526,26 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger className="min-w-[120px]">
                   {cuffsType ? (
-                    <img
-                      src={
-                        sleeveTypes.find((c) => c.value === cuffsType)?.image
-                      }
-                      alt={sleeveTypes.find((c) => c.value === cuffsType)?.alt}
-                      className="min-w-[40px] h-10 object-contain"
-                    />
+                    sleeveTypes.find((c) => c.value === cuffsType)?.image ? (
+                      <img
+                        src={
+                          sleeveTypes.find((c) => c.value === cuffsType)
+                            ?.image as string
+                        }
+                        alt={
+                          sleeveTypes.find((c) => c.value === cuffsType)?.alt ??
+                          ""
+                        }
+                        className="min-w-[40px] h-10 object-contain"
+                      />
+                    ) : (
+                      <span>
+                        {
+                          sleeveTypes.find((c) => c.value === cuffsType)
+                            ?.displayText
+                        }
+                      </span>
+                    )
                   ) : (
                     <SelectValue placeholder="Select Type" />
                   )}
@@ -527,11 +554,13 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   {sleeveTypes.map((ct) => (
                     <SelectItem key={ct.value} value={ct.value}>
                       <div className="flex items-center space-x-2">
-                        <img
-                          src={ct.image}
-                          alt={ct.alt}
-                          className="min-w-[48px] h-12 object-contain"
-                        />
+                        {ct.image && (
+                          <img
+                            src={ct.image}
+                            alt={ct.alt ?? ""}
+                            className="min-w-[48px] h-12 object-contain"
+                          />
+                        )}
                         <span>{ct.displayText}</span>
                       </div>
                     </SelectItem>

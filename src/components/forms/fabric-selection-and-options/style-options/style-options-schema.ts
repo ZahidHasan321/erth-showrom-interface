@@ -19,38 +19,50 @@ const cuffsTypeValues = sleeveTypes.map((item) => item.value);
 
 export const styleOptionsSchema = z.object({
   styleOptionId: z.string().optional(),
+  orderId: z.array(z.string()),
   garmentId: z.string().optional(),
   style: z.string().optional(),
   lines: z.string().optional(),
-  collar: z.object({
-    collarType: z.enum(collarTypeValues).optional(),
-    collarButton: z.enum(collarButtonValues).optional(),
-    smallTabaggi: z.boolean().optional(),
-  }).optional(),
-  jabzoor: z.object({
-    jabzour1: z.enum(jabzourTypeValues).optional(),
-    jabzour2: z.enum(jabzourTypeValues).optional(),
-    jabzour_thickness: z.enum(jabzourThicknessShortValues).optional(),
-  }).optional(),
-  sidePocket: z.object({
-    phone: z.boolean().optional(),
-    wallet: z.boolean().optional(),
-  }).optional(),
-  frontPocket: z.object({
-    front_pocket_type: z.enum(frontPocketTypeValues).optional(),
-    front_pocket_thickness: z.enum(jabzourThicknessShortValues).optional(),
-    pen_holder: z.boolean().optional(),
-  }).optional(),
-  cuffs: z.object({
-    cuffs_type: z.enum(cuffsTypeValues).optional(),
-    cuffs_thickness: z.enum(jabzourThicknessShortValues).optional(),
-  }).optional(),
+  collar: z
+    .object({
+      collarType: z.enum(collarTypeValues).optional(),
+      collarButton: z.enum(collarButtonValues).optional(),
+      smallTabaggi: z.boolean().optional(),
+    })
+    .optional(),
+  jabzoor: z
+    .object({
+      jabzour1: z.enum(jabzourTypeValues).optional(),
+      jabzour2: z.enum(jabzourTypeValues).optional(),
+      jabzour_thickness: z.enum(jabzourThicknessShortValues).optional(),
+    })
+    .optional(),
+  sidePocket: z
+    .object({
+      phone: z.boolean().optional(),
+      wallet: z.boolean().optional(),
+    })
+    .optional(),
+  frontPocket: z
+    .object({
+      front_pocket_type: z.enum(frontPocketTypeValues).optional(),
+      front_pocket_thickness: z.enum(jabzourThicknessShortValues).optional(),
+      pen_holder: z.boolean().optional(),
+    })
+    .optional(),
+  cuffs: z
+    .object({
+      cuffs_type: z.enum(cuffsTypeValues).optional(),
+      cuffs_thickness: z.enum(jabzourThicknessShortValues).optional(),
+    })
+    .optional(),
 });
 
 export type StyleOptionsSchema = z.infer<typeof styleOptionsSchema>;
 
 export const styleOptionsDefaults: StyleOptionsSchema = {
   styleOptionId: "",
+  orderId: [],
   garmentId: "",
   style: "",
   lines: "line1",

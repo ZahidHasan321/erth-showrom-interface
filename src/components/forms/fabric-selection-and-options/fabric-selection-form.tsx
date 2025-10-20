@@ -25,7 +25,7 @@ import { getCampaigns } from "@/api/campaigns";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { SignaturePad } from "../signature-pad";
 
 interface FabricSelectionFormProps {
   customerId: string | null;
@@ -40,6 +40,7 @@ interface FabricSelectionFormProps {
   }) => void;
   onProceed: () => void;
   isProceedDisabled?: boolean;
+  onCampaignsChange: (campaigns: string[]) => void;
 }
 
 export function FabricSelectionForm({
@@ -51,8 +52,8 @@ export function FabricSelectionForm({
   isProceedDisabled = false,
 }: FabricSelectionFormProps) {
   const [numRowsToAdd, setNumRowsToAdd] = React.useState(0);
-  const [selectedCampaign, setSelectedCampaign] = React.useState<string | null>(
-    null,
+  const [selectedCampaigns, setSelectedCampaigns] = React.useState<string[]>(
+    []
   );
 
   const { data: campaignsResponse, isSuccess: campaignResSuccess } = useQuery({
@@ -66,10 +67,6 @@ export function FabricSelectionForm({
     campaignResSuccess && campaignsResponse && campaignsResponse.data
       ? campaignsResponse.data
       : [];
-
-  const handleCampaignChange = (campaignId: string) => {
-    setSelectedCampaign((prev) => (prev === campaignId ? null : campaignId));
-  };
 
   const {
     fields: fabricSelectionFields,
@@ -118,7 +115,7 @@ export function FabricSelectionForm({
 
   const addStyleRow = (index: number) => {
     const fabricGarmentId = form.getValues(
-      `fabricSelections.${index}.garmentId`,
+      `fabricSelections.${index}.garmentId`
     );
     appendStyleOption({
       ...styleOptionsDefaults,
@@ -137,7 +134,7 @@ export function FabricSelectionForm({
     handlers: {
       addRow: (index: number, orderId?: string) => void;
       removeRow: (rowIndex: number) => void;
-    },
+    }
   ) {
     const currentCount = fields.length;
 
@@ -148,7 +145,7 @@ export function FabricSelectionForm({
     } else if (currentCount > desiredCount) {
       for (let i = currentCount - 1; i >= desiredCount; i--) {
         handlers.removeRow(i);
-      }  
+      }
     }
   }
   const isSyncDisabled =
@@ -191,26 +188,21 @@ export function FabricSelectionForm({
         <div className="flex flex-col gap-2 mb-6 border shadow-lg w-fit p-4 rounded-lg bg-card">
           <Label className="text-md text-bold">Campaign Offers:</Label>
           {activeCampaigns.map((campaign) => (
-            <div
-              key={campaign.id}
-              className={cn(
-                selectedCampaign === campaign.id
-                  ? "text-black"
-                  : "text-black/30 hover:text-black/70",
-                "flex items-center space-x-2",
-              )}
-            >
+            <div key={campaign.id} className="flex items-center space-x-2">
               <Checkbox
                 id={campaign.id}
-                checked={selectedCampaign === campaign.id}
-                onCheckedChange={() => handleCampaignChange(campaign.id)}
+                checked={selectedCampaigns.includes(campaign.id)}
+                onCheckedChange={(checked) => {
+                  setSelectedCampaigns((prev) =>
+                    checked
+                      ? Array.from(new Set([...prev, campaign.id]))
+                      : prev.filter((id) => id !== campaign.id)
+                  );
+                }}
               />
               <Label htmlFor={campaign.id}>{campaign.fields.Name}</Label>
             </div>
           ))}
-          <span className="text-red-500 text-sm italic">
-            Note: you can only choose one campaign
-          </span>
         </div>
         <h2 className="text-2xl font-bold mb-4">Fabric Selections</h2>
         <DataTable
@@ -221,9 +213,15 @@ export function FabricSelectionForm({
           updateData={(rowIndex, columnId, value) =>
             form.setValue(
               `fabricSelections.${rowIndex}.${columnId}` as any,
-              value,
+              value
             )
           }
+        />
+        <h2 className="font-bold mb-2 mt-8">Signature</h2>
+        <SignaturePad
+          onSave={(signature) => {
+            console.log("Fabric Signature:", signature);
+          }}
         />
         {/* <Button
           onClick={addFabricRow}
@@ -246,6 +244,13 @@ export function FabricSelectionForm({
         {/* <Button onClick={addStyleRow} className="mt-4">
           Add Style Line
         </Button> */}
+
+        <h2 className="font-bold mb-2 mt-8">Signature</h2>
+        <SignaturePad
+          onSave={(signature) => {
+            console.log("Style Signature:", signature);
+          }}
+        />
       </div>
       <div>
         <Button

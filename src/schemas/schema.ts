@@ -5,9 +5,10 @@ export const orderSchema = z.object({
   OrderID: z.string().optional(),
   CustomerID: z.array(z.string()).optional(),
   OrderDate: z.string().optional(),
-  OrderStatus: z.enum(['Pending', 'Processing', 'Completed', 'Cancelled']),
+  OrderStatus: z.enum(["Pending", "Processing", "Completed", "Cancelled"]),
   OrderTotal: z.number().optional(),
   Notes: z.string().optional(),
+  Campaigns: z.array(z.string()).optional(),
 
   // Fields from orderTypeAndPaymentSchema
   orderType: z.enum(["pickUp", "homeDelivery"]),

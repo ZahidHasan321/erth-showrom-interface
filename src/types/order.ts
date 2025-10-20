@@ -4,8 +4,9 @@ export interface Order {
     OrderID?: string;
     CustomerID?: string[];
     OrderDate?: string;
-    OrderStatus: 'Pending' | 'Completed' | 'Cancelled';
+    OrderStatus: "Pending" | "Completed" | "Cancelled";
     OrderTotal?: number;
     Notes?: string;
+    Campaigns?: string[];
   };
 }
