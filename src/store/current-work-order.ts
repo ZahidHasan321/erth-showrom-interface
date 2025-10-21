@@ -2,7 +2,7 @@ import type { customerDemographicsSchema } from "@/components/forms/customer-dem
 import type { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/fabric-selection/fabric-selection-schema";
 import type { styleOptionsSchema } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
 import { shelvedProductsSchema } from "@/components/forms/shelved-products/schema";
-import type { OrderSchema } from "@/schemas/schema";
+import type { OrderSchema } from "@/schemas/work-order-schema";
 import type { Order } from "@/types/order";
 import { z } from "zod";
 import { create } from "zustand";

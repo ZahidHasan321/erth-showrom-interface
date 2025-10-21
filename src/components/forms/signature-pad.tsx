@@ -1,8 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useRef } from "react";
 import SignatureCanvas from "react-signature-canvas";
-import { Button } from "@/components/ui/button";
 
 interface SignaturePadProps {
   onSave?: (signature: string) => void;

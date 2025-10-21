@@ -20,12 +20,12 @@ import {
   collarTypes,
   jabzourTypes,
   topPocketTypes,
-  sleeveTypes,
+  cuffTypes,
   phoneIcon,
   walletIcon,
   smallTabaggiImage,
   penIcon,
-  jabzourThicknessOptions as ThicknessOptions,
+  thicknessOptions as ThicknessOptions,
 } from "../constants";
 import type { StyleOptionsSchema } from "./style-options-schema";
 
@@ -78,7 +78,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="kuwaiti">Kuwaiti</SelectItem>
-                <SelectItem value="saudi">Designer</SelectItem>
+                <SelectItem value="designer">Designer</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -138,7 +138,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   {collarType ? (
                     <img
                       src={
-                        collarTypes.find((c) => c.value === collarType)?.image
+                        collarTypes.find((c) => c.value === collarType)?.image || undefined
                       }
                       alt={collarTypes.find((c) => c.value === collarType)?.alt}
                       className="min-w-[40px] h-10 object-contain"
@@ -152,7 +152,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                     <SelectItem key={ct.value} value={ct.value}>
                       <div className="flex items-center space-x-2">
                         <img
-                          src={ct.image}
+                          src={ct.image || undefined}
                           alt={ct.alt}
                           className="min-w-[48px] h-12 object-contain"
                         />
@@ -173,8 +173,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   {collarButton ? (
                     <img
                       src={
-                        collarButtons.find((b) => b.value === collarButton)
-                          ?.image
+                        collarButtons.find((b) => b.value === collarButton)?.image || undefined
                       }
                       alt={
                         collarButtons.find((b) => b.value === collarButton)?.alt
@@ -190,7 +189,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                     <SelectItem key={button.value} value={button.value}>
                       <div className="flex items-center space-x-2">
                         <img
-                          src={button.image}
+                          src={button.image || undefined}
                           alt={button.alt}
                           className="min-w-[48px] h-12 object-contain"
                         />
@@ -241,7 +240,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
 
       React.useEffect(() => {
         if (jabzour1 !== "ZIP") {
-          setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, "");
+          setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, null);
         }
       }, [jabzour1, setValue, row.index]);
 
@@ -256,7 +255,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   {jabzour1 ? (
                     <img
                       src={
-                        jabzourTypes.find((j) => j.value === jabzour1)?.image
+                        jabzourTypes.find((j) => j.value === jabzour1)?.image || undefined
                       }
                       alt={jabzourTypes.find((j) => j.value === jabzour1)?.alt}
                       className="min-w-[40px] h-10 object-contain"
@@ -273,7 +272,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                     >
                       <div className="flex items-center space-x-2">
                         <img
-                          src={jabzourType.image}
+                          src={jabzourType.image || undefined}
                           alt={jabzourType.alt}
                           className="min-w-[48px] h-12 object-contain"
                         />
@@ -296,7 +295,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                     {jabzour2 ? (
                       <img
                         src={
-                          jabzourTypes.find((j) => j.value === jabzour2)?.image
+                          jabzourTypes.find((j) => j.value === jabzour2)?.image || undefined
                         }
                         alt={
                           jabzourTypes.find((j) => j.value === jabzour2)?.alt
@@ -317,7 +316,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                         >
                           <div className="flex items-center space-x-2">
                             <img
-                              src={jabzourType.image}
+                              src={jabzourType.image || undefined}
                               alt={jabzourType.alt}
                               className="min-w-[48px] h-12 object-contain"
                             />
@@ -431,8 +430,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   {frontPocketType ? (
                     <img
                       src={
-                        topPocketTypes.find((j) => j.value === frontPocketType)
-                          ?.image
+                        topPocketTypes.find((j) => j.value === frontPocketType)?.image || undefined
                       }
                       alt={
                         topPocketTypes.find((j) => j.value === frontPocketType)
@@ -449,7 +447,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                     <SelectItem key={tpt.value} value={tpt.value}>
                       <div className="flex items-center space-x-2">
                         <img
-                          src={tpt.image}
+                          src={tpt.image || undefined}
                           alt={tpt.alt}
                           className="min-w-[48px] h-12 object-contain"
                         />
@@ -526,14 +524,13 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger className="min-w-[120px]">
                   {cuffsType ? (
-                    sleeveTypes.find((c) => c.value === cuffsType)?.image ? (
+                    cuffTypes.find((c) => c.value === cuffsType)?.image ? (
                       <img
                         src={
-                          sleeveTypes.find((c) => c.value === cuffsType)
-                            ?.image as string
+                          cuffTypes.find((c) => c.value === cuffsType)?.image || undefined
                         }
                         alt={
-                          sleeveTypes.find((c) => c.value === cuffsType)?.alt ??
+                          cuffTypes.find((c) => c.value === cuffsType)?.alt ??
                           ""
                         }
                         className="min-w-[40px] h-10 object-contain"
@@ -541,7 +538,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                     ) : (
                       <span>
                         {
-                          sleeveTypes.find((c) => c.value === cuffsType)
+                          cuffTypes.find((c) => c.value === cuffsType)
                             ?.displayText
                         }
                       </span>
@@ -551,12 +548,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   )}
                 </SelectTrigger>
                 <SelectContent>
-                  {sleeveTypes.map((ct) => (
+                  {cuffTypes.map((ct) => (
                     <SelectItem key={ct.value} value={ct.value}>
                       <div className="flex items-center space-x-2">
                         {ct.image && (
                           <img
-                            src={ct.image}
+                            src={ct.image || undefined}
                             alt={ct.alt ?? ""}
                             className="min-w-[48px] h-12 object-contain"
                           />

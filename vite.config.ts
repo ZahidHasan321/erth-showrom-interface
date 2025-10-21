@@ -23,6 +23,9 @@ export default defineConfig({
     },
   },
   build: {
+    commonjsOptions: {
+      defaultIsModuleExports:true
+    },
     rollupOptions: {
       output: {
         manualChunks: {

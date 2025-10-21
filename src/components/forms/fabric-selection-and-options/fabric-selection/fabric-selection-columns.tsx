@@ -198,7 +198,10 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
           node: (
             <div className="flex justify-between w-full">
               <span>{`${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color}`}</span>
+              <div className="flex gap-1">
+              <span className="text-gray-500">{`Price: ${fabric.fields.PricePerMeter}`}</span>
               <span className="text-gray-500">{`Stock: ${fabric.fields.RealStock}`}</span>
+              </div>
             </div>
           ),
         }));
@@ -226,7 +229,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
                   }}
                   onSearch={setSearchQuery}
                   placeholder="Search fabric..."
-                />
+                />  
               )}
             />
           )}
@@ -365,7 +368,46 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     header: "Fabric Amount/سعر القماش",
     minSize: 160,
     cell: ({ row }) => {
-      const { control } = useFormContext();
+      const { control, setValue } = useFormContext();
+      const { data: fabricsResponse } = useQuery({
+        queryKey: ["fabrics"],
+        queryFn: getFabrics,
+      });
+      const fabrics = fabricsResponse?.data || [];
+
+      const [fabricSource, fabricId, fabricLength] = useWatch({
+        name: [
+          `fabricSelections.${row.index}.fabricSource`,
+          `fabricSelections.${row.index}.fabricId`,
+          `fabricSelections.${row.index}.fabricLength`,
+        ],
+      });
+
+      React.useEffect(() => {
+        if (fabricSource === "Out") {
+          setValue(`fabricSelections.${row.index}.fabricAmount`, 0);
+          return;
+        }
+
+        if (fabricSource === "In" && fabricId && fabricLength) {
+          const selectedFabric = fabrics.find((f) => f.id === fabricId);
+          if (selectedFabric) {
+            const pricePerMeter = selectedFabric.fields.PricePerMeter || 0;
+            const amount = parseFloat(fabricLength) * pricePerMeter;
+            setValue(`fabricSelections.${row.index}.fabricAmount`, amount);
+          }
+        } else {
+          setValue(`fabricSelections.${row.index}.fabricAmount`, 0);
+        }
+      }, [
+        fabricId,
+        fabricLength,
+        fabricSource,
+        fabrics,
+        row.index,
+        setValue,
+      ]);
+
       return (
         <div className="min-w-[160px]">
           <Controller

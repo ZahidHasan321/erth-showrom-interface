@@ -3,7 +3,7 @@ import { devtools } from "zustand/middleware";
 import { customerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
 import { shelvedProductsSchema } from "@/components/forms/shelved-products/schema";
 import { z } from "zod";
-import type { OrderSchema } from "@/schemas/schema";
+import type { OrderSchema } from "@/schemas/work-order-schema";
 
 interface CurrentSalesOrderState {
   orderId: string | null;

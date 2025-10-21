@@ -1,25 +1,26 @@
+// schema/styleOptionsSchema.ts
 import { z } from "zod";
 import {
   collarTypes,
   collarButtons,
   jabzourTypes,
-  jabzourThicknessOptions,
   topPocketTypes,
-  sleeveTypes,
+  cuffTypes,
+  thicknessOptions,
 } from "../constants";
 
-const collarTypeValues = collarTypes.map((item) => item.value);
-const collarButtonValues = collarButtons.map((item) => item.value);
-const jabzourTypeValues = jabzourTypes.map((item) => item.value);
-const jabzourThicknessShortValues = jabzourThicknessOptions.map(
-  (item) => item.label
-);
-const frontPocketTypeValues = topPocketTypes.map((item) => item.value);
-const cuffsTypeValues = sleeveTypes.map((item) => item.value);
+/* ---------- Derive valid string literal arrays ---------- */
+const collarTypeValues = collarTypes.map(i => i.value) as [string, ...string[]];
+const collarButtonValues = collarButtons.map(i => i.value) as [string, ...string[]];
+const jabzourTypeValues = jabzourTypes.map(i => i.value) as [string, ...string[]];
+const topPocketTypeValues = topPocketTypes.map(i => i.value) as [string, ...string[]];
+const cuffTypeValues = cuffTypes.map(i => i.value) as [string, ...string[]];
+const thicknessValues = thicknessOptions.map(i => i.value) as [string, ...string[]];
+
+/* ---------- Schema Definition ---------- */
 
 export const styleOptionsSchema = z.object({
   styleOptionId: z.string().optional(),
-  orderId: z.array(z.string()),
   garmentId: z.string().optional(),
   style: z.string().optional(),
   lines: z.string().optional(),
@@ -30,30 +31,33 @@ export const styleOptionsSchema = z.object({
       smallTabaggi: z.boolean().optional(),
     })
     .optional(),
+
   jabzoor: z
     .object({
       jabzour1: z.enum(jabzourTypeValues).optional(),
-      jabzour2: z.enum(jabzourTypeValues).optional(),
-      jabzour_thickness: z.enum(jabzourThicknessShortValues).optional(),
+      jabzour2: z.enum(jabzourTypeValues).nullable().optional(),
+      jabzour_thickness: z.enum(thicknessValues).optional(),
     })
     .optional(),
+
   sidePocket: z
     .object({
       phone: z.boolean().optional(),
       wallet: z.boolean().optional(),
     })
     .optional(),
+
   frontPocket: z
     .object({
-      front_pocket_type: z.enum(frontPocketTypeValues).optional(),
-      front_pocket_thickness: z.enum(jabzourThicknessShortValues).optional(),
+      front_pocket_type: z.enum(topPocketTypeValues).optional(),
+      front_pocket_thickness: z.enum(thicknessValues).optional(),
       pen_holder: z.boolean().optional(),
     })
     .optional(),
   cuffs: z
     .object({
-      cuffs_type: z.enum(cuffsTypeValues).optional(),
-      cuffs_thickness: z.enum(jabzourThicknessShortValues).optional(),
+      cuffs_type: z.enum(cuffTypeValues).optional(),
+      cuffs_thickness: z.enum(thicknessValues).optional(),
     })
     .optional(),
 });
@@ -62,12 +66,11 @@ export type StyleOptionsSchema = z.infer<typeof styleOptionsSchema>;
 
 export const styleOptionsDefaults: StyleOptionsSchema = {
   styleOptionId: "",
-  orderId: [],
   garmentId: "",
-  style: "",
+  style: "kuwaiti",
   lines: "line1",
   collar: {
-    collarType: "JAPANES COLLAR",
+    collarType: "JAPANESE COLLAR",
     collarButton: "MULTI HOLES",
     smallTabaggi: false,
   },
@@ -86,7 +89,7 @@ export const styleOptionsDefaults: StyleOptionsSchema = {
     pen_holder: false,
   },
   cuffs: {
-    cuffs_type: "TYPE1",
+    cuffs_type: "CUFF1",
     cuffs_thickness: "SINGLE",
   },
 };

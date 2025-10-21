@@ -148,11 +148,7 @@ export function FabricSelectionForm({
       }
     }
   }
-  const isSyncDisabled =
-    !numRowsToAdd ||
-    numRowsToAdd <= 0 ||
-    (fabricSelectionFields.length === numRowsToAdd &&
-      styleOptionFields.length === numRowsToAdd);
+  const isSyncDisabled = numRowsToAdd <= 0;
 
   return (
     <FormProvider {...form}>
@@ -256,7 +252,15 @@ export function FabricSelectionForm({
         <Button
           className="m-4"
           variant={"outline"}
-          onClick={form.handleSubmit(onSubmit)}
+          onClick={() => {
+            const errors = form.formState.errors;
+            if (Object.keys(errors).length > 0) {
+              console.error("Fabric selection form errors:", errors);
+              // @ts-ignore
+              const errorMessages = Object.values(errors.fabricSelections || {}).flatMap(fieldErrors => Object.values(fieldErrors || {}).map(error => error.message)).join("\n");
+            }
+            form.handleSubmit(onSubmit)();
+          }}
         >
           Save Selections
         </Button>

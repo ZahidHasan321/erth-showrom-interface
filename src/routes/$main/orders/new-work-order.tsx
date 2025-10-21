@@ -35,15 +35,16 @@ import {
   mapApiOrderToFormOrder,
   mapFormOrderToApiOrder,
 } from "@/lib/order-mapper";
-import type { OrderSchema } from "@/schemas/schema";
+import type { OrderSchema } from "@/schemas/work-order-schema";
 import { createWorkOrderStore } from "@/store/current-work-order";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { getPrices } from "@/api/prices";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
@@ -64,12 +65,29 @@ const steps = [
 const useCurrentWorkOrderStore = createWorkOrderStore("main");
 
 function NewWorkOrder() {
+  const { data: pricesData } = useQuery({
+    queryKey: ["prices"],
+    queryFn: getPrices,
+    staleTime: Infinity,
+    gcTime: Infinity
+  });
+
+  const pricesMap = React.useMemo(() => {
+    const map = new Map<string, number>();
+    if (pricesData?.data) {
+      pricesData.data.forEach((item) => {
+        map.set(item.fields.name, item.fields.price);
+      });
+    }
+    return map;
+  }, [pricesData]);
+
   // confirmation dialog
   const [confirmationDialog, setConfirmationDialog] = React.useState({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   // store selectors
@@ -161,9 +179,9 @@ function NewWorkOrder() {
   const shelfCharges =
     shelvedProducts && shelvedProducts.length > 0
       ? shelvedProducts.reduce(
-          (total, product) => total + product.quantity * product.unitPrice,
-          0
-        )
+        (total, product) => total + product.quantity * product.unitPrice,
+        0
+      )
       : 0;
 
   const fabricCharges = 100;
@@ -192,11 +210,15 @@ function NewWorkOrder() {
   React.useEffect(() => {
     sectionRefs.current = steps.map((_, i) => sectionRefs.current[i] ?? null);
 
+  }, []);
+
+  React.useEffect(() => {
+
     return () => {
-      demographicsForm.reset();
+      demographicsForm.reset(customerDemographicsDefaults);
       resetWorkOrder();
     };
-  }, []);
+  }, [])
 
   // ----------------------------
   // scroll tracking (rAF-throttled)
@@ -274,6 +296,40 @@ function NewWorkOrder() {
   }) => {
     setFabricSelections(data.fabricSelections);
     setStyleOptions(data.styleOptions);
+
+    let stylePrice = 0;
+    const addPrice = (key?: string) => {
+      if (!key) return;
+      const price = pricesMap.get(key);
+      if (price) stylePrice += price;
+      else console.warn("Missing price for:", key);
+    };
+    data.styleOptions.forEach((style) => {
+      addPrice(style.collar?.collarButton)
+      addPrice(style.collar?.collarButton)
+      addPrice("smallTabaggi")
+      addPrice(style.style)
+      addPrice(style.lines)
+      addPrice("phone")
+      addPrice("wallet")
+      addPrice("pen_holder")
+      if(style.jabzoor?.jabzour1 === "ZIP"){
+        addPrice(`${ style.jabzoor.jabzour1 }-${style.jabzoor.jabzour2}-${style.jabzoor.jabzour_thickness}`)
+      }else{
+        addPrice(`${style.jabzoor?.jabzour1}-${style.jabzoor?.jabzour_thickness}`)
+      }
+      addPrice(`${style.cuffs?.cuffs_type}-${style.cuffs?.cuffs_thickness}`)
+      addPrice(`${style.frontPocket?.front_pocket_type}-${style.frontPocket?.front_pocket_thickness}`)
+    })
+
+    let fabricPrice = 0;
+
+    data.fabricSelections.forEach((fabric) => {
+      if(fabric.fabricAmount)
+        fabricPrice += fabric.fabricAmount
+    })
+
+
     toast.success("Fabric Selections and Style Options saved ✅");
   };
 

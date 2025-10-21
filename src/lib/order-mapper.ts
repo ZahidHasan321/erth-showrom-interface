@@ -1,5 +1,5 @@
 import type { Order } from "@/types/order";
-import type { OrderSchema } from "@/schemas/schema";
+import type { OrderSchema } from "@/schemas/work-order-schema";
 
 export function mapApiOrderToFormOrder(apiOrder: Order): OrderSchema {
   return {
