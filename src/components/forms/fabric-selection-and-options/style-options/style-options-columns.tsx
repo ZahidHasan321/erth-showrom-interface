@@ -65,14 +65,22 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     accessorKey: "style",
     header: "Style",
     minSize: 150,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       return (
         <Controller
           name={`styleOptions.${row.index}.style`}
           control={control}
           render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select
+              onValueChange={field.onChange}
+              value={field.value}
+              disabled={isFormDisabled}
+            >
               <SelectTrigger className="min-w-[150px]">
                 <SelectValue placeholder="Select Style" />
               </SelectTrigger>
@@ -90,15 +98,23 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     header: "Lines",
     id: "lines",
     minSize: 180,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       return (
         <div className="min-w-[180px] flex items-center space-x-4 px-2">
           <Controller
             name={`styleOptions.${row.index}.lines`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger className="min-w-[140px]">
                   <SelectValue placeholder="Select Lines" />
                 </SelectTrigger>
@@ -118,8 +134,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     accessorKey: "collar",
     header: "Collar",
     minSize: 350,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       const [collarType, collarButton] = useWatch({
         name: [
           `styleOptions.${row.index}.collar.collarType`,
@@ -133,7 +153,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             name={`styleOptions.${row.index}.collar.collarType`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger className="min-w-[120px]">
                   {collarType ? (
                     <img
@@ -168,7 +192,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             name={`styleOptions.${row.index}.collar.collarButton`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger className="min-w-[120px]">
                   {collarButton ? (
                     <img
@@ -210,6 +238,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   id={`smallTabaggi-${row.index}`}
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={isFormDisabled}
                 />
                 <label htmlFor={`smallTabaggi-${row.index}`}>
                   <img
@@ -229,8 +258,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     accessorKey: "jabzoor",
     header: "Jabzoor",
     minSize: 420,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control, setValue } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       const [jabzour1, jabzour2] = useWatch({
         name: [
           `styleOptions.${row.index}.jabzoor.jabzour1`,
@@ -250,7 +283,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             name={`styleOptions.${row.index}.jabzoor.jabzour1`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger className="min-w-[120px]">
                   {jabzour1 ? (
                     <img
@@ -290,7 +327,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
               name={`styleOptions.${row.index}.jabzoor.jabzour2`}
               control={control}
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={isFormDisabled}
+                >
                   <SelectTrigger className="min-w-[120px]">
                     {jabzour2 ? (
                       <img
@@ -335,7 +376,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             name={`styleOptions.${row.index}.jabzoor.jabzour_thickness`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger className="min-w-[60px]">
                   <SelectValue placeholder="Select Thickness" />
                 </SelectTrigger>
@@ -361,8 +406,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     accessorKey: "sidePocket",
     header: "Side Pocket",
     minSize: 220,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       return (
         <div className="min-w-[220px] flex flex-row space-x-4 justify-center items-center">
           <Controller
@@ -374,6 +423,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   id={`side_pocket_phone-${row.index}`}
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={isFormDisabled}
                 />
                 <label htmlFor={`side_pocket_phone-${row.index}`}>
                   <img
@@ -394,6 +444,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   id={`side_pocket_wallet-${row.index}`}
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={isFormDisabled}
                 />
                 <label htmlFor={`side_pocket_wallet-${row.index}`}>
                   <img
@@ -413,8 +464,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     accessorKey: "frontPocket",
     header: "Front Pocket",
     minSize: 420,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       const frontPocketType = useWatch({
         name: `styleOptions.${row.index}.frontPocket.front_pocket_type`,
       });
@@ -425,7 +480,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             name={`styleOptions.${row.index}.frontPocket.front_pocket_type`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger className="min-w-[120px]">
                   {frontPocketType ? (
                     <img
@@ -463,7 +522,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             name={`styleOptions.${row.index}.frontPocket.front_pocket_thickness`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger className="min-w-[60px]">
                   <SelectValue placeholder="Select Thickness" />
                 </SelectTrigger>
@@ -490,6 +553,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
                   id={`pen_holder-${row.index}`}
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={isFormDisabled}
                 />
                 <label htmlFor={`pen_holder-${row.index}`}>
                   <img
@@ -509,8 +573,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     accessorKey: "cuffs",
     header: "Cuffs",
     minSize: 300,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       const cuffsType = useWatch({
         name: `styleOptions.${row.index}.cuffs.cuffs_type`,
       });
@@ -521,7 +589,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             name={`styleOptions.${row.index}.cuffs.cuffs_type`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger className="min-w-[120px]">
                   {cuffsType ? (
                     cuffTypes.find((c) => c.value === cuffsType)?.image ? (
@@ -570,7 +642,11 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
             name={`styleOptions.${row.index}.cuffs.cuffs_thickness`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger className="min-w-[60px]">
                   <SelectValue placeholder="Select Thickness" />
                 </SelectTrigger>
@@ -596,12 +672,17 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     id: "delete",
     minSize: 80,
     cell: ({ row, table }) => {
+      const meta = table.options.meta as {
+        removeRow: (rowIndex: number) => void;
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       const handleDelete = () => {
-        table.options.meta?.removeRow(row.index);
+        meta?.removeRow(row.index);
       };
 
       return (
-        <Button variant="ghost" size="icon" onClick={handleDelete}>
+        <Button variant="ghost" size="icon" onClick={handleDelete} disabled={isFormDisabled}>
           <Trash2 size={42} color="red" />
         </Button>
       );

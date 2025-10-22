@@ -49,7 +49,9 @@ export function CustomerSelectionDialog({
         setSelectedIndex((prev) => (prev + 1) % customers.length);
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setSelectedIndex((prev) => (prev - 1 + customers.length) % customers.length);
+        setSelectedIndex(
+          (prev) => (prev - 1 + customers.length) % customers.length
+        );
       } else if (e.key === "Enter") {
         e.preventDefault();
         handleSelect(customers[selectedIndex]);
@@ -70,8 +72,10 @@ export function CustomerSelectionDialog({
           <DialogDescription
             key={customer.id}
             onClick={() => handleSelect(customer)}
-            className={`p-2 border rounded-lg hover:bg-muted cursor-pointer flex flex-col ${selectedIndex === index ? "border-primary border-2" : ""
-              }`}>
+            className={`p-2 border rounded-lg hover:bg-muted cursor-pointer flex flex-col ${
+              selectedIndex === index ? "border-primary border-2" : ""
+            }`}
+          >
             <span className="font-medium">{customer.fields.Name}</span>
             {customer.fields.City && (
               <span className="text-xs text-muted-foreground">

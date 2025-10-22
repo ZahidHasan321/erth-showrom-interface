@@ -14,7 +14,13 @@ interface StepProps {
   index: number;
 }
 
-const Step: React.FC<StepProps> = ({ title, isCompleted, isActive, onClick, index }) => {
+const Step: React.FC<StepProps> = ({
+  title,
+  isCompleted,
+  isActive,
+  onClick,
+  index,
+}) => {
   return (
     <button
       type="button"
@@ -34,13 +40,22 @@ const Step: React.FC<StepProps> = ({ title, isCompleted, isActive, onClick, inde
             isCompleted
               ? "border-primary bg-primary text-primary-foreground"
               : isActive
-              ? "border-primary text-primary font-extrabold"
-              : "border-muted-foreground/50"
+                ? "border-primary text-primary font-extrabold"
+                : "border-muted-foreground/50"
           )}
           animate={{ scale: isActive ? 1.12 : 1 }}
-          transition={{ duration: 0.28, type: "spring", stiffness: 260, damping: 22 }}
+          transition={{
+            duration: 0.28,
+            type: "spring",
+            stiffness: 260,
+            damping: 22,
+          }}
         >
-          {isCompleted ? <Check className="w-4 h-4" /> : <span>{index + 1}</span>}
+          {isCompleted ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <span>{index + 1}</span>
+          )}
         </motion.div>
       </div>
 
@@ -48,7 +63,9 @@ const Step: React.FC<StepProps> = ({ title, isCompleted, isActive, onClick, inde
         <p
           className={cn(
             "text-sm font-medium transition-colors",
-            isActive || isCompleted ? "text-foreground" : "text-muted-foreground"
+            isActive || isCompleted
+              ? "text-foreground"
+              : "text-muted-foreground"
           )}
         >
           {title}
@@ -68,7 +85,12 @@ interface StepperProps {
 /**
  * Visual stepper — receives currentStep from parent/store and notifies onStepChange on click.
  */
-export const HorizontalStepper: React.FC<StepperProps> = ({ steps, completedSteps, currentStep, onStepChange }) => {
+export const HorizontalStepper: React.FC<StepperProps> = ({
+  steps,
+  completedSteps,
+  currentStep,
+  onStepChange,
+}) => {
   return (
     <div className="w-full bg-background border-b border-muted sticky top-0 z-40">
       <div className="flex flex-row items-center justify-center px-4 py-3 overflow-x-auto 2xl:gap-10">
@@ -91,5 +113,3 @@ export const HorizontalStepper: React.FC<StepperProps> = ({ steps, completedStep
     </div>
   );
 };
-
-export default HorizontalStepper;

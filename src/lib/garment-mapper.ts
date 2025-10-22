@@ -56,8 +56,12 @@ export function mapApiGarmentToFormGarment(apiGarment: Garment): { fabricSelecti
 export function mapFormGarmentToApiGarment(
   fabricSelection: FabricSelectionSchema,
   styleOptions: StyleOptionsSchema,
+  measurementIdMap?: Map<string, string>,
   garmentId?: string
 ): { id?: string; fields: Partial<Garment["fields"]> } {
+  // Convert measurementId (display value like "44-1") to record ID if map is provided
+  const measurementRecordId = measurementIdMap?.get(fabricSelection.measurementId) || fabricSelection.measurementId;
+  
   const apiGarment: { id?: string; fields: Partial<Garment["fields"]> } = {
     fields: {
       // from fabricSelection
@@ -68,7 +72,7 @@ export function mapFormGarmentToApiGarment(
       fabricId: [fabricSelection.fabricId],
       fabricLength: fabricSelection.fabricLength,
       color: fabricSelection.color,
-      measurementId: [fabricSelection.measurementId],
+      measurementId: [measurementRecordId], // Use converted record ID
       express: fabricSelection.express,
       deliveryDate: fabricSelection.deliveryDate?.toISOString(),
       note: fabricSelection.note,

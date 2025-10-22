@@ -1,14 +1,16 @@
 "use client";
 
 import { getMeasurementsByCustomerId } from "@/api/measurements";
+import { createGarment, updateGarment } from "@/api/garments";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import * as React from "react";
 import {
   FormProvider,
   type UseFormReturn,
   useFieldArray,
 } from "react-hook-form";
+import { toast } from "sonner";
 import { DataTable } from "./data-table";
 import { columns as fabricSelectionColumns } from "./fabric-selection/fabric-selection-columns";
 import {
@@ -26,6 +28,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignaturePad } from "../signature-pad";
+import { mapFormGarmentToApiGarment } from "@/lib/garment-mapper";
 
 interface FabricSelectionFormProps {
   customerId: string | null;
@@ -34,10 +37,11 @@ interface FabricSelectionFormProps {
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
   }>;
-  onSubmit: (values: {
+  onSubmit?: (data: {
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
   }) => void;
+  onEdit?: () => void;
   onProceed: () => void;
   isProceedDisabled?: boolean;
   onCampaignsChange: (campaigns: string[]) => void;
@@ -46,6 +50,7 @@ interface FabricSelectionFormProps {
 export function FabricSelectionForm({
   customerId,
   orderId,
+  onEdit,
   form,
   onSubmit,
   onProceed,
@@ -55,6 +60,78 @@ export function FabricSelectionForm({
   const [selectedCampaigns, setSelectedCampaigns] = React.useState<string[]>(
     []
   );
+  const [isEditing, setIsEditing] = React.useState(true);
+  const [isSaved, setIsSaved] = React.useState(false);
+
+  // Mutation to save garments
+  const { mutate: saveGarmentsMutation, isPending: isSaving } = useMutation({
+    mutationFn: async (data: {
+      fabricSelections: FabricSelectionSchema[];
+      styleOptions: StyleOptionsSchema[];
+    }) => {
+      if (!orderId) {
+        throw new Error("No order ID available");
+      }
+
+      const promises = data.fabricSelections.map(
+        async (fabricSelection, index) => {
+          const styleOption = data.styleOptions[index];
+
+          const fabricWithOrderId = {
+            ...fabricSelection,
+            orderId: [orderId],
+          };
+
+          const garmentData = mapFormGarmentToApiGarment(
+            fabricWithOrderId,
+            styleOption
+          );
+
+          // Update if ID exists, otherwise create
+          if (fabricSelection.id && fabricSelection.id !== "") {
+            console.log("update: ", garmentData.fields);
+            return updateGarment(fabricSelection.id, garmentData.fields);
+          } else {
+            console.log("create: ", garmentData.fields);
+            return createGarment(garmentData.fields);
+          }
+        }
+      );
+
+      return Promise.all(promises);
+    },
+    onSuccess: (responses) => {
+      toast.success(`${responses.length} garment(s) saved successfully!`);
+
+      // Update form with response IDs
+      const updatedFabricSelections = form
+        .getValues("fabricSelections")
+        .map((fabric, index) => ({
+          ...fabric,
+          id: responses[index]?.data?.id || fabric.id,
+          orderId: [orderId!],
+        }));
+
+      form.setValue("fabricSelections", updatedFabricSelections);
+
+      setIsSaved(true);
+      setIsEditing(false);
+
+      onSubmit?.({
+        fabricSelections: updatedFabricSelections,
+        styleOptions: form.getValues("styleOptions"),
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to save garments:", error);
+      toast.error("Failed to save garments. Please try again.");
+    },
+  });
+
+  const handleSaveSelections = () => {
+    const data = form.getValues();
+    saveGarmentsMutation(data);
+  };
 
   const { data: campaignsResponse, isSuccess: campaignResSuccess } = useQuery({
     queryKey: ["campaigns"],
@@ -97,9 +174,15 @@ export function FabricSelectionForm({
     enabled: !!customerId,
   });
 
-  const measurementIDs =
+  // Pass array of { id, MeasurementID } for dropdown
+  const measurementOptions =
     measurementQuery?.data && measurementQuery.data.length > 0
-      ? measurementQuery.data.map((m) => m.fields.MeasurementID)
+      ? measurementQuery.data
+          .filter((m) => !!m.id)
+          .map((m) => ({
+            id: m.id as string,
+            MeasurementID: m.fields.MeasurementID,
+          }))
       : [];
 
   const addFabricRow = (index: number, orderId?: string) => {
@@ -149,6 +232,7 @@ export function FabricSelectionForm({
     }
   }
   const isSyncDisabled = numRowsToAdd <= 0;
+  const isFormDisabled = isSaved && !isEditing;
 
   return (
     <FormProvider {...form}>
@@ -161,6 +245,7 @@ export function FabricSelectionForm({
             placeholder="e.g., 2"
             onChange={(e) => setNumRowsToAdd(parseInt(e.target.value, 10))}
             className="w-24"
+            disabled={isFormDisabled}
           />
 
           <Button
@@ -176,7 +261,7 @@ export function FabricSelectionForm({
                 });
               }
             }}
-            disabled={isSyncDisabled}
+            disabled={isSyncDisabled || isFormDisabled}
           >
             Add / Sync
           </Button>
@@ -195,6 +280,7 @@ export function FabricSelectionForm({
                       : prev.filter((id) => id !== campaign.id)
                   );
                 }}
+                disabled={isFormDisabled}
               />
               <Label htmlFor={campaign.id}>{campaign.fields.Name}</Label>
             </div>
@@ -205,13 +291,14 @@ export function FabricSelectionForm({
           columns={fabricSelectionColumns}
           data={fabricSelectionFields}
           removeRow={removeFabricRow}
-          measurementIDs={measurementIDs}
+          measurementOptions={measurementOptions}
           updateData={(rowIndex, columnId, value) =>
             form.setValue(
               `fabricSelections.${rowIndex}.${columnId}` as any,
               value
             )
           }
+          isFormDisabled={isFormDisabled}
         />
         <h2 className="font-bold mb-2 mt-8">Signature</h2>
         <SignaturePad
@@ -229,13 +316,14 @@ export function FabricSelectionForm({
 
         <h2 className="text-2xl font-bold mb-4 mt-8">Style Options</h2>
         <DataTable
-          measurementIDs={measurementIDs}
           columns={styleOptionsColumns}
+          measurementOptions={measurementOptions}
           data={styleOptionFields}
           removeRow={removeStyleRow}
           updateData={(rowIndex, columnId, value) =>
             form.setValue(`styleOptions.${rowIndex}.${columnId}` as any, value)
           }
+          isFormDisabled={isFormDisabled}
         />
         {/* <Button onClick={addStyleRow} className="mt-4">
           Add Style Line
@@ -249,28 +337,55 @@ export function FabricSelectionForm({
         />
       </div>
       <div>
-        <Button
-          className="m-4"
-          variant={"outline"}
-          onClick={() => {
-            const errors = form.formState.errors;
-            if (Object.keys(errors).length > 0) {
-              console.error("Fabric selection form errors:", errors);
-              // @ts-ignore
-              const errorMessages = Object.values(errors.fabricSelections || {}).flatMap(fieldErrors => Object.values(fieldErrors || {}).map(error => error.message)).join("\n");
-            }
-            form.handleSubmit(onSubmit)();
-          }}
-        >
-          Save Selections
-        </Button>
-        <Button
-          className="m-4"
-          onClick={onProceed}
-          disabled={isProceedDisabled}
-        >
-          Proceed
-        </Button>
+        {!isSaved || isEditing ? (
+          <>
+            <Button
+              className="m-4"
+              variant={"outline"}
+              onClick={() => {
+                const errors = form.formState.errors;
+                if (Object.keys(errors).length > 0) {
+                  console.error("Fabric selection form errors:", errors);
+                }
+                handleSaveSelections();
+              }}
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving..." : "Save Selections"}
+            </Button>
+            {isEditing && isSaved && (
+              <Button
+                className="m-4"
+                variant="ghost"
+                onClick={() => {
+                  setIsEditing(false);
+                }}
+              >
+                Cancel
+              </Button>
+            )}
+          </>
+        ) : (
+          <>
+            <Button
+              className="m-4"
+              variant={"outline"}
+              onClick={() => {
+                setIsEditing(true);
+                onEdit?.();
+              }}
+            >
+              Edit Selections
+            </Button>
+            <Button
+              className="m-4"
+              onClick={onProceed}
+              disabled={isProceedDisabled}
+            >
+              Proceed
+            </Button>
+          </>
+        )}
       </div>
     </FormProvider>
   );

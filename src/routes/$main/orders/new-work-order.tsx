@@ -30,7 +30,7 @@ import { PaymentTypeForm } from "@/components/forms/payment-type/payment-type-fo
 import { ShelvedProductsForm } from "@/components/forms/shelved-products";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import HorizontalStepper from "@/components/ui/horizontal-stepper";
+import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
 import {
   mapApiOrderToFormOrder,
   mapFormOrderToApiOrder,
@@ -64,12 +64,12 @@ const steps = [
 
 const useCurrentWorkOrderStore = createWorkOrderStore("main");
 
-function NewWorkOrder() {
+export function NewWorkOrder() {
   const { data: pricesData } = useQuery({
     queryKey: ["prices"],
     queryFn: getPrices,
     staleTime: Infinity,
-    gcTime: Infinity
+    gcTime: Infinity,
   });
 
   const pricesMap = React.useMemo(() => {
@@ -87,7 +87,7 @@ function NewWorkOrder() {
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
 
   // store selectors
@@ -179,9 +179,9 @@ function NewWorkOrder() {
   const shelfCharges =
     shelvedProducts && shelvedProducts.length > 0
       ? shelvedProducts.reduce(
-        (total, product) => total + product.quantity * product.unitPrice,
-        0
-      )
+          (total, product) => total + product.quantity * product.unitPrice,
+          0
+        )
       : 0;
 
   const fabricCharges = 100;
@@ -209,16 +209,14 @@ function NewWorkOrder() {
   // ensure array length
   React.useEffect(() => {
     sectionRefs.current = steps.map((_, i) => sectionRefs.current[i] ?? null);
-
   }, []);
 
   React.useEffect(() => {
-
     return () => {
       demographicsForm.reset(customerDemographicsDefaults);
       resetWorkOrder();
     };
-  }, [])
+  }, []);
 
   // ----------------------------
   // scroll tracking (rAF-throttled)
@@ -290,13 +288,16 @@ function NewWorkOrder() {
     addSavedStep(step);
     handleStepChange(step + 1);
   };
+
   const handleFabricSelectionSubmit = (data: {
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
   }) => {
     setFabricSelections(data.fabricSelections);
     setStyleOptions(data.styleOptions);
+    addSavedStep(2); // Mark this step as saved
 
+    // Calculate style prices
     let stylePrice = 0;
     const addPrice = (key?: string) => {
       if (!key) return;
@@ -305,32 +306,34 @@ function NewWorkOrder() {
       else console.warn("Missing price for:", key);
     };
     data.styleOptions.forEach((style) => {
-      addPrice(style.collar?.collarButton)
-      addPrice(style.collar?.collarButton)
-      addPrice("smallTabaggi")
-      addPrice(style.style)
-      addPrice(style.lines)
-      addPrice("phone")
-      addPrice("wallet")
-      addPrice("pen_holder")
-      if(style.jabzoor?.jabzour1 === "ZIP"){
-        addPrice(`${ style.jabzoor.jabzour1 }-${style.jabzoor.jabzour2}-${style.jabzoor.jabzour_thickness}`)
-      }else{
-        addPrice(`${style.jabzoor?.jabzour1}-${style.jabzoor?.jabzour_thickness}`)
+      addPrice(style.collar?.collarButton);
+      addPrice(style.collar?.collarButton);
+      addPrice("smallTabaggi");
+      addPrice(style.style);
+      addPrice(style.lines);
+      addPrice("phone");
+      addPrice("wallet");
+      addPrice("pen_holder");
+      if (style.jabzoor?.jabzour1 === "ZIP") {
+        addPrice(
+          `${style.jabzoor.jabzour1}-${style.jabzoor.jabzour2}-${style.jabzoor.jabzour_thickness}`
+        );
+      } else {
+        addPrice(
+          `${style.jabzoor?.jabzour1}-${style.jabzoor?.jabzour_thickness}`
+        );
       }
-      addPrice(`${style.cuffs?.cuffs_type}-${style.cuffs?.cuffs_thickness}`)
-      addPrice(`${style.frontPocket?.front_pocket_type}-${style.frontPocket?.front_pocket_thickness}`)
-    })
+      addPrice(`${style.cuffs?.cuffs_type}-${style.cuffs?.cuffs_thickness}`);
+      addPrice(
+        `${style.frontPocket?.front_pocket_type}-${style.frontPocket?.front_pocket_thickness}`
+      );
+    });
 
     let fabricPrice = 0;
 
     data.fabricSelections.forEach((fabric) => {
-      if(fabric.fabricAmount)
-        fabricPrice += fabric.fabricAmount
-    })
-
-
-    toast.success("Fabric Selections and Style Options saved ✅");
+      if (fabric.fabricAmount) fabricPrice += fabric.fabricAmount;
+    });
   };
 
   React.useEffect(() => {
@@ -511,9 +514,10 @@ function NewWorkOrder() {
               <FabricSelectionForm
                 customerId={customerDemographics.id?.toString() || null}
                 form={fabricSelectionForm}
+                onEdit={() => removeSavedStep(2)}
                 onSubmit={handleFabricSelectionSubmit}
                 onProceed={() => handleProceed(2)}
-                orderId={order?.OrderID ?? null}
+                orderId={orderId ? orderId : null}
                 onCampaignsChange={(campaigns) => {
                   if (orderId) {
                     updateOrderFn({

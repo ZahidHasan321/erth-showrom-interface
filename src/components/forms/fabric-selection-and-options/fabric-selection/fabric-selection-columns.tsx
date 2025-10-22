@@ -49,22 +49,36 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     minSize: 150,
     cell: ({ row, table }) => {
       const { control } = useFormContext();
+      // Use measurementOptions: [{ id, MeasurementID }]
+      const meta = table.options.meta as {
+        measurementOptions?: { id: string; MeasurementID: string }[];
+        isFormDisabled?: boolean;
+      };
+      const measurementOptions: { id: string; MeasurementID: string }[] =
+        meta?.measurementOptions || [];
+      const isFormDisabled = meta?.isFormDisabled || false;
       return (
         <div className="min-w-[150px]">
           <Controller
             name={`fabricSelections.${row.index}.measurementId`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger className="w-[150px] min-w-[150px]">
                   <SelectValue placeholder="Select ID" />
                 </SelectTrigger>
                 <SelectContent>
-                  {table.options.meta?.measurementIDs?.map((id: string) => (
-                    <SelectItem key={id} value={id}>
-                      {id}
-                    </SelectItem>
-                  ))}
+                  {measurementOptions.map(
+                    (m: { id: string; MeasurementID: string }) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.MeasurementID}
+                      </SelectItem>
+                    )
+                  )}
                 </SelectContent>
               </Select>
             )}
@@ -77,8 +91,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "brova",
     header: "Brova",
     minSize: 80,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       return (
         <div className="w-full flex justify-center items-center min-w-[80px]">
           <Controller
@@ -88,6 +106,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
               <Checkbox
                 checked={field.value}
                 onCheckedChange={field.onChange}
+                disabled={isFormDisabled}
               />
             )}
           />
@@ -99,8 +118,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "fabricSource",
     header: "Source",
     minSize: 180,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control, setValue } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
 
       // ✅ useWatch instead of watch
       const fabricSource = useWatch({
@@ -120,7 +143,11 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
             name={`fabricSelections.${row.index}.fabricSource`}
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={isFormDisabled}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select source" />
                 </SelectTrigger>
@@ -139,8 +166,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "ifInside",
     header: "If inside",
     minSize: 200,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control, setValue } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
 
       // ✅ useWatch for reactivity without compiler warning
       const [fabricSource, fabricId] = useWatch({
@@ -199,8 +230,8 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
             <div className="flex justify-between w-full">
               <span>{`${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color}`}</span>
               <div className="flex gap-1">
-              <span className="text-gray-500">{`Price: ${fabric.fields.PricePerMeter}`}</span>
-              <span className="text-gray-500">{`Stock: ${fabric.fields.RealStock}`}</span>
+                <span className="text-gray-500">{`Price: ${fabric.fields.PricePerMeter}`}</span>
+                <span className="text-gray-500">{`Stock: ${fabric.fields.RealStock}`}</span>
               </div>
             </div>
           ),
@@ -209,7 +240,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
 
       return (
         <div className="flex flex-col space-y-1 w-[200px] min-w-[200px]">
-          {isDisabled ? (
+          {isDisabled || isFormDisabled ? (
             <Input
               placeholder="Search fabric..."
               disabled
@@ -229,7 +260,8 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
                   }}
                   onSearch={setSearchQuery}
                   placeholder="Search fabric..."
-                />  
+                  disabled={isFormDisabled}
+                />
               )}
             />
           )}
@@ -241,8 +273,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "color",
     header: "Color/ اللون",
     minSize: 120,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
 
       // ✅ useWatch for fabricSource
       const fabricSource = useWatch({
@@ -260,7 +296,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
               <Input
                 className="min-w-[120px]"
                 {...field}
-                readOnly={isReadOnly}
+                readOnly={isReadOnly || isFormDisabled}
               />
             )}
           />
@@ -272,8 +308,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "fabricLength",
     header: "Fabric Length",
     minSize: 120,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control, setError, clearErrors } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       const { data: fabricsResponse } = useQuery({
         queryKey: ["fabrics"],
         queryFn: getFabrics,
@@ -304,7 +344,15 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
             }
           }
         }
-      }, [fabricId, fabricLength, fabricSource, fabrics, setError, clearErrors, row.index]);
+      }, [
+        fabricId,
+        fabricLength,
+        fabricSource,
+        fabrics,
+        setError,
+        clearErrors,
+        row.index,
+      ]);
 
       return (
         <div className="min-w-[120px]">
@@ -315,6 +363,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
               <Input
                 {...field}
                 className={cn("min-w-[120px]", error ? "border-red-500" : "")}
+                readOnly={isFormDisabled}
               />
             )}
           />
@@ -326,8 +375,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "express",
     header: "Express/مستعجل",
     minSize: 80,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       return (
         <div className="w-full flex justify-center items-center min-w-[80px]">
           <Controller
@@ -337,6 +390,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
               <Checkbox
                 checked={field.value}
                 onCheckedChange={field.onChange}
+                disabled={isFormDisabled}
               />
             )}
           />
@@ -348,15 +402,23 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "deliveryDate",
     header: "Delivery Date/موعد التسليم",
     minSize: 150,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       return (
         <div className="w-50 min-w-[150px]">
           <Controller
             name={`fabricSelections.${row.index}.deliveryDate`}
             control={control}
             render={({ field }) => (
-              <DatePicker value={field.value} onChange={field.onChange} />
+              <DatePicker
+                value={field.value}
+                onChange={field.onChange}
+                disabled={isFormDisabled}
+              />
             )}
           />
         </div>
@@ -399,14 +461,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
         } else {
           setValue(`fabricSelections.${row.index}.fabricAmount`, 0);
         }
-      }, [
-        fabricId,
-        fabricLength,
-        fabricSource,
-        fabrics,
-        row.index,
-        setValue,
-      ]);
+      }, [fabricId, fabricLength, fabricSource, fabrics, row.index, setValue]);
 
       return (
         <div className="min-w-[160px]">
@@ -430,8 +485,12 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     accessorKey: "note",
     header: "Note",
     minSize: 150,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const { control } = useFormContext();
+      const meta = table.options.meta as {
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       return (
         <div className="min-w-[150px]">
           <Controller
@@ -441,6 +500,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
               <Textarea
                 {...field}
                 className="min-w-[190px] min-h-[40px] max-h-[190px]"
+                readOnly={isFormDisabled}
               />
             )}
           />
@@ -470,12 +530,22 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     id: "delete",
     minSize: 80,
     cell: ({ row, table }) => {
+      const meta = table.options.meta as {
+        removeRow: (rowIndex: number) => void;
+        isFormDisabled?: boolean;
+      };
+      const isFormDisabled = meta?.isFormDisabled || false;
       const handleDelete = () => {
-        table.options.meta?.removeRow(row.index);
+        meta?.removeRow(row.index);
       };
 
       return (
-        <Button variant="ghost" size="icon" onClick={handleDelete}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleDelete}
+          disabled={isFormDisabled}
+        >
           <Trash2 color="red" />
         </Button>
       );
