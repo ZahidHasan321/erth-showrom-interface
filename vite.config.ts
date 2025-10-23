@@ -24,18 +24,18 @@ export default defineConfig({
   },
   build: {
     commonjsOptions: {
-      defaultIsModuleExports:true
+      defaultIsModuleExports: true
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: [
-            "react",
-            "react-dom",
-            "@tanstack/react-router",
-            "@tanstack/react-query",
-          ],
-          zod: ["zod"],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor'; // all dependencies in node_modules go here
+          }
+          if (id.includes('zod')) {
+            return 'zod'; // separate chunk for zod
+          }
+          // You can add more rules if needed
         },
       },
     },

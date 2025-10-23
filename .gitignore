@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 .env
 .tanstack
-gemini.md
+.gemini.md

@@ -124,16 +124,19 @@ export function NewWorkOrder() {
       if (response.data) {
         const order = response.data;
         const formattedOrder = mapApiOrderToFormOrder(order);
+        // resetWorkOrder()
+        demographicsForm.reset();
+        measurementsForm.reset();
+
         setOrderId(order.id);
         setOrder(formattedOrder);
 
-        demographicsForm.reset();
-        measurementsForm.reset();
         toast.success("New work order created successfully!");
       }
     },
     onError: () => {
       toast.error("Failed to create new work order.");
+      resetWorkOrder();
     },
   });
 
@@ -213,7 +216,7 @@ export function NewWorkOrder() {
 
   React.useEffect(() => {
     return () => {
-      demographicsForm.reset(customerDemographicsDefaults);
+      demographicsForm.reset()
       resetWorkOrder();
     };
   }, []);
@@ -432,7 +435,7 @@ export function NewWorkOrder() {
         onConfirm={confirmationDialog.onConfirm}
         title={confirmationDialog.title}
         description={confirmationDialog.description}
-      />
+      />Work Order #600
 
       <div className="sticky top-0 z-20">
         <HorizontalStepper
@@ -441,7 +444,7 @@ export function NewWorkOrder() {
           currentStep={currentStep}
           onStepChange={handleStepChange}
         />
-        <div className="w-full flex justify-end mt-2">
+        <div className="w-fit absolute right-2.5 flex justify-end mt-2 ">
           <div className="bg-card p-4 shadow-lg rounded-lg z-10 border-b border-border max-w-xs mr-4">
             <h2 className="text-lg font-semibold tracking-tight">
               Work Order #{order.OrderID}
@@ -517,7 +520,8 @@ export function NewWorkOrder() {
                 onEdit={() => removeSavedStep(2)}
                 onSubmit={handleFabricSelectionSubmit}
                 onProceed={() => handleProceed(2)}
-                orderId={orderId ? orderId : null}
+                orderId={order.OrderID  || null}
+                orderRecordId={orderId}
                 onCampaignsChange={(campaigns) => {
                   if (orderId) {
                     updateOrderFn({

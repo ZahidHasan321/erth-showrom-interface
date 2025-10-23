@@ -10,7 +10,7 @@ export const fabricSelectionSchema = z.object({
   fabricId: z.string(),
   fabricLength: z.string(),
   ifInside: z.string().optional(),
-  color: z.string().optional(),
+  color: z.string(),
   measurementId: z.string(),
   express: z.boolean().optional(),
   deliveryDate: z.date().optional().nullable(),

@@ -41,6 +41,7 @@ import {
 } from "@/lib/measurement-mapper";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import type { Measurement } from "@/types/measurement";
 
 // ---------------------------------------
 // Type definitions
@@ -197,7 +198,7 @@ export function CustomerMeasurementsForm({
   });
 
   const { mutate: updateMeasurementMutation, isPending: isUpdating } = useMutation({
-    mutationFn: ({ recordId, values }: { recordId: string, values: any }) => updateMeasurement(recordId, values),
+    mutationFn: ({ recordId, values }: { recordId: string, values: Partial<Measurement["fields"]> }) => updateMeasurement(recordId, values),
     onSuccess: (response, { values }) => {
       if (response.status === "success") {
         setIsEditing(false);

@@ -33,6 +33,7 @@ import { mapFormGarmentToApiGarment } from "@/lib/garment-mapper";
 interface FabricSelectionFormProps {
   customerId: string | null;
   orderId: string | null;
+  orderRecordId: string | null
   form: UseFormReturn<{
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
@@ -50,6 +51,7 @@ interface FabricSelectionFormProps {
 export function FabricSelectionForm({
   customerId,
   orderId,
+  orderRecordId,
   onEdit,
   form,
   onSubmit,
@@ -69,7 +71,7 @@ export function FabricSelectionForm({
       fabricSelections: FabricSelectionSchema[];
       styleOptions: StyleOptionsSchema[];
     }) => {
-      if (!orderId) {
+      if (!orderRecordId) {
         throw new Error("No order ID available");
       }
 
@@ -79,7 +81,7 @@ export function FabricSelectionForm({
 
           const fabricWithOrderId = {
             ...fabricSelection,
-            orderId: [orderId],
+            orderId: [orderRecordId],
           };
 
           const garmentData = mapFormGarmentToApiGarment(
@@ -103,7 +105,7 @@ export function FabricSelectionForm({
     onSuccess: (responses) => {
       toast.success(`${responses.length} garment(s) saved successfully!`);
 
-      // Update form with response IDs
+      // // Update form with response IDs
       const updatedFabricSelections = form
         .getValues("fabricSelections")
         .map((fabric, index) => ({
@@ -112,7 +114,7 @@ export function FabricSelectionForm({
           orderId: [orderId!],
         }));
 
-      form.setValue("fabricSelections", updatedFabricSelections);
+      // form.setValue("fabricSelections", updatedFabricSelections);
 
       setIsSaved(true);
       setIsEditing(false);
@@ -231,7 +233,7 @@ export function FabricSelectionForm({
       }
     }
   }
-  const isSyncDisabled = numRowsToAdd <= 0;
+  // const isSyncDisabled = numRowsToAdd <= 0;
   const isFormDisabled = isSaved && !isEditing;
 
   return (
@@ -261,7 +263,7 @@ export function FabricSelectionForm({
                 });
               }
             }}
-            disabled={isSyncDisabled || isFormDisabled}
+            disabled={ isFormDisabled}
           >
             Add / Sync
           </Button>

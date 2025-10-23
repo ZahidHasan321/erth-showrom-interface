@@ -49,7 +49,7 @@ export const Route = createFileRoute('/$main')<{
     links: [{
       rel: 'icon',
       type: "image/svg+xml",
-      href: params.main === 'erth' ? "/erth-light.svg" : "/Sakkba.png"
+      href: params.main === 'erth' ? "/erth.svg" : "/Sakkba.png"
     }]
   }),
 })
