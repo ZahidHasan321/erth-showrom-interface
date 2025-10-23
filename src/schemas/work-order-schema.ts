@@ -12,6 +12,9 @@ export const orderSchema = z.object({
 
   // Fields from orderTypeAndPaymentSchema
   orderType: z.enum(["pickUp", "homeDelivery"]),
+  paymentType: z
+    .enum(["k-net", "cash", "link-payment", "installments", "others"])
+    .optional(),
   discountType: z.enum(["flat", "referral", "loyalty"]).optional(),
   referralCode: z.string().optional(),
   discountValue: z.number().optional(),
@@ -24,6 +27,7 @@ export const orderSchema = z.object({
   }),
   advance: z.number().optional(),
   balance: z.number().optional(),
+  numOfFabrics: z.number().optional(),
 });
 
 export type OrderSchema = z.infer<typeof orderSchema>;
