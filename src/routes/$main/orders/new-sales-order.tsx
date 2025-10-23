@@ -13,6 +13,7 @@ import {
 } from "@/components/forms/order-type-and-payment";
 import { PaymentTypeForm, paymentTypeSchema } from "@/components/forms/payment-type";
 import { ShelvedProductsForm } from "@/components/forms/shelved-products";
+import { shelvesFormSchema, type ShelvesFormValues } from "@/components/forms/shelved-products/schema";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
@@ -64,9 +65,6 @@ function NewSalesOrder() {
     (s) => s.setCustomerDemographics
   );
   // const shelvedProducts = useCurrentSalesOrderStore((s) => s.shelvedProducts);
-  const setShelvedProducts = useCurrentSalesOrderStore(
-    (s) => s.setShelvedProducts
-  );
   const orderId = useCurrentSalesOrderStore((s) => s.orderId);
   const setOrderId = useCurrentSalesOrderStore((s) => s.setOrderId);
   const setOrder = useCurrentSalesOrderStore((s) => s.setOrder);
@@ -105,6 +103,12 @@ function NewSalesOrder() {
     defaultValues: customerDemographicsDefaults,
   });
 
+  const ShelvesForm = useForm<ShelvesFormValues>({
+    resolver: zodResolver(shelvesFormSchema),
+    defaultValues: {
+      products: []
+    }
+  })
   const paymentForm = useForm<z.infer<typeof paymentTypeSchema>>({
     resolver: zodResolver(paymentTypeSchema),
     defaultValues: {
@@ -262,7 +266,7 @@ function NewSalesOrder() {
 
             {index === 1 && (
               <ShelvedProductsForm
-                setFormData={setShelvedProducts}
+                form={ShelvesForm}
                 onProceed={() => handleProceed(1)}
               />
             )}

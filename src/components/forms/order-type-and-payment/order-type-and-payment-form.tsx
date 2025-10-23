@@ -48,7 +48,7 @@ export function OrderTypeAndPaymentForm({
   optional = true,
 }: OrderTypeAndPaymentFormProps) {
   const [
-    charges = 0,
+    charges,
     discountValue = 0,
     advance = 0,
     discountType = "flat",
@@ -65,6 +65,12 @@ export function OrderTypeAndPaymentForm({
       "orderType",
     ],
   });
+
+  React.useEffect(() => {
+    form.setValue("charges.delivery", orderType === "homeDelivery" ? 5 : 0);
+    const advance = charges.fabric + charges.shelf + (charges.stitching * 0.5 )
+    form.setValue("advance", advance)
+  },[charges.fabric, charges.shelf, charges.stitching, charges.style, charges.delivery, form])
 
   // Auto delivery charge
   React.useEffect(() => {
@@ -189,7 +195,7 @@ export function OrderTypeAndPaymentForm({
                             }
                             aria-pressed={active}
                             className={cn(
-                              "flex items-center justify-between rounded-lg border p-4 transition-all w-full min-w-[220px]",
+                              "flex items-center justify-between rounded-lg border p-4 transition-all w-full",
                               active
                                 ? "border-green-500 bg-white ring-2 ring-green-200"
                                 : "border-border bg-white hover:shadow-sm",
@@ -197,7 +203,7 @@ export function OrderTypeAndPaymentForm({
                             )}
                           >
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-md bg-accent/10 flex items-center justify-center">
+                              <div className="w-8 h-8 rounded-md bg-accent/10 flex items-center shrink-0 justify-center">
                                 <span className="text-sm font-medium">
                                   {opt.label[0]}
                                 </span>
@@ -220,7 +226,7 @@ export function OrderTypeAndPaymentForm({
                             {/* Proper circular indicator */}
                             <div
                               className={cn(
-                                "inline-flex items-center justify-center rounded-full w-7 h-7 border flex-shrink-0 transition-colors",
+                                "inline-flex items-center justify-center rounded-full w-7 h-7 border shrink-0 transition-colors",
                                 active
                                   ? "bg-green-500 border-green-500 text-white"
                                   : "bg-white border-border"

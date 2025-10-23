@@ -91,10 +91,10 @@ export function FabricSelectionForm({
 
           // Update if ID exists, otherwise create
           if (fabricSelection.id && fabricSelection.id !== "") {
-            console.log("update: ", garmentData.fields);
+            // console.log("update: ", garmentData.fields);
             return updateGarment(fabricSelection.id, garmentData.fields);
           } else {
-            console.log("create: ", garmentData.fields);
+            // console.log("create: ", garmentData.fields);
             return createGarment(garmentData.fields);
           }
         }
@@ -239,7 +239,7 @@ export function FabricSelectionForm({
   return (
     <FormProvider {...form}>
       <div className="p-4 border rounded-lg bg-muted max-w-full w-full overflow-hidden">
-        <div className="flex items-center space-x-2 mb-4">
+        <div className="flex flex-wrap items-center space-x-2 mb-4 gap-4">
           <Label htmlFor="num-fabrics">How many pieces? </Label>
           <Input
             id="num-fabrics"

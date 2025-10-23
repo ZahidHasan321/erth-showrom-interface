@@ -38,7 +38,7 @@ import * as React from "react";
 import { useState } from "react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
-import type z from "zod";
+import { z }from "zod";
 import {
   customerDemographicsDefaults,
   customerDemographicsSchema,

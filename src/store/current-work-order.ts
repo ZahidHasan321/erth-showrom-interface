@@ -1,7 +1,7 @@
 import type { customerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
 import type { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/fabric-selection/fabric-selection-schema";
 import type { styleOptionsSchema } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
-import { shelvedProductsSchema } from "@/components/forms/shelved-products/schema";
+import { shelvedProductSchema } from "@/components/forms/shelved-products/schema";
 import type { OrderSchema } from "@/schemas/work-order-schema";
 import type { Order } from "@/types/order";
 import { z } from "zod";
@@ -20,7 +20,7 @@ interface CurrentWorkOrderState {
   // customerMeasurements: Partial<CustomerMeasurements>;
   fabricSelections: FabricSelection[];
   styleOptions: StyleOption[];
-  shelvedProducts: z.infer<typeof shelvedProductsSchema>;
+  shelvedProducts: z.infer<typeof shelvedProductSchema>;
   currentStep: number;
   savedSteps: number[];
 
@@ -33,7 +33,6 @@ interface CurrentWorkOrderState {
   updateFabricSelection: (data: FabricSelection) => void;
   setOrder: (order: Partial<OrderSchema>) => void;
   removeFabricSelection: (id: string) => void;
-  setShelvedProducts: (data: z.infer<typeof shelvedProductsSchema>) => void;
   setCurrentStep: (step: number) => void;
 
   // mark step complete
@@ -96,7 +95,6 @@ export const createWorkOrderStore = (name: string) =>
           })),
 
 
-        setShelvedProducts: (data) => set({ shelvedProducts: data }),
 
         setCurrentStep: (step) => set({ currentStep: step }),
 
@@ -122,7 +120,6 @@ export const createWorkOrderStore = (name: string) =>
             // customerMeasurements: {},
             fabricSelections: [],
             styleOptions: [],
-            shelvedProducts: [],
             currentStep: 0,
             savedSteps: [],
           }),

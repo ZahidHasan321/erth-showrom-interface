@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { customerDemographicsSchema } from "@/components/forms/customer-demographics/schema";
-import { shelvedProductsSchema } from "@/components/forms/shelved-products/schema";
+import { shelvedProductSchema } from "@/components/forms/shelved-products/schema";
 import { z } from "zod";
 import type { OrderSchema } from "@/schemas/work-order-schema";
 
@@ -9,7 +9,7 @@ interface CurrentSalesOrderState {
   orderId: string | null;
   order: Partial<OrderSchema>;
   customerDemographics: Partial<z.infer<typeof customerDemographicsSchema>>;
-  shelvedProducts: z.infer<typeof shelvedProductsSchema>;
+  shelvedProducts: z.infer<typeof shelvedProductSchema>;
   currentStep: number;
   savedSteps: number[];
   paymentType: string | null;
@@ -23,7 +23,7 @@ interface CurrentSalesOrderState {
   setOrderId: (id: string | null) => void;
   setOrder: (order: Partial<OrderSchema>) => void;
   setCustomerDemographics: (data: Partial<z.infer<typeof customerDemographicsSchema>>) => void;
-  setShelvedProducts: (data: z.infer<typeof shelvedProductsSchema>) => void;
+  setShelvedProducts: (data: z.infer<typeof shelvedProductSchema>) => void;
   setCurrentStep: (step: number) => void;
   setPaymentType: (type: string | null) => void;
   setOtherPaymentType: (type: string | null) => void;
@@ -95,7 +95,6 @@ export const createSalesOrderStore = (name: string) =>
             orderId: null,
             order: {},
             customerDemographics: {},
-            shelvedProducts: [],
             currentStep: 0,
             savedSteps: [],
             paymentType: null,
