@@ -270,7 +270,7 @@ export function FabricSelectionForm({
         </div>
         <div className="flex flex-col gap-2 mb-6 border shadow-lg w-fit p-4 rounded-lg bg-card">
           <Label className="text-md text-bold">Campaign Offers:</Label>
-          {activeCampaigns.map((campaign) => (
+          {activeCampaigns.length && activeCampaigns.map((campaign) => (
             <div key={campaign.id} className="flex items-center space-x-2">
               <Checkbox
                 id={campaign.id}

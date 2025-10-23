@@ -23,6 +23,8 @@ export default defineConfig({
     },
   },
   build: {
+    // minify:false,
+    // sourcemap: true, // 🪄 lets you map the error to your original source
     commonjsOptions: {
       defaultIsModuleExports: true
     },
