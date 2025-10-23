@@ -64,7 +64,7 @@ const steps = [
 
 const useCurrentWorkOrderStore = createWorkOrderStore("main");
 
-export function NewWorkOrder() {
+function NewWorkOrder() {
   const { data: pricesData } = useQuery({
     queryKey: ["prices"],
     queryFn: getPrices,
@@ -216,7 +216,7 @@ export function NewWorkOrder() {
 
   React.useEffect(() => {
     return () => {
-      demographicsForm.reset()
+      demographicsForm.reset();
       resetWorkOrder();
     };
   }, []);
@@ -435,8 +435,8 @@ export function NewWorkOrder() {
         onConfirm={confirmationDialog.onConfirm}
         title={confirmationDialog.title}
         description={confirmationDialog.description}
-      />Work Order #600
-
+      />
+      Work Order #600
       <div className="sticky top-0 z-20">
         <HorizontalStepper
           steps={steps}
@@ -466,9 +466,7 @@ export function NewWorkOrder() {
           </div>
         </div>
       </div>
-
       {/* Make space so sticky header does not overlap content */}
-
       {/* Step Content */}
       <div className="flex flex-col flex-1 items-center space-y-10 p-4 xl:p-0 mx-20">
         {steps.map((step, index) => (
@@ -520,7 +518,7 @@ export function NewWorkOrder() {
                 onEdit={() => removeSavedStep(2)}
                 onSubmit={handleFabricSelectionSubmit}
                 onProceed={() => handleProceed(2)}
-                orderId={order.OrderID  || null}
+                orderId={order.OrderID || null}
                 orderRecordId={orderId}
                 onCampaignsChange={(campaigns) => {
                   if (orderId) {

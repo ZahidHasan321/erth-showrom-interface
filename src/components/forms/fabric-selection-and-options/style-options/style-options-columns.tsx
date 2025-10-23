@@ -6,72 +6,62 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 
 import type { StyleOptionsSchema } from "./style-options-schema";
-import {
-  GarmentIdCell,
-  StyleOptionIdCell,
-  StyleCell,
-  LinesCell,
-  CollarCell,
-  JabzoorCell,
-  SidePocketCell,
-  FrontPocketCell,
-  CuffsCell,
-} from "./style-options-cells";
+import * as StyleCells from "./style-options-cells";
 
 export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
     accessorKey: "garmentId",
     header: "Garment ID",
     minSize: 150,
-    cell: GarmentIdCell,
+    cell: StyleCells.GarmentIdCell,
   },
   {
     accessorKey: "styleOptionId",
     header: "Style Option Id",
     minSize: 100,
-    cell: StyleOptionIdCell,
+    cell: StyleCells.StyleOptionIdCell,
   },
   {
     accessorKey: "style",
     header: "Style",
     minSize: 150,
-    cell: StyleCell,
+    cell: StyleCells.StyleCell,
   },
   {
     header: "Lines",
     id: "lines",
     minSize: 180,
-    cell: LinesCell,
+    cell: StyleCells.LinesCell,
   },
   {
     accessorKey: "collar",
     header: "Collar",
     minSize: 350,
-    cell: CollarCell,
+    cell: StyleCells.CollarCell,
   },
   {
     accessorKey: "jabzoor",
     header: "Jabzoor",
     minSize: 420,
-    cell: JabzoorCell,
+    cell: StyleCells.JabzoorCell,
   },
   {
     accessorKey: "sidePocket",
     header: "Side Pocket",
     minSize: 220,
-    cell: SidePocketCell,
+    cell: StyleCells.SidePocketCell,
   },
   {
     accessorKey: "frontPocket",
     header: "Front Pocket",
     minSize: 420,
-    cell: FrontPocketCell,
+    cell: StyleCells.FrontPocketCell,
   },
   {
     accessorKey: "cuffs",
     header: "Cuffs",
     minSize: 300,
-    cell: CuffsCell,
+    cell: StyleCells.CuffsCell,
   },
   {
     id: "delete",

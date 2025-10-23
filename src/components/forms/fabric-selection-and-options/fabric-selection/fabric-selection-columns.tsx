@@ -6,86 +6,74 @@ import { type FabricSelectionSchema } from "./fabric-selection-schema";
 
 import { Trash2, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  GarmentIdCell,
-  MeasurementIdCell,
-  BrovaCell,
-  FabricSourceCell,
-  IfInsideCell,
-  ColorCell,
-  FabricLengthCell,
-  ExpressCell,
-  DeliveryDateCell,
-  FabricAmountCell,
-  NoteCell,
-} from "./fabric-selection-cells";
+import * as FabricCells from "./fabric-selection-cells";
 
 export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
     accessorKey: "garmentId",
     header: "Garment ID",
     minSize: 100,
-    cell: GarmentIdCell,
+    cell: FabricCells.GarmentIdCell,
   },
   {
     accessorKey: "measurementId",
     header: "Measurement ID",
     minSize: 150,
-    cell: MeasurementIdCell,
+    cell: FabricCells.MeasurementIdCell,
   },
   {
     accessorKey: "brova",
     header: "Brova",
     minSize: 80,
-    cell: BrovaCell,
+    cell: FabricCells.BrovaCell,
   },
   {
     accessorKey: "fabricSource",
     header: "Source",
     minSize: 180,
-    cell: FabricSourceCell,
+    cell: FabricCells.FabricSourceCell,
   },
   {
     accessorKey: "ifInside",
     header: "If inside",
     minSize: 200,
-    cell: IfInsideCell,
+    cell: FabricCells.IfInsideCell,
   },
   {
     accessorKey: "color",
     header: "Color/ اللون",
     minSize: 120,
-    cell: ColorCell,
+    cell: FabricCells.ColorCell,
   },
   {
     accessorKey: "fabricLength",
     header: "Fabric Length",
     minSize: 120,
-    cell: FabricLengthCell,
+    cell: FabricCells.FabricLengthCell,
   },
   {
     accessorKey: "express",
     header: "Express/مستعجل",
     minSize: 80,
-    cell: ExpressCell,
+    cell: FabricCells.ExpressCell,
   },
   {
     accessorKey: "deliveryDate",
     header: "Delivery Date/موعد التسليم",
     minSize: 150,
-    cell: DeliveryDateCell,
+    cell: FabricCells.DeliveryDateCell,
   },
   {
     accessorKey: "fabricAmount",
     header: "Fabric Amount/سعر القماش",
     minSize: 160,
-    cell: FabricAmountCell,
+    cell: FabricCells.FabricAmountCell,
   },
   {
     accessorKey: "note",
     header: "Note",
     minSize: 150,
-    cell: NoteCell,
+    cell: FabricCells.NoteCell,
   },
   {
     id: "print",
