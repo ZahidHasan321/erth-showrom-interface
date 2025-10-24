@@ -16,6 +16,8 @@ export const orderSchema = z.object({
     .enum(["k-net", "cash", "link-payment", "installments", "others"])
     .optional(),
   discountType: z.enum(["flat", "referral", "loyalty"]).optional(),
+  discountPercentage: z.number().optional(),
+  discountInKwd: z.string().optional(),
   referralCode: z.string().optional(),
   discountValue: z.number().optional(),
   charges: z.object({
@@ -29,5 +31,24 @@ export const orderSchema = z.object({
   balance: z.number().optional(),
   numOfFabrics: z.number().optional(),
 });
+
+export const orderDefaults: OrderSchema = {
+  orderStatus: "Pending",
+  orderDate: new Date().toISOString(),
+  orderTotal: 0,
+  paymentType: "cash",
+  orderType: "pickUp",
+  discountValue: 0,
+  charges: {
+    fabric: 0,
+    stitching: 0,
+    style: 0,
+    delivery: 0,
+    shelf: 0,
+  },
+  advance: 0,
+  balance: 0,
+  numOfFabrics: 0,
+};
 
 export type OrderSchema = z.infer<typeof orderSchema>;

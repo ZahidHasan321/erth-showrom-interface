@@ -23,10 +23,15 @@ import InstallmentsIcon from "@/assets/payment-assets/installments.png";
 
 interface PaymentTypeFormProps {
   form: UseFormReturn<PaymentTypeSchema>;
-  onSubmit: (values: PaymentTypeSchema) => void;
+  onConfirm: (values: PaymentTypeSchema) => void;
+  onCancel: () => void;
 }
 
-export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
+export function PaymentTypeForm({
+  form,
+  onConfirm,
+  onCancel,
+}: PaymentTypeFormProps) {
   const paymentType = useWatch({ control: form.control, name: "paymentType" });
 
   const paymentOptions = [
@@ -40,13 +45,15 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onConfirm)}
         className="flex flex-col md:flex-row gap-6 w-full"
       >
         {/* Left Section — Payment Types */}
         <motion.div
           layout
-          transition={{ layout: { type: "spring", stiffness: 220, damping: 28 } }}
+          transition={{
+            layout: { type: "spring", stiffness: 220, damping: 28 },
+          }}
           className="flex-1 bg-muted p-6 rounded-xl"
         >
           <h1 className="text-2xl font-bold mb-4">Payment Type</h1>
@@ -69,7 +76,7 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
                         className={cn(
                           "flex flex-col items-center justify-center rounded-lg p-4 bg-white border hover:border-green-500 transition-all cursor-pointer",
                           field.value === option.value &&
-                          "border-green-500 ring-2 ring-green-400"
+                            "border-green-500 ring-2 ring-green-400"
                         )}
                       >
                         <div className="h-16 w-16 flex items-center justify-center">
@@ -133,7 +140,11 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
                   <motion.div
                     key="others-input"
                     initial={{ opacity: 0, y: -12 }}
-                    animate={{ opacity: 1, y: 0, transition: { delay: 0.1, duration: 0.3 } }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      transition: { delay: 0.1, duration: 0.3 },
+                    }}
                     exit={{ opacity: 0, y: -10, transition: { duration: 0.2 } }}
                     className="mt-6"
                   >
@@ -144,7 +155,10 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
                         <FormItem>
                           <FormLabel>Please Specify</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter payment type" {...field} />
+                            <Input
+                              placeholder="Enter payment type"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -161,7 +175,9 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
         <motion.div
           layout
           className="flex flex-col justify-between bg-muted p-4 rounded-xl w-full md:w-64 space-y-4"
-          transition={{ layout: { type: "spring", stiffness: 220, damping: 28 } }}
+          transition={{
+            layout: { type: "spring", stiffness: 220, damping: 28 },
+          }}
         >
           <FormField
             control={form.control}
@@ -184,7 +200,7 @@ export function PaymentTypeForm({ form, onSubmit }: PaymentTypeFormProps) {
             <Button type="button" variant="secondary">
               Print Invoice
             </Button>
-            <Button type="button" variant="destructive">
+            <Button type="button" variant="destructive" onClick={onCancel}>
               Cancel Order
             </Button>
           </motion.div>

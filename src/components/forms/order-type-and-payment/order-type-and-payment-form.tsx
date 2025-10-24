@@ -7,18 +7,14 @@ import { useWatch, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormField,
-  FormLabel,
-} from "@/components/ui/form";
+import { Form, FormField, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 
 import HomeDeliveryIcon from "@/assets/home_delivery.png";
 import PickUpIcon from "@/assets/pickup.png";
-import { orderTypeAndPaymentSchema } from "./schema";
+import type { orderSchema } from "@/schemas/work-order-schema";
 
 // ---------------- Constants ----------------
 const discountOptions = [
@@ -35,9 +31,9 @@ const smoothTransition: Transition = {
 
 // ---------------- Component ----------------
 interface OrderTypeAndPaymentFormProps {
-  onSubmit: (values: z.infer<typeof orderTypeAndPaymentSchema>) => void;
+  onSubmit: (values: z.infer<typeof orderSchema>) => void;
   onProceed?: () => void;
-  form: UseFormReturn<z.infer<typeof orderTypeAndPaymentSchema>>;
+  form: UseFormReturn<z.infer<typeof orderSchema>>;
   optional?: boolean;
 }
 
@@ -68,9 +64,16 @@ export function OrderTypeAndPaymentForm({
 
   React.useEffect(() => {
     form.setValue("charges.delivery", orderType === "homeDelivery" ? 5 : 0);
-    const advance = charges.fabric + charges.shelf + (charges.stitching * 0.5 )
-    form.setValue("advance", advance)
-  },[charges.fabric, charges.shelf, charges.stitching, charges.style, charges.delivery, form])
+    const advance = charges.fabric + charges.shelf + charges.stitching * 0.5;
+    form.setValue("advance", advance);
+  }, [
+    charges.fabric,
+    charges.shelf,
+    charges.stitching,
+    charges.style,
+    charges.delivery,
+    form,
+  ]);
 
   // Auto delivery charge
   React.useEffect(() => {
@@ -142,7 +145,7 @@ export function OrderTypeAndPaymentForm({
                         "flex flex-col items-center justify-center rounded-lg p-4 bg-white border cursor-pointer transition-all",
                         "hover:border-green-500 hover:shadow-md",
                         field.value === option.value &&
-                        "border-green-500 ring-2 ring-green-400"
+                          "border-green-500 ring-2 ring-green-400"
                       )}
                     >
                       <img
@@ -186,7 +189,14 @@ export function OrderTypeAndPaymentForm({
                     {discountOptions.map((opt) => {
                       const active = field.value === opt.value;
                       return (
-                        <motion.div key={opt.value} layout transition={smoothTransition} className={cn(opt.value === "loyalty" && "md:col-span-2")}>
+                        <motion.div
+                          key={opt.value}
+                          layout
+                          transition={smoothTransition}
+                          className={cn(
+                            opt.value === "loyalty" && "md:col-span-2"
+                          )}
+                        >
                           {/* Main Button */}
                           <button
                             type="button"
@@ -264,7 +274,10 @@ export function OrderTypeAndPaymentForm({
                                     height: "auto",
                                     opacity: 1,
                                     transition: {
-                                      height: { duration: 0.3, ease: "easeOut" },
+                                      height: {
+                                        duration: 0.3,
+                                        ease: "easeOut",
+                                      },
                                       opacity: { delay: 0.1, duration: 0.25 },
                                     },
                                   }}
@@ -272,7 +285,10 @@ export function OrderTypeAndPaymentForm({
                                     height: 0,
                                     opacity: 0,
                                     transition: {
-                                      height: { duration: 0.25, ease: "easeInOut" },
+                                      height: {
+                                        duration: 0.25,
+                                        ease: "easeInOut",
+                                      },
                                       opacity: { duration: 0.15 },
                                     },
                                   }}

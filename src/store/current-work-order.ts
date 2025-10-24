@@ -2,7 +2,7 @@ import type { customerDemographicsSchema } from "@/components/forms/customer-dem
 import type { fabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/fabric-selection/fabric-selection-schema";
 import type { styleOptionsSchema } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
 import { shelvedProductSchema } from "@/components/forms/shelved-products/schema";
-import type { OrderSchema } from "@/schemas/work-order-schema";
+import type { orderSchema } from "@/schemas/work-order-schema";
 import type { Order } from "@/types/order";
 import { z } from "zod";
 import { create } from "zustand";
@@ -12,10 +12,11 @@ type CustomerDemographics = z.infer<typeof customerDemographicsSchema>;
 // type CustomerMeasurements = z.infer<typeof customerMeasurementsSchema>;
 type FabricSelection = z.infer<typeof fabricSelectionSchema>;
 type StyleOption = z.infer<typeof styleOptionsSchema>;
+type OrderSchema = z.infer<typeof orderSchema>;
 
 interface CurrentWorkOrderState {
   orderId: string | null;
-  order: Partial<Order["fields"]>;
+  order: Partial<OrderSchema>;
   customerDemographics: Partial<CustomerDemographics>;
   // customerMeasurements: Partial<CustomerMeasurements>;
   fabricSelections: FabricSelection[];
@@ -83,18 +84,16 @@ export const createWorkOrderStore = (name: string) =>
         updateFabricSelection: (data) =>
           set((state) => ({
             fabricSelections: state.fabricSelections.map((item) =>
-              item.id === data.id ? data : item,
+              item.id === data.id ? data : item
             ),
           })),
 
         removeFabricSelection: (id) =>
           set((state) => ({
             fabricSelections: state.fabricSelections.filter(
-              (item) => item.id !== id,
+              (item) => item.id !== id
             ),
           })),
-
-
 
         setCurrentStep: (step) => set({ currentStep: step }),
 
@@ -103,8 +102,8 @@ export const createWorkOrderStore = (name: string) =>
             state.savedSteps.includes(step)
               ? state
               : {
-                savedSteps: [...state.savedSteps, step].sort((a, b) => a - b),
-              },
+                  savedSteps: [...state.savedSteps, step].sort((a, b) => a - b),
+                }
           ),
 
         removeSavedStep: (step) =>
@@ -124,6 +123,6 @@ export const createWorkOrderStore = (name: string) =>
             savedSteps: [],
           }),
       }),
-      { name: `work-order-${name}` },
-    ),
+      { name: `work-order-${name}` }
+    )
   );

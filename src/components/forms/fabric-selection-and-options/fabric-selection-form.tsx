@@ -33,7 +33,7 @@ import { mapFormGarmentToApiGarment } from "@/lib/garment-mapper";
 interface FabricSelectionFormProps {
   customerId: string | null;
   orderId: string | null;
-  orderRecordId: string | null
+  orderRecordId: string | null;
   form: UseFormReturn<{
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
@@ -56,6 +56,7 @@ export function FabricSelectionForm({
   form,
   onSubmit,
   onProceed,
+  onCampaignsChange,
   isProceedDisabled = false,
 }: FabricSelectionFormProps) {
   const [numRowsToAdd, setNumRowsToAdd] = React.useState(0);
@@ -263,30 +264,32 @@ export function FabricSelectionForm({
                 });
               }
             }}
-            disabled={ isFormDisabled}
+            disabled={isFormDisabled}
           >
             Add / Sync
           </Button>
         </div>
         <div className="flex flex-col gap-2 mb-6 border shadow-lg w-fit p-4 rounded-lg bg-card">
           <Label className="text-md text-bold">Campaign Offers:</Label>
-          {activeCampaigns.length && activeCampaigns.map((campaign) => (
-            <div key={campaign.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={campaign.id}
-                checked={selectedCampaigns.includes(campaign.id)}
-                onCheckedChange={(checked) => {
-                  setSelectedCampaigns((prev) =>
-                    checked
-                      ? Array.from(new Set([...prev, campaign.id]))
-                      : prev.filter((id) => id !== campaign.id)
-                  );
-                }}
-                disabled={isFormDisabled}
-              />
-              <Label htmlFor={campaign.id}>{campaign.fields.Name}</Label>
-            </div>
-          ))}
+          {activeCampaigns.length &&
+            activeCampaigns.map((campaign) => (
+              <div key={campaign.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={campaign.id}
+                  checked={selectedCampaigns.includes(campaign.id)}
+                  onCheckedChange={(checked) => {
+                    const updatedCampaigns = checked
+                      ? Array.from(new Set([...selectedCampaigns, campaign.id]))
+                      : selectedCampaigns.filter((id) => id !== campaign.id);
+
+                    setSelectedCampaigns(updatedCampaigns);
+                    onCampaignsChange(updatedCampaigns);
+                  }}
+                  disabled={isFormDisabled}
+                />
+                <Label htmlFor={campaign.id}>{campaign.fields.Name}</Label>
+              </div>
+            ))}
         </div>
         <h2 className="text-2xl font-bold mb-4">Fabric Selections</h2>
         <DataTable

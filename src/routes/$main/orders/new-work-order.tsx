@@ -22,11 +22,7 @@ import {
   styleOptionsSchema,
   type StyleOptionsSchema,
 } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
-import {
-  orderTypeAndPaymentDefaults,
-  OrderTypeAndPaymentForm,
-  orderTypeAndPaymentSchema,
-} from "@/components/forms/order-type-and-payment";
+import { OrderTypeAndPaymentForm } from "@/components/forms/order-type-and-payment";
 import { paymentTypeSchema } from "@/components/forms/payment-type";
 import { PaymentTypeForm } from "@/components/forms/payment-type/payment-type-form";
 import { ShelvedProductsForm } from "@/components/forms/shelved-products";
@@ -41,7 +37,11 @@ import {
   mapApiOrderToFormOrder,
   mapFormOrderToApiOrder,
 } from "@/lib/order-mapper";
-import type { OrderSchema } from "@/schemas/work-order-schema";
+import {
+  orderDefaults,
+  orderSchema,
+  type OrderSchema,
+} from "@/schemas/work-order-schema";
 import { createWorkOrderStore } from "@/store/current-work-order";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -138,6 +138,7 @@ function NewWorkOrder() {
         OrderForm.reset;
 
         setOrderId(order.id);
+        console.log(formattedOrder);
         setOrder(formattedOrder);
 
         toast.success("New work order created successfully!");
@@ -177,9 +178,9 @@ function NewWorkOrder() {
     defaultValues: { fabricSelections: [], styleOptions: [] },
   });
 
-  const OrderForm = useForm<z.infer<typeof orderTypeAndPaymentSchema>>({
-    resolver: zodResolver(orderTypeAndPaymentSchema),
-    defaultValues: orderTypeAndPaymentDefaults,
+  const OrderForm = useForm<z.infer<typeof orderSchema>>({
+    resolver: zodResolver(orderSchema),
+    defaultValues: orderDefaults,
   });
 
   const ShelvesForm = useForm<ShelvesFormValues>({
@@ -370,7 +371,7 @@ function NewWorkOrder() {
   type UpdateOrderPayload = {
     fields: Partial<OrderSchema>;
     orderId: string;
-    onSuccessAction?: "customer" | "payment" | "fabric" | null;
+    onSuccessAction?: "customer" | "payment" | "fabric" | "campaigns" | null;
   };
 
   const { mutate: updateOrderFn } = useMutation({
@@ -449,6 +450,75 @@ function NewWorkOrder() {
     );
   }
 
+  const handleOrderConfirmation = () => {
+    if (completedSteps.length !== steps.length) {
+      toast.error("Complete all the steps to confirm order!!");
+    }
+    // check address for home delivery
+    const isAddressDefined = Object.values(
+      demographicsForm.getValues().address
+    ).every((value) => value !== undefined && value.trim() != "");
+    if (
+      OrderForm.getValues().orderType === "homeDelivery" &&
+      !isAddressDefined
+    ) {
+      toast.error("Need address for home delivery");
+      return;
+    }
+    const currentStore = useCurrentWorkOrderStore.getState();
+    console.log("🧾 Full Work Order Store:", currentStore);
+
+    console.log(OrderForm.getValues());
+    const formOrder: Partial<OrderSchema> = {
+      ...OrderForm.getValues(),
+      ...paymentForm.getValues(),
+      orderStatus: "Completed",
+      orderDate: new Date().toISOString(),
+      // ensure customerID is an array if we have a record id
+      // customerID: demographicsForm.getValues("customerRecordId")
+      //   ? [demographicsForm.getValues("customerRecordId") as string]
+      //   : undefined,
+
+      // number of fabrics from fabric selection form
+      numOfFabrics:
+        fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
+    };
+
+    setOrder(formOrder);
+
+    if (orderId) {
+      updateOrderFn({ fields: formOrder, orderId: orderId });
+    }
+
+    // update stocks
+    updateShelfFn(ShelvesForm.getValues());
+    // updateFabricStock();
+
+    handleProceed(5);
+  };
+
+  const handleOrderCancellation = () => {
+    const formOrder: Partial<OrderSchema> = {
+      ...OrderForm.getValues(),
+      ...paymentForm.getValues(),
+      orderDate: new Date().toISOString(),
+      orderStatus: "Cancelled",
+      // ensure customerID is an array if we have a record id
+      // customerID: demographicsForm.getValues("customerRecordId")
+      //   ? [demographicsForm.getValues("customerRecordId") as string]
+      //   : undefined,
+
+      // number of fabrics from fabric selection form
+      numOfFabrics:
+        fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
+    };
+    setOrder(formOrder);
+
+    if (orderId) {
+      updateOrderFn({ fields: formOrder, orderId: orderId });
+    }
+  };
+
   // ----------------------------
   // MAIN RENDER
   // ----------------------------
@@ -473,18 +543,18 @@ function NewWorkOrder() {
         <div className="w-fit absolute right-2.5 flex justify-end mt-2 ">
           <div className="bg-card p-4 shadow-lg rounded-lg z-10 border-b border-border max-w-xs mr-4">
             <h2 className="text-lg font-semibold tracking-tight">
-              Work Order #{order.OrderID}
+              Work Order #{order.orderID}
             </h2>
             <p className="text-sm text-muted-foreground">
               Status:{" "}
               <span className="font-medium text-green-600">
-                {order.OrderStatus ?? "Pending"}
+                {order.orderStatus ?? "Pending"}
               </span>
             </p>
             <p className="text-sm text-muted-foreground">
               Customer:{" "}
               <span className="font-medium">
-                {order.CustomerID?.length
+                {order.customerID?.length
                   ? customerDemographics.nickName
                   : "No customer yet"}
               </span>
@@ -551,16 +621,11 @@ function NewWorkOrder() {
                   onEdit={() => removeSavedStep(2)}
                   onSubmit={handleFabricSelectionSubmit}
                   onProceed={() => handleProceed(2)}
-                  orderId={order.OrderID || null}
+                  orderId={order.orderID || null}
                   orderRecordId={orderId}
                   onCampaignsChange={(campaigns) => {
                     if (orderId) {
-                      updateOrderFn({
-                        fields: {
-                          campaigns: campaigns,
-                        },
-                        orderId: orderId,
-                      });
+                      OrderForm.setValue("campaigns", campaigns);
                     }
                   }}
                   isProceedDisabled={fabricSelections.length === 0}
@@ -596,29 +661,11 @@ function NewWorkOrder() {
               <ErrorBoundary fallback={<div>Payment crashed</div>}>
                 <PaymentTypeForm
                   form={paymentForm}
-                  onSubmit={() => {
-                    if (completedSteps.length !== steps.length) {
-                      toast.error("Complete all the steps to confirm order!!");
-                      // return;
-                    }
-                    // if defined then true
-                    const isAddressDefined = Object.values(
-                      demographicsForm.getValues().address
-                    ).every(
-                      (value) => value !== undefined && value.trim() != ""
-                    );
-                    if (
-                      OrderForm.getValues().orderType === "homeDelivery" &&
-                      !isAddressDefined
-                    ) {
-                      toast.error("Need address for home delivery");
-                      return;
-                    }
-                    const currentStore = useCurrentWorkOrderStore.getState();
-                    console.log("🧾 Full Work Order Store:", currentStore);
-                    updateShelfFn(ShelvesForm.getValues());
-                    toast.success("Payment confirmed! ✅");
-                    handleProceed(5);
+                  onConfirm={() => {
+                    handleOrderConfirmation();
+                  }}
+                  onCancel={() => {
+                    handleOrderCancellation();
                   }}
                 />
               </ErrorBoundary>

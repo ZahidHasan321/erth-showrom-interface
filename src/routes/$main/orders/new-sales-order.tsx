@@ -6,11 +6,7 @@ import {
   customerDemographicsDefaults,
   customerDemographicsSchema,
 } from "@/components/forms/customer-demographics/schema";
-import {
-  orderTypeAndPaymentDefaults,
-  OrderTypeAndPaymentForm,
-  orderTypeAndPaymentSchema,
-} from "@/components/forms/order-type-and-payment";
+import { OrderTypeAndPaymentForm } from "@/components/forms/order-type-and-payment";
 import {
   PaymentTypeForm,
   paymentTypeSchema,
@@ -24,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
 import { mapApiOrderToFormOrder } from "@/lib/order-mapper";
+import { orderDefaults, orderSchema } from "@/schemas/work-order-schema";
 import { createSalesOrderStore } from "@/store/current-sales-order";
 import { type Order } from "@/types/order";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -126,9 +123,9 @@ function NewSalesOrder() {
     },
   });
 
-  const OrderForm = useForm<z.infer<typeof orderTypeAndPaymentSchema>>({
-    resolver: zodResolver(orderTypeAndPaymentSchema),
-    defaultValues: orderTypeAndPaymentDefaults,
+  const OrderForm = useForm<z.infer<typeof orderSchema>>({
+    resolver: zodResolver(orderSchema),
+    defaultValues: orderDefaults,
   });
 
   // ---------------------------
@@ -301,13 +298,14 @@ function NewSalesOrder() {
             {index === 3 && (
               <PaymentTypeForm
                 form={paymentForm}
-                onSubmit={(data) => {
+                onConfirm={(data: z.infer<typeof paymentTypeSchema>) => {
                   setPaymentType(data.paymentType);
                   setOtherPaymentType(data.otherPaymentType || null);
                   setPaymentRefNo(data.paymentRefNo || null);
                   toast.success("Sales Order Confirmed ✅");
                   handleProceed(3);
                 }}
+                onCancel={() => {}}
               />
             )}
           </div>
