@@ -4,13 +4,13 @@ import type { OrderSchema } from "@/schemas/work-order-schema";
 export function mapApiOrderToFormOrder(apiOrder: Order): OrderSchema {
   return {
     // Fields from API
-    OrderID: apiOrder.fields.OrderID,
-    CustomerID: apiOrder.fields.CustomerID,
-    OrderDate: apiOrder.fields.OrderDate,
-    OrderStatus: apiOrder.fields.OrderStatus,
-    OrderTotal: apiOrder.fields.OrderTotal,
-    Notes: apiOrder.fields.Notes,
-    Campaigns: apiOrder.fields.Campaigns,
+    orderID: apiOrder.fields.OrderID,
+    customerID: apiOrder.fields.CustomerID,
+    orderDate: apiOrder.fields.OrderDate,
+    orderStatus: apiOrder.fields.OrderStatus,
+    orderTotal: apiOrder.fields.OrderTotal,
+    notes: apiOrder.fields.Notes,
+    campaigns: apiOrder.fields.Campaigns,
     orderType: (apiOrder.fields.OrderType as any) || "pickUp",
     paymentType: (apiOrder.fields.PaymentType as any) || undefined,
     discountType: (apiOrder.fields.DiscountType as any) || undefined,
@@ -35,16 +35,13 @@ export function mapFormOrderToApiOrder(
 ): { id?: string; fields: Partial<Order["fields"]> } {
   const apiOrder: { id?: string; fields: Partial<Order["fields"]> } = {
     fields: {
-      OrderID: formOrder.OrderID,
-      CustomerID: formOrder.CustomerID,
-      OrderDate: formOrder.OrderDate,
-      OrderStatus:
-        formOrder.OrderStatus === "Processing"
-          ? "Pending"
-          : formOrder.OrderStatus,
-      OrderTotal: formOrder.OrderTotal,
-      Notes: formOrder.Notes,
-      Campaigns: formOrder.Campaigns,
+      OrderID: formOrder.orderID,
+      CustomerID: formOrder.customerID,
+      OrderDate: formOrder.orderDate,
+      OrderStatus: formOrder.orderStatus,
+      OrderTotal: formOrder.orderTotal,
+      Notes: formOrder.notes,
+      Campaigns: formOrder.campaigns,
       OrderType: formOrder.orderType,
       PaymentType: formOrder.paymentType,
       DiscountType: formOrder.discountType,

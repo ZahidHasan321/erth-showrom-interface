@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { DatePicker } from "@/components/ui/date-picker";
-import Flag from "react-world-flags";
+
 import {
   Form,
   FormControl,
@@ -38,7 +38,7 @@ import * as React from "react";
 import { useState } from "react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
-import { z }from "zod";
+import { z } from "zod";
 import {
   customerDemographicsDefaults,
   customerDemographicsSchema,
@@ -48,6 +48,7 @@ import { SearchCustomer } from "./search-customer";
 import { AnimatedMessage } from "@/components/animation/AnimatedMessage";
 import WhatsappLogo from "@/assets/whatsapp.svg";
 import { motion } from "framer-motion";
+import { ErrorBoundary } from "@/components/global/error-boundary";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
@@ -114,6 +115,7 @@ export function CustomerDemographicsForm({
       const currentAccountType = form.getValues().accountType;
       if (
         existingUsers.data &&
+        existingUsers.data.length > 0 &&
         existingUsers.count &&
         existingUsers.count > 0 &&
         existingUsers.data[0].id !== customerRecordId
@@ -151,52 +153,56 @@ export function CustomerDemographicsForm({
     form.reset(formValues);
   };
 
-  const { mutate: createCustomerMutation, isPending: isCreating } = useMutation({
-    mutationFn: (customerToCreate: Partial<Customer["fields"]>) =>
-      createCustomer(customerToCreate),
-    onSuccess: (response) => {
-      if (response.status === "success" && response.data) {
-        toast.success("Customer created successfully!");
-        const createdCustomer = mapCustomerToFormValues(response.data);
-        onSave?.(createdCustomer);
-        form.reset(createdCustomer);
-        setTimeout(() => {
-          setIsEditing(false);
-        }, 0);
-      } else {
-        toast.error(response.message || "Failed to create customer.");
-      }
-    },
-    onError: () => {
-      toast.error("Failed to create customer.");
-    },
-  });
+  const { mutate: createCustomerMutation, isPending: isCreating } = useMutation(
+    {
+      mutationFn: (customerToCreate: Partial<Customer["fields"]>) =>
+        createCustomer(customerToCreate),
+      onSuccess: (response) => {
+        if (response.status === "success" && response.data) {
+          toast.success("Customer created successfully!");
+          const createdCustomer = mapCustomerToFormValues(response.data);
+          onSave?.(createdCustomer);
+          form.reset(createdCustomer);
+          setTimeout(() => {
+            setIsEditing(false);
+          }, 0);
+        } else {
+          toast.error(response.message || "Failed to create customer.");
+        }
+      },
+      onError: () => {
+        toast.error("Failed to create customer.");
+      },
+    }
+  );
 
-  const { mutate: updateCustomerMutation, isPending: isUpdating } = useMutation({
-    mutationFn: (customerToUpdate: {
-      id: string;
-      fields: Partial<Customer["fields"]>;
-    }) => updateCustomer(customerToUpdate.id, customerToUpdate.fields),
-    onSuccess: (response) => {
-      if (response.status === "success" && response.data) {
-        toast.success("Customer updated successfully!");
-        const customer = mapCustomerToFormValues(response.data);
-        onSave?.(customer);
-        form.reset(customer);
-        setTimeout(() => {
-          setIsEditing(false);
-        }, 0);
-      } else {
-        toast.error(response.message || "Failed to update customer.");
-      }
-    },
-    onError: () => {
-      toast.error("Failed to update customer.");
-    },
-  });
+  const { mutate: updateCustomerMutation, isPending: isUpdating } = useMutation(
+    {
+      mutationFn: (customerToUpdate: {
+        id: string;
+        fields: Partial<Customer["fields"]>;
+      }) => updateCustomer(customerToUpdate.id, customerToUpdate.fields),
+      onSuccess: (response) => {
+        if (response.status === "success" && response.data) {
+          toast.success("Customer updated successfully!");
+          const customer = mapCustomerToFormValues(response.data);
+          onSave?.(customer);
+          form.reset(customer);
+          setTimeout(() => {
+            setIsEditing(false);
+          }, 0);
+        } else {
+          toast.error(response.message || "Failed to update customer.");
+        }
+      },
+      onError: () => {
+        toast.error("Failed to update customer.");
+      },
+    }
+  );
 
   const handleFormSubmit = (
-    values: z.infer<typeof customerDemographicsSchema>,
+    values: z.infer<typeof customerDemographicsSchema>
   ) => {
     const onConfirm = () => {
       const customerToSave = mapFormValuesToCustomer(values, customerRecordId);
@@ -304,57 +310,32 @@ export function CustomerDemographicsForm({
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <SearchCustomer
-            onCustomerFound={handleCustomerFound}
-            onHandleClear={() => {
-              form.reset(customerDemographicsDefaults);
-              setIsEditing(true);
-              setWarnings({});
-              onClear?.();
-            }}
-          />
+          <ErrorBoundary fallback={<div>Search Customer crashed</div>}>
+            <SearchCustomer
+              onCustomerFound={handleCustomerFound}
+              onHandleClear={() => {
+                form.reset(customerDemographicsDefaults);
+                setIsEditing(true);
+                setWarnings({});
+                onClear?.();
+              }}
+            />
+          </ErrorBoundary>
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem className="bg-muted p-4 rounded-lg">
-                <FormLabel className="font-bold">
-                  <span className="text-red-500">*</span>Name
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter full name (e.g., Nasser Al-Sabah)"
-                    {...field}
-                    className="bg-white"
-                    readOnly={isReadOnly}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-          <div className="space-y-4 bg-muted p-4 rounded-lg">
+          <ErrorBoundary fallback={<div>Name field crashed</div>}>
             <FormField
               control={form.control}
-              name="nickName"
+              name="name"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="bg-muted p-4 rounded-lg">
                   <FormLabel className="font-bold">
-                    <span className="text-red-500">*</span>
-                    Nick Name
+                    <span className="text-red-500">*</span>Name
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter nickname (e.g., Abu Nasser)"
+                      placeholder="Enter full name (e.g., Nasser Al-Sabah)"
                       {...field}
                       className="bg-white"
                       readOnly={isReadOnly}
@@ -364,371 +345,268 @@ export function CustomerDemographicsForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="instagram"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Instagram ID</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter Instagram handle (e.g., @erth)"
-                      {...field}
-                      className="bg-white"
-                      readOnly={isReadOnly}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="dob"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>DOB</FormLabel>
-                  <FormControl>
-                    <DatePicker
-                      value={field.value}
-                      onChange={field.onChange}
-                      disabled={isReadOnly}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="space-y-4 bg-muted p-4 rounded-lg">
-            <FormField
-              control={form.control}
-              name="mobileNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="font-bold">
-                    <span className="text-red-500">*</span>Mobile No
-                  </FormLabel>
-                  <div className="flex flex-col md:flex-row gap-2">
-                    <FormField
-                      control={form.control}
-                      name="countryCode"
-                      disabled={isReadOnly}
-                      render={({ field }) => (
-                        <FormItem className="min-w-42">
-                          <Combobox
-                            disabled={isReadOnly}
-                            options={countries.map((country) => ({
-                              value: country.phoneCode,
-                              label: `${country.flag}: ${country.name} ${country.phoneCode}`,
-                              node: (
-                                <div className="flex items-center">
-                                  <Flag
-                                    code={country.code}
-                                    className="w-4 h-4 mr-2"
-                                  />
-                                  <span>
-                                    {country.name} ({country.phoneCode})
-                                  </span>
-                                </div>
-                              ),
-                            }))}
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            placeholder="Code"
-                          />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormControl>
-                      <Input
-                        placeholder="Enter mobile number"
-                        {...field}
-                        className="bg-white"
-                        readOnly={isReadOnly}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          handleMobileChange(e.target.value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormField
-                      control={form.control}
-                      name="whatsapp"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center gap-2">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                              className="bg-white"
-                              disabled={isReadOnly}
-                            />
-                          </FormControl>
-                          <FormLabel>
-                            <img
-                              src={WhatsappLogo}
-                              alt="WhatsApp"
-                              className="min-w-8"
-                            />
-                          </FormLabel>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormMessage />
-
-                  <AnimatedMessage
-                    info={
-                      isFetching ? "Checking existing accounts..." : undefined
-                    }
-                    warning={
-                      warnings.mobileNumber &&
-                      !isFetching &&
-                      existingUsers?.count &&
-                      existingUsers.count > 0
-                        ? warnings.mobileNumber
-                        : undefined
-                    }
-                  />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="alternativeMobileNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Alternative Mobile No</FormLabel>
-                  <div className="flex flex-col md:flex-row gap-2">
-                    <FormField
-                      control={form.control}
-                      name="alternativeCountryCode"
-                      render={({ field }) => (
-                        <FormItem className="min-w-42">
-                          <Combobox
-                            disabled={isReadOnly}
-                            options={countries.map((country) => ({
-                              value: country.phoneCode,
-                              label: `${country.flag}: ${country.name} ${country.phoneCode}`,
-                              node: (
-                                <div className="flex items-center">
-                                  <Flag
-                                    code={country.code}
-                                    className="w-4 h-4 mr-2"
-                                  />
-                                  <span>
-                                    {country.name} ({country.phoneCode})
-                                  </span>
-                                </div>
-                              ),
-                            }))}
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            placeholder="Code"
-                          />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormControl>
-                      <Input
-                        placeholder="Enter alternative mobile number"
-                        {...field}
-                        className="bg-white"
-                        readOnly={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormField
-                      control={form.control}
-                      name="whatsappOnAlt"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center gap-2">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                              className="bg-white"
-                              disabled={isReadOnly}
-                            />
-                          </FormControl>
-                          <FormLabel>
-                            <img
-                              src={WhatsappLogo}
-                              alt="WhatsApp"
-                              className="min-w-8"
-                            />
-                          </FormLabel>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="nationality"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel className="font-bold">
-                    <span className="text-red-500">*</span>Nationality
-                  </FormLabel>
-                  <Combobox
-                    disabled={isReadOnly}
-                    options={countries.map((country) => ({
-                      value: country.name,
-                      label: `${country.flag} ${country.name}`,
-                      node: (
-                        <div className="flex items-center">
-                          <Flag code={country.code} className="w-4 h-4 mr-2" />
-                          <span>{country.name}</span>
-                        </div>
-                      ),
-                    }))}
-                    value={field.value || ""}
-                    onChange={field.onChange}
-                    placeholder="Select nationality"
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </motion.div>
-
-        <motion.div variants={itemVariants}>
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem className="bg-muted p-4 rounded-lg">
-                <FormLabel>E-mail</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter email (e.g., nasser@erth.com)"
-                    {...field}
-                    className="bg-white"
-                    readOnly={isReadOnly}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          </ErrorBoundary>
         </motion.div>
 
         <motion.div
           variants={itemVariants}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
-          <section className="flex flex-col rounded-lg bg-muted p-4 gap-2">
-            <FormField
-              control={form.control}
-              name="accountType"
-              render={({ field }) => (
-                <FormItem className="w-full bg-muted">
-                  <FormLabel>Account Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={true}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="bg-white">
-                        <SelectValue placeholder="Select account type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Primary">Primary</SelectItem>
-                      <SelectItem value="Secondary">Secondary</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="relation"
-              render={({ field }) => (
-                <FormItem className="w-full bg-muted">
-                  <FormLabel className={AccountType === "Secondary" ? "font-bold" : ""}>
-                    {AccountType === "Secondary" && (
+          <div className="space-y-4 bg-muted p-4 rounded-lg">
+            <ErrorBoundary fallback={<div>Nickname crashed</div>}>
+              <FormField
+                control={form.control}
+                name="nickName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-bold">
                       <span className="text-red-500">*</span>
-                    )}
-                    Account Relation
-                  </FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isReadOnly || AccountType === "Primary"}
-                  >
+                      Nick Name
+                    </FormLabel>
                     <FormControl>
-                      <SelectTrigger className="bg-white">
-                        <SelectValue
-                          placeholder={
-                            AccountType === "Primary"
-                              ? "Account is primary"
-                              : "Select account type"
-                          }
-                        />
-                      </SelectTrigger>
+                      <Input
+                        placeholder="Enter nickname (e.g., Abu Nasser)"
+                        {...field}
+                        className="bg-white"
+                        readOnly={isReadOnly}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Father">Father</SelectItem>
-                      <SelectItem value="Son">Son</SelectItem>
-                      <SelectItem value="Cousin">Cousin</SelectItem>
-                      <SelectItem value="Brother">Brother</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </section>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </ErrorBoundary>
+            <ErrorBoundary fallback={<div>Instagram crashed</div>}>
+              <FormField
+                control={form.control}
+                name="instagram"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Instagram ID</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter Instagram handle (e.g., @erth)"
+                        {...field}
+                        className="bg-white"
+                        readOnly={isReadOnly}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </ErrorBoundary>
+            <ErrorBoundary fallback={<div>DOB crashed</div>}>
+              <FormField
+                control={form.control}
+                name="dob"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>DOB</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={isReadOnly}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </ErrorBoundary>
+          </div>
 
-          <section className="overflow-hidden rounded-lg">
+          <div className="space-y-4 bg-muted p-4 rounded-lg">
+            <ErrorBoundary fallback={<div>Mobile number crashed</div>}>
+              <FormField
+                control={form.control}
+                name="mobileNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-bold">
+                      <span className="text-red-500">*</span>Mobile No
+                    </FormLabel>
+                    <div className="flex flex-col md:flex-row gap-2">
+                      <FormField
+                        control={form.control}
+                        name="countryCode"
+                        disabled={isReadOnly}
+                        render={({ field }) => (
+                          <FormItem className="min-w-42">
+                            <Combobox
+                              disabled={isReadOnly}
+                              options={countries.map((country) => ({
+                                value: country.phoneCode,
+                                label: `${country.flag}: ${country.name} ${country.phoneCode}`,
+                              }))}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              placeholder="Code"
+                            />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormControl>
+                        <Input
+                          placeholder="Enter mobile number"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            handleMobileChange(e.target.value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormField
+                        control={form.control}
+                        name="whatsapp"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="bg-white"
+                                disabled={isReadOnly}
+                              />
+                            </FormControl>
+                            <FormLabel>
+                              <img
+                                src={WhatsappLogo}
+                                alt="WhatsApp"
+                                className="min-w-8"
+                              />
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormMessage />
+
+                    <AnimatedMessage
+                      info={
+                        isFetching ? "Checking existing accounts..." : undefined
+                      }
+                      warning={
+                        warnings.mobileNumber &&
+                        !isFetching &&
+                        existingUsers?.count &&
+                        existingUsers.count > 0
+                          ? warnings.mobileNumber
+                          : undefined
+                      }
+                    />
+                  </FormItem>
+                )}
+              />
+            </ErrorBoundary>
+            <ErrorBoundary
+              fallback={<div>Alternative mobile number crashed</div>}
+            >
+              <FormField
+                control={form.control}
+                name="alternativeMobileNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Alternative Mobile No</FormLabel>
+                    <div className="flex flex-col md:flex-row gap-2">
+                      <FormField
+                        control={form.control}
+                        name="alternativeCountryCode"
+                        render={({ field }) => (
+                          <FormItem className="min-w-42">
+                            <Combobox
+                              disabled={isReadOnly}
+                              options={countries.map((country) => ({
+                                value: country.phoneCode,
+                                label: `${country.flag}: ${country.name} ${country.phoneCode}`,
+                              }))}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              placeholder="Code"
+                            />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormControl>
+                        <Input
+                          placeholder="Enter alternative mobile number"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormField
+                        control={form.control}
+                        name="whatsappOnAlt"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center gap-2">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                className="bg-white"
+                                disabled={isReadOnly}
+                              />
+                            </FormControl>
+                            <FormLabel>
+                              <img
+                                src={WhatsappLogo}
+                                alt="WhatsApp"
+                                className="min-w-8"
+                              />
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </ErrorBoundary>
+            <ErrorBoundary fallback={<div>Nationality crashed</div>}>
+              <FormField
+                control={form.control}
+                name="nationality"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="font-bold">
+                      <span className="text-red-500">*</span>Nationality
+                    </FormLabel>
+                    <Combobox
+                      disabled={isReadOnly}
+                      options={countries.map((country) => ({
+                        value: country.name,
+                        label: `${country.flag} ${country.name}`,
+                      }))}
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      placeholder="Select nationality"
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </ErrorBoundary>{" "}
+          </div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <ErrorBoundary fallback={<div>Email field crashed</div>}>
             <FormField
               control={form.control}
-              name="customerSegment"
+              name="email"
               render={({ field }) => (
-                <FormItem className="w-full bg-muted p-4">
-                  <FormLabel>Customer Segment</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                    disabled={isReadOnly}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="bg-white">
-                        <SelectValue placeholder="Select customer segment" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="High">High</SelectItem>
-                      <SelectItem value="Low">Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="note"
-              render={({ field }) => (
-                <FormItem className="bg-muted p-4">
-                  <FormLabel>Note</FormLabel>
+                <FormItem className="bg-muted p-4 rounded-lg">
+                  <FormLabel>E-mail</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Add any notes about the customer"
+                    <Input
+                      placeholder="Enter email (e.g., nasser@erth.com)"
                       {...field}
                       className="bg-white"
                       readOnly={isReadOnly}
@@ -738,185 +616,310 @@ export function CustomerDemographicsForm({
                 </FormItem>
               )}
             />
-          </section>
+          </ErrorBoundary>
+        </motion.div>
+
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          <ErrorBoundary fallback={<div>Account Info crashed</div>}>
+            <section className="flex flex-col rounded-lg bg-muted p-4 gap-2">
+              <FormField
+                control={form.control}
+                name="accountType"
+                render={({ field }) => (
+                  <FormItem className="w-full bg-muted">
+                    <FormLabel>Account Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={true}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue placeholder="Select account type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Primary">Primary</SelectItem>
+                        <SelectItem value="Secondary">Secondary</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="relation"
+                render={({ field }) => (
+                  <FormItem className="w-full bg-muted">
+                    <FormLabel
+                      className={AccountType === "Secondary" ? "font-bold" : ""}
+                    >
+                      {AccountType === "Secondary" && (
+                        <span className="text-red-500">*</span>
+                      )}
+                      Account Relation
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isReadOnly || AccountType === "Primary"}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue
+                            placeholder={
+                              AccountType === "Primary"
+                                ? "Account is primary"
+                                : "Select account type"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Father">Father</SelectItem>
+                        <SelectItem value="Son">Son</SelectItem>
+                        <SelectItem value="Cousin">Cousin</SelectItem>
+                        <SelectItem value="Brother">Brother</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </section>
+
+            <section className="overflow-hidden rounded-lg">
+              <FormField
+                control={form.control}
+                name="customerSegment"
+                render={({ field }) => (
+                  <FormItem className="w-full bg-muted p-4">
+                    <FormLabel>Customer Segment</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isReadOnly}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue placeholder="Select customer segment" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="High">High</SelectItem>
+                        <SelectItem value="Low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="note"
+                render={({ field }) => (
+                  <FormItem className="bg-muted p-4">
+                    <FormLabel>Note</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Add any notes about the customer"
+                        {...field}
+                        className="bg-white"
+                        readOnly={isReadOnly}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </section>
+          </ErrorBoundary>
         </motion.div>
 
         <motion.div
           variants={itemVariants}
           className="bg-muted p-4 rounded-lg space-y-4"
         >
-          <h2 className="text-lg font-semibold">Address</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="address.city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>City</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter city name"
-                        {...field}
-                        className="bg-white"
-                        readOnly={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address.area"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Area</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter area or locality"
-                        {...field}
-                        className="bg-white"
-                        readOnly={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address.block"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Block</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter block number/name"
-                        {...field}
-                        className="bg-white"
-                        readOnly={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address.street"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Street</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter street name"
-                        {...field}
-                        className="bg-white"
-                        readOnly={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address.houseNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>House / Building no.</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Enter house or building number"
-                        {...field}
-                        className="bg-white"
-                        readOnly={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+          <ErrorBoundary fallback={<div>Address fields crashed</div>}>
+            <h2 className="text-lg font-semibold">Address</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="address.city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter city name"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="address.area"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Area</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter area or locality"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="address.block"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Block</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter block number/name"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="address.street"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Street</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter street name"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="address.houseNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>House / Building no.</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter house or building number"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="address.addressNote"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address Note</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Add any address details or delivery instructions"
-                        {...field}
-                        className="bg-white"
-                        readOnly={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="address.addressNote"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address Note</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Add any address details or delivery instructions"
+                          {...field}
+                          className="bg-white"
+                          readOnly={isReadOnly}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
-          </div>
+          </ErrorBoundary>
         </motion.div>
 
         <motion.div
           variants={itemVariants}
           className="flex gap-6 justify-center"
         >
-          {/* Customer loaded, not editing */}
-          {!isEditing && customerRecordId && (
-            <>
-              <Button type="button" variant="outline" onClick={handleEdit}>
-                Edit Customer
-              </Button>
-              <Button
-                type="button"
-                onClick={onProceed}
-                disabled={!customerRecordId}
-              >
-                Proceed
-              </Button>
-            </>
-          )}
+          <ErrorBoundary fallback={<div>Action buttons crashed</div>}>
+            {/* Customer loaded, not editing */}
+            {!isEditing && customerRecordId && (
+              <>
+                <Button type="button" variant="outline" onClick={handleEdit}>
+                  Edit Customer
+                </Button>
+                <Button
+                  type="button"
+                  onClick={onProceed}
+                  disabled={!customerRecordId}
+                >
+                  Proceed
+                </Button>
+              </>
+            )}
 
-          {/* Editing an existing customer */}
-          {isEditing && customerRecordId && (
-            <>
-              <Button type="submit" disabled={isUpdating}>
-                {isUpdating ? "Updating..." : "Update Customer"}
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleCancelEdit}
-              >
-                Cancel Edit
-              </Button>
-            </>
-          )}
+            {/* Editing an existing customer */}
+            {isEditing && customerRecordId && (
+              <>
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating ? "Updating..." : "Update Customer"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleCancelEdit}
+                >
+                  Cancel Edit
+                </Button>
+              </>
+            )}
 
-          {/* Creating a new customer */}
-          {isEditing && !customerRecordId && (
-            <>
-              <Button type="submit" disabled={isCreating}>
-                {isCreating ? "Creating..." : "Create Customer"}
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleCancelCreation}
-              >
-                Cancel Creation
-              </Button>
-            </>
-          )}
+            {/* Creating a new customer */}
+            {isEditing && !customerRecordId && (
+              <>
+                <Button type="submit" disabled={isCreating}>
+                  {isCreating ? "Creating..." : "Create Customer"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleCancelCreation}
+                >
+                  Cancel Creation
+                </Button>
+              </>
+            )}
+          </ErrorBoundary>
         </motion.div>
       </motion.form>
     </Form>
   );
 }
-

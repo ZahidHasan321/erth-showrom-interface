@@ -2,13 +2,13 @@ import { z } from "zod";
 
 export const orderSchema = z.object({
   // Fields from Order['fields']
-  OrderID: z.string().optional(),
-  CustomerID: z.array(z.string()).optional(),
-  OrderDate: z.string().optional(),
-  OrderStatus: z.enum(["Pending", "Completed", "Cancelled", "Processing"]),
-  OrderTotal: z.number().optional(),
-  Notes: z.string().optional(),
-  Campaigns: z.array(z.string()).optional(),
+  orderID: z.string().optional(),
+  customerID: z.array(z.string()).optional(),
+  orderDate: z.string().optional(),
+  orderStatus: z.enum(["Pending", "Completed", "Cancelled", "Processing"]),
+  orderTotal: z.number().optional(),
+  notes: z.string().optional(),
+  campaigns: z.array(z.string()).optional(),
 
   // Fields from orderTypeAndPaymentSchema
   orderType: z.enum(["pickUp", "homeDelivery"]),

@@ -11,9 +11,15 @@ import {
   OrderTypeAndPaymentForm,
   orderTypeAndPaymentSchema,
 } from "@/components/forms/order-type-and-payment";
-import { PaymentTypeForm, paymentTypeSchema } from "@/components/forms/payment-type";
+import {
+  PaymentTypeForm,
+  paymentTypeSchema,
+} from "@/components/forms/payment-type";
 import { ShelvedProductsForm } from "@/components/forms/shelved-products";
-import { shelvesFormSchema, type ShelvesFormValues } from "@/components/forms/shelved-products/schema";
+import {
+  shelvesFormSchema,
+  type ShelvesFormValues,
+} from "@/components/forms/shelved-products/schema";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
@@ -51,7 +57,7 @@ function NewSalesOrder() {
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
 
   // Zustand store
@@ -60,7 +66,9 @@ function NewSalesOrder() {
   const savedSteps = useCurrentSalesOrderStore((s) => s.savedSteps);
   const addSavedStep = useCurrentSalesOrderStore((s) => s.addSavedStep);
   const removeSavedStep = useCurrentSalesOrderStore((s) => s.removeSavedStep);
-  const customerDemographics = useCurrentSalesOrderStore((s) => s.customerDemographics);
+  const customerDemographics = useCurrentSalesOrderStore(
+    (s) => s.customerDemographics
+  );
   const setCustomerDemographics = useCurrentSalesOrderStore(
     (s) => s.setCustomerDemographics
   );
@@ -106,9 +114,9 @@ function NewSalesOrder() {
   const ShelvesForm = useForm<ShelvesFormValues>({
     resolver: zodResolver(shelvesFormSchema),
     defaultValues: {
-      products: []
-    }
-  })
+      products: [],
+    },
+  });
   const paymentForm = useForm<z.infer<typeof paymentTypeSchema>>({
     resolver: zodResolver(paymentTypeSchema),
     defaultValues: {
@@ -126,7 +134,9 @@ function NewSalesOrder() {
   // ---------------------------
   // Dynamic step visibility tracking
   // ---------------------------
-  const sectionRefs = steps.map(() => React.useRef<HTMLDivElement | null>(null));
+  const sectionRefs = steps.map(() =>
+    React.useRef<HTMLDivElement | null>(null)
+  );
   const inViewStates = sectionRefs.map((ref) =>
     useInView(ref, { amount: 0.5, margin: "-10% 0px -40% 0px" })
   );
@@ -139,7 +149,10 @@ function NewSalesOrder() {
   }, [inViewStates, currentStep, setCurrentStep]);
 
   const handleStepChange = (i: number) => {
-    sectionRefs[i].current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    sectionRefs[i].current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
   };
 
   const handleProceed = (step: number) => {
@@ -256,7 +269,9 @@ function NewSalesOrder() {
                 onCancel={() => addSavedStep(0)}
                 onProceed={() => {
                   if (orderId && customerDemographics.customerRecordId) {
-                    setOrder({ CustomerID: [customerDemographics.customerRecordId] });
+                    setOrder({
+                      customerID: [customerDemographics.customerRecordId],
+                    });
                     handleProceed(0);
                   }
                 }}
