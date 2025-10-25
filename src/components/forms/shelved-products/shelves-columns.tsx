@@ -45,7 +45,7 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
         )
     }
   },
-  {
+{
     accessorKey: 'brand',
     header: 'Brand',
     minSize: 150,
@@ -74,13 +74,21 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
                         const combination = `${selectedType}-${brand}`
                         const isAlreadySelected = selectedProducts?.includes(combination)
                         
+                        // Check if product has stock
+                        const product = serverProducts?.find(
+                            (p: any) => p.fields?.Brand === brand && p.fields?.Type === selectedType
+                        )
+                        const hasStock = product?.fields?.Stock && product.fields.Stock > 0
+                        
                         return (
                             <SelectItem 
                                 key={`brand-${idx}-${brand}`} 
                                 value={brand}
-                                disabled={isAlreadySelected}
+                                disabled={isAlreadySelected || !hasStock}
                             >
-                                {brand} {isAlreadySelected && '(Already selected)'}
+                                {brand} 
+                                {isAlreadySelected && ' (Already selected)'}
+                                {!hasStock && !isAlreadySelected && ' (Out of stock)'}
                             </SelectItem>
                         )
                     })}

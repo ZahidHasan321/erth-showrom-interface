@@ -12,9 +12,10 @@ import { toast } from 'sonner'
 interface ShelvedProductsFormProps {
   form: UseFormReturn<ShelvesFormValues>
   onProceed?: () => void
+  isOrderClosed: boolean
 }
 
-export function ShelvedProductsForm({ form, onProceed }: ShelvedProductsFormProps) {
+export function ShelvedProductsForm({ form, onProceed, isOrderClosed }: ShelvedProductsFormProps) {
   // Fetch products from server
   const { data: serverProducts, isLoading, error } = useQuery({
     queryKey: ['products'],
@@ -63,30 +64,42 @@ export function ShelvedProductsForm({ form, onProceed }: ShelvedProductsFormProp
       const currentRow = data[rowIndex]
       const selectedProducts = getSelectedProducts(rowIndex)
       const newCombination = `${currentRow.productType}-${value}`
-      
+
       if (selectedProducts.includes(newCombination)) {
         toast.error('Product already selected', {
           description: 'This product is already added in another row.'
         })
         return // Don't proceed with update
       }
+
+      // Check if selected product has stock
+      const selectedProduct = serverProducts?.data?.find(
+        (p: any) => p.fields?.Brand === value && p.fields?.Type === currentRow.productType
+      )?.fields
+
+      if (selectedProduct && (!selectedProduct.Stock || selectedProduct.Stock === 0)) {
+        toast.error('No stock available', {
+          description: 'This product is currently out of stock.'
+        })
+        return // Don't proceed with update
+      }
     }
-    
+
     setData((old) =>
       old.map((row, index) => {
         if (index === rowIndex) {
           // If brand is selected, find the matching product and update Stock and unitPrice
           if (columnId === 'brand') {
-            
+
             const selectedProduct = serverProducts?.data?.find(
               (p: any) => p.fields?.Brand === value && p.fields?.Type === row.productType
             )?.fields
 
-            
+
             const recordId = serverProducts?.data?.find(
               (p: any) => p.fields?.Brand === value && p.fields?.Type === row.productType
             )?.id!
-                        
+
             if (selectedProduct) {
               return {
                 ...row,
@@ -98,7 +111,7 @@ export function ShelvedProductsForm({ form, onProceed }: ShelvedProductsFormProp
               }
             }
           }
-          
+
           // If productType is selected, reset brand, stock, and price
           if (columnId === 'productType') {
             return {
@@ -111,7 +124,7 @@ export function ShelvedProductsForm({ form, onProceed }: ShelvedProductsFormProp
               quantity: 1,
             }
           }
-          
+
           return {
             ...row,
             [columnId]: value,
@@ -133,25 +146,25 @@ export function ShelvedProductsForm({ form, onProceed }: ShelvedProductsFormProp
   }
 
   return (
-    <div className='p-4 w-full bg-muted rounded-lg shadow'>
+    <div className='p-4 w-full mx-[10%] overflow-hidden bg-muted rounded-lg shadow'>
       <h2 className='text-2xl font-bold mb-4'>Shelves Products</h2>
-      <DataTable 
-        columns={columns} 
-        data={data} 
-        updateData={updateData} 
+      <DataTable
+        columns={columns}
+        data={data}
+        updateData={updateData}
         removeRow={removeRow}
         serverProducts={serverProducts?.data}
         selectedProducts={getSelectedProducts()}
       />
       <div className="flex justify-between items-center mt-4">
-        <Button type="button" onClick={addRow}>
+        {!isOrderClosed && <Button type="button" onClick={addRow}>
           Add Item
-        </Button>
+        </Button>}
         <div className="text-right flex flex-col gap-4 font-bold">
           <div>Total Amount: {totalAmount.toFixed(2)}</div>
-          <Button type="button" onClick={onProceed}>
+          {!isOrderClosed && <Button type="button" onClick={onProceed}>
             Proceed
-          </Button>
+          </Button>}
         </div>
       </div>
     </div>

@@ -25,12 +25,14 @@ interface PaymentTypeFormProps {
   form: UseFormReturn<PaymentTypeSchema>;
   onConfirm: (values: PaymentTypeSchema) => void;
   onCancel: () => void;
+  isOrderClosed?: boolean;
 }
 
 export function PaymentTypeForm({
   form,
   onConfirm,
   onCancel,
+  isOrderClosed,
 }: PaymentTypeFormProps) {
   const paymentType = useWatch({ control: form.control, name: "paymentType" });
 
@@ -67,6 +69,7 @@ export function PaymentTypeForm({
                   <RadioGroup
                     onValueChange={field.onChange}
                     value={field.value}
+                    disabled={isOrderClosed}
                     className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-6"
                   >
                     {paymentOptions.map((option) => (
@@ -158,6 +161,7 @@ export function PaymentTypeForm({
                             <Input
                               placeholder="Enter payment type"
                               {...field}
+                              disabled={isOrderClosed}
                             />
                           </FormControl>
                           <FormMessage />
@@ -186,7 +190,11 @@ export function PaymentTypeForm({
               <FormItem>
                 <FormLabel>Add Payment Ref. No.</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter reference no." {...field} />
+                  <Input
+                    placeholder="Enter reference no."
+                    {...field}
+                    disabled={isOrderClosed}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -194,15 +202,19 @@ export function PaymentTypeForm({
           />
 
           <motion.div layout className="flex flex-col gap-2">
-            <Button type="submit" className="bg-green-600 hover:bg-green-700">
-              Confirm Order
-            </Button>
+            {!isOrderClosed && (
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                Confirm Order
+              </Button>
+            )}
             <Button type="button" variant="secondary">
               Print Invoice
             </Button>
-            <Button type="button" variant="destructive" onClick={onCancel}>
-              Cancel Order
-            </Button>
+            {!isOrderClosed && (
+              <Button type="button" variant="destructive" onClick={onCancel}>
+                Cancel Order
+              </Button>
+            )}
           </motion.div>
         </motion.div>
       </form>

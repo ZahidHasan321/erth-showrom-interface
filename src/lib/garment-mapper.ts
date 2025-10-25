@@ -69,7 +69,7 @@ export function mapFormGarmentToApiGarment(
       garmentId: fabricSelection.garmentId,
       brova: fabricSelection.brova,
       fabricSource: fabricSelection.fabricSource,
-      fabricId: [fabricSelection.fabricId],
+      fabricId: fabricSelection.fabricId ? [fabricSelection.fabricId] : [],
       fabricLength: fabricSelection.fabricLength,
       color: fabricSelection.color,
       measurementId: [measurementRecordId], // Use converted record ID

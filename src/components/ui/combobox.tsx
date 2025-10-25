@@ -1,8 +1,6 @@
 "use client";
-
 import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +31,7 @@ interface ComboboxProps {
   placeholder?: string;
   disabled?: boolean;
   onSearch?: (query: string) => void;
+  className?: string;
 }
 
 export function Combobox({
@@ -43,11 +42,11 @@ export function Combobox({
   placeholder = "Select an option...",
   disabled,
   onSearch,
+  className,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
-
   const selectedOption = options.find((option) => option.value === value);
-
+  
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -57,8 +56,9 @@ export function Combobox({
           disabled={disabled}
           aria-expanded={open}
           className={cn(
-            "w-full justify-between", "overflow-hidden",
-            selectedOption ? "bg-white" : "bg-transparent border-foreground/20"
+            "w-full justify-between overflow-hidden",
+            selectedOption ? "bg-white" : "bg-transparent border-foreground/20",
+            className // Add the className prop here
           )}
         >
           {selectedOption

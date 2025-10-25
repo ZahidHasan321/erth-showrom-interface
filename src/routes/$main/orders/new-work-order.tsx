@@ -44,13 +44,14 @@ import {
 } from "@/schemas/work-order-schema";
 import { createWorkOrderStore } from "@/store/current-work-order";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { ErrorBoundary } from "@/components/global/error-boundary";
+import { getFabrics, updateFabric } from "@/api/fabrics";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
@@ -78,6 +79,8 @@ function NewWorkOrder() {
     gcTime: Infinity,
   });
 
+  const queryClient = useQueryClient()
+
   const pricesMap = React.useMemo(() => {
     const map = new Map<string, number>();
     if (pricesData?.data) {
@@ -93,9 +96,13 @@ function NewWorkOrder() {
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
+  const { data: fabricsResponse } = useQuery({
+    queryKey: ["fabrics"],
+    queryFn: getFabrics,
+  });
   // store selectors
   const currentStep = useCurrentWorkOrderStore((s) => s.currentStep);
   const setCurrentStep = useCurrentWorkOrderStore((s) => s.setCurrentStep);
@@ -182,6 +189,13 @@ function NewWorkOrder() {
     resolver: zodResolver(orderSchema),
     defaultValues: orderDefaults,
   });
+
+  const orderStatus = useWatch({
+    control: OrderForm.control,
+    name: "orderStatus",
+  });
+
+  const isOrderClosed = orderStatus === "Completed" || orderStatus === "Cancelled";
 
   const ShelvesForm = useForm<ShelvesFormValues>({
     resolver: zodResolver(shelvesFormSchema),
@@ -371,7 +385,7 @@ function NewWorkOrder() {
   type UpdateOrderPayload = {
     fields: Partial<OrderSchema>;
     orderId: string;
-    onSuccessAction?: "customer" | "payment" | "fabric" | "campaigns" | null;
+    onSuccessAction?: "customer" | "payment" | "fabric" | "campaigns" | "updated" | "cancelled" | null;
   };
 
   const { mutate: updateOrderFn } = useMutation({
@@ -386,11 +400,11 @@ function NewWorkOrder() {
         setOrder(variables.fields);
         setCustomerDemographics(demographicsForm.getValues());
         handleProceed(0); // move to next step
-      } else if (variables.onSuccessAction === "payment") {
-        toast.success("Payment info saved ✅");
+      } else if (variables.onSuccessAction === "updated") {
+        toast.success("Order updated successfully✅");
         handleProceed(4);
-      } else {
-        toast.success("Order updated successfully ✅");
+      } else if (variables.onSuccessAction === "cancelled") {
+        toast.success("Order cancelled");
       }
     },
     onError: () => toast.error("Failed to update order"),
@@ -404,10 +418,85 @@ function NewWorkOrder() {
 
       return Promise.all(promises);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    },
     onError: () => {
       toast.error("Unable to update the shelves stock");
     },
   });
+
+  const { mutate: updateFabricStockFn } = useMutation({
+    mutationFn: async (fabricSelections: FabricSelectionSchema[]) => {
+      // Filter only fabrics from "In" source
+      const internalFabrics = fabricSelections.filter(
+        (fabric) => fabric.fabricSource === "In" && fabric.fabricId
+      );
+
+      if (internalFabrics.length === 0) {
+        return Promise.resolve([]);
+      }
+
+      // Fetch current fabric data to get existing stock
+      const fabrics = fabricsResponse?.data || [];
+
+      // Create update promises
+      const promises = internalFabrics.map((fabricSelection) => {
+        const currentFabric = fabrics.find((f) => f.id === fabricSelection.fabricId);
+        const currentId = fabricSelection.fabricId
+
+
+        if (!currentFabric) {
+          console.error(`Fabric not found: ${fabricSelection.fabricId}`);
+          return Promise.resolve(null);
+        }
+
+        const currentStock = currentFabric.fields.RealStock || 0;
+        const usedLength = parseFloat(fabricSelection.fabricLength);
+
+        if (isNaN(usedLength) || usedLength <= 0) {
+          console.error(`Invalid fabric length: ${fabricSelection.fabricLength}`);
+          return Promise.resolve(null);
+        }
+
+        const newStock = currentStock - usedLength;
+
+        // Prevent negative stock
+        if (newStock < 0) {
+          console.error(
+            `Insufficient stock for fabric ${fabricSelection.fabricId}. Current: ${currentStock}, Requested: ${usedLength}`
+          );
+          return Promise.resolve(null);
+        }
+
+
+        if (!currentId) {
+          console.error(`Fabric not found: ${fabricSelection.fabricId}`);
+          return Promise.resolve(null);
+        }
+
+        return updateFabric(currentId, {
+          ...currentFabric.fields,
+          RealStock: newStock,
+        });
+      });
+
+      return Promise.all(promises);
+    },
+    onSuccess: (results) => {
+      const successCount = results.filter((r) => r !== null).length;
+      if (successCount > 0) {
+        toast.success(`${successCount} fabric stock(s) updated ✅`);
+        queryClient.invalidateQueries({ queryKey: ["fabrics"] });
+      }
+    },
+    onError: (error) => {
+      console.error("Failed to update fabric stock:", error);
+      toast.error("Failed to update fabric stock");
+    },
+  });
+
+
 
   // If not created yet
   if (!orderId) {
@@ -451,8 +540,9 @@ function NewWorkOrder() {
   }
 
   const handleOrderConfirmation = () => {
-    if (completedSteps.length !== steps.length) {
+    if (completedSteps.length !== steps.length - 1) {
       toast.error("Complete all the steps to confirm order!!");
+      return;
     }
     // check address for home delivery
     const isAddressDefined = Object.values(
@@ -484,18 +574,25 @@ function NewWorkOrder() {
         fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
     };
 
+    OrderForm.setValue("orderStatus", "Completed")
     setOrder(formOrder);
 
     if (orderId) {
-      updateOrderFn({ fields: formOrder, orderId: orderId });
+      updateOrderFn({ fields: formOrder, orderId: orderId, onSuccessAction: "updated" });
     }
 
     // update stocks
     updateShelfFn(ShelvesForm.getValues());
     // updateFabricStock();
 
+    const fabricSelectionsData = fabricSelectionForm.getValues().fabricSelections;
+    if (fabricSelectionsData && fabricSelectionsData.length > 0) {
+      updateFabricStockFn(fabricSelectionsData);
+    }
+
     handleProceed(5);
   };
+
 
   const handleOrderCancellation = () => {
     const formOrder: Partial<OrderSchema> = {
@@ -512,10 +609,12 @@ function NewWorkOrder() {
       numOfFabrics:
         fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
     };
+
+    OrderForm.setValue("orderStatus", "Cancelled")
     setOrder(formOrder);
 
     if (orderId) {
-      updateOrderFn({ fields: formOrder, orderId: orderId });
+      updateOrderFn({ fields: formOrder, orderId: orderId, onSuccessAction: "cancelled" });
     }
   };
 
@@ -523,7 +622,7 @@ function NewWorkOrder() {
   // MAIN RENDER
   // ----------------------------
   return (
-    <div className="mb-56">
+    <div className="mb-64">
       <ConfirmationDialog
         isOpen={confirmationDialog.isOpen}
         onClose={() =>
@@ -564,7 +663,7 @@ function NewWorkOrder() {
       </div>
       {/* Make space so sticky header does not overlap content */}
       {/* Step Content */}
-      <div className="flex flex-col flex-1 items-center space-y-10 p-4 xl:p-0 mx-20">
+      <div className="flex flex-col flex-1 items-center space-y-10 py-10 mx-[10%]">
         {steps.map((step, index) => (
           <div
             key={step.id}
@@ -578,6 +677,7 @@ function NewWorkOrder() {
             {index === 0 && (
               <CustomerDemographicsForm
                 form={demographicsForm}
+                isOrderClosed={isOrderClosed}
                 onEdit={() => removeSavedStep(0)}
                 onCancel={() => addSavedStep(0)}
                 onProceed={() => {
@@ -603,9 +703,7 @@ function NewWorkOrder() {
               >
                 <CustomerMeasurementsForm
                   form={measurementsForm}
-                  onSubmit={() =>
-                    toast.success("Customer Measurements saved ✅")
-                  }
+                  isOrderClosed={isOrderClosed}
                   customerId={customerDemographics.id?.toString() || null}
                   customerRecordId={customerDemographics.customerRecordId}
                   onProceed={() => handleProceed(1)}
@@ -618,6 +716,7 @@ function NewWorkOrder() {
                 <FabricSelectionForm
                   customerId={customerDemographics.id?.toString() || null}
                   form={fabricSelectionForm}
+                  isOrderClosed={isOrderClosed}
                   onEdit={() => removeSavedStep(2)}
                   onSubmit={handleFabricSelectionSubmit}
                   onProceed={() => handleProceed(2)}
@@ -637,6 +736,7 @@ function NewWorkOrder() {
               <ErrorBoundary fallback={<div>Shelved Products crashed</div>}>
                 <ShelvedProductsForm
                   form={ShelvesForm}
+                  isOrderClosed={isOrderClosed}
                   onProceed={() => {
                     handleProceed(3);
                   }}
@@ -650,7 +750,6 @@ function NewWorkOrder() {
                   form={OrderForm}
                   onSubmit={(data) => {
                     setOrder(data);
-                    toast.success("Order & Payment Info saved ✅");
                   }}
                   onProceed={() => handleProceed(4)}
                 />
@@ -661,11 +760,30 @@ function NewWorkOrder() {
               <ErrorBoundary fallback={<div>Payment crashed</div>}>
                 <PaymentTypeForm
                   form={paymentForm}
+                  isOrderClosed={isOrderClosed}
                   onConfirm={() => {
-                    handleOrderConfirmation();
+
+                    setConfirmationDialog({
+                      isOpen: true,
+                      title: "Confirm new work order",
+                      description: "Do you want to confirm a new work order?",
+                      onConfirm: () => {
+                        handleOrderConfirmation();
+                        setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
+                      },
+                    });
                   }}
                   onCancel={() => {
-                    handleOrderCancellation();
+
+                    setConfirmationDialog({
+                      isOpen: true,
+                      title: "Cancel new work order",
+                      description: "Do you want to cancel a new work order?",
+                      onConfirm: () => {
+                        handleOrderCancellation();
+                        setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
+                      },
+                    });
                   }}
                 />
               </ErrorBoundary>

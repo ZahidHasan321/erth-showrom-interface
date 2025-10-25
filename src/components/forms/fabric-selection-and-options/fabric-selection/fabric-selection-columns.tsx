@@ -1,12 +1,12 @@
 "use client";
-
 import { type ColumnDef } from "@tanstack/react-table";
-
 import { type FabricSelectionSchema } from "./fabric-selection-schema";
-
 import { Trash2, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as FabricCells from "./fabric-selection-cells";
+import * as React from "react";
+import { useReactToPrint } from "react-to-print";
+import { FabricPrintSummary } from "./fabric-print-component";
 
 export const columns: ColumnDef<FabricSelectionSchema>[] = [
   {
@@ -80,16 +80,29 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     header: "Print",
     minSize: 80,
     cell: ({ row }) => {
-      const handlePrint = () => {
-        // Add print logic here
-        console.log("Printing row: ", row.original);
-      };
+      const printRef = React.useRef<HTMLDivElement>(null);
+
+      const handlePrint = useReactToPrint({
+        contentRef: printRef,  // Pass ref directly (not a function)
+        documentTitle: `Fabric-Order-${row.original.garmentId}`,
+      });
 
       return (
-        <Button variant='outline' onClick={handlePrint}>
-          <Printer />
-          Print
-        </Button>
+        <>
+          {/* Hidden print component */}
+          <div style={{ display: "none" }}>
+            <FabricPrintSummary
+              ref={printRef}
+              fabricData={row.original}
+              orderNumber={row.original.garmentId}
+            />
+          </div>
+
+          <Button variant="outline" onClick={handlePrint} size="sm">
+            <Printer className="h-4 w-4 mr-1" />
+            Print
+          </Button>
+        </>
       );
     },
   },
@@ -105,15 +118,14 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
       const handleDelete = () => {
         meta?.removeRow(row.index);
       };
-
       return (
         <Button
-          variant='ghost'
-          size='icon'
+          variant="ghost"
+          size="icon"
           onClick={handleDelete}
           disabled={isFormDisabled}
         >
-          <Trash2 color='red' />
+          <Trash2 color="red" />
         </Button>
       );
     },

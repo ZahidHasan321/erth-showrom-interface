@@ -62,6 +62,14 @@ export function OrderTypeAndPaymentForm({
     ],
   });
 
+  const orderStatus = useWatch({
+    control: form.control,
+    name: "orderStatus",
+  });
+
+  const isOrderClosed =
+    orderStatus === "Completed" || orderStatus === "Cancelled";
+
   React.useEffect(() => {
     form.setValue("charges.delivery", orderType === "homeDelivery" ? 5 : 0);
     const advance = charges.fabric + charges.shelf + charges.stitching * 0.5;
@@ -136,6 +144,7 @@ export function OrderTypeAndPaymentForm({
                   onValueChange={field.onChange}
                   value={field.value}
                   className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                  disabled={isOrderClosed}
                 >
                   {orderTypeOptions.map((option) => (
                     <label
@@ -201,15 +210,18 @@ export function OrderTypeAndPaymentForm({
                           <button
                             type="button"
                             onClick={() =>
+                              !isOrderClosed &&
                               field.onChange(active ? undefined : opt.value)
                             }
                             aria-pressed={active}
+                            disabled={isOrderClosed}
                             className={cn(
                               "flex items-center justify-between rounded-lg border p-4 transition-all w-full",
                               active
                                 ? "border-green-500 bg-white ring-2 ring-green-200"
                                 : "border-border bg-white hover:shadow-sm",
-                              opt.value === "loyalty"
+                              opt.value === "loyalty",
+                              isOrderClosed && "opacity-50 cursor-not-allowed"
                             )}
                           >
                             <div className="flex items-center gap-3">
@@ -324,6 +336,7 @@ export function OrderTypeAndPaymentForm({
                                               placeholder="Discount %"
                                               className="w-32"
                                               {...pField}
+                                              disabled={isOrderClosed}
                                               onChange={(e) =>
                                                 pField.onChange(
                                                   e.target.value === ""
@@ -359,6 +372,7 @@ export function OrderTypeAndPaymentForm({
                                             <Input
                                               placeholder="Reference Code"
                                               {...rField}
+                                              disabled={isOrderClosed}
                                               className="w-full"
                                             />
                                           )}
@@ -366,10 +380,12 @@ export function OrderTypeAndPaymentForm({
                                         <div className="flex flex-wrap gap-3">
                                           <Input
                                             placeholder="Discount %"
+                                            disabled={isOrderClosed}
                                             className="w-32 md:w-40 text-base py-2"
                                           />
                                           <Input
                                             placeholder="Discount (KWD)"
+                                            disabled={isOrderClosed}
                                             className="w-40 md:w-48 text-base py-2"
                                           />
                                         </div>
@@ -381,16 +397,19 @@ export function OrderTypeAndPaymentForm({
                                         <Button
                                           type="button"
                                           variant="outline"
+                                          disabled={isOrderClosed}
                                           className="bg-accent/40 hover:bg-accent/60"
                                         >
                                           Check Loyalty
                                         </Button>
                                         <Input
                                           placeholder="Discount %"
+                                          disabled={isOrderClosed}
                                           className="w-32 md:w-40 text-base py-2"
                                         />
                                         <Input
                                           placeholder="Discount (KWD)"
+                                          disabled={isOrderClosed}
                                           className="w-40 md:w-48 text-base py-2"
                                         />
                                       </div>
@@ -459,11 +478,13 @@ export function OrderTypeAndPaymentForm({
         </div>
 
         {/* === Footer === */}
-        <div className="flex justify-end pt-2">
-          <Button type="button" onClick={handleProceed}>
-            Proceed
-          </Button>
-        </div>
+        {!isOrderClosed && (
+          <div className="flex justify-end pt-2">
+            <Button type="button" onClick={handleProceed}>
+              Proceed
+            </Button>
+          </div>
+        )}
       </form>
     </Form>
   );

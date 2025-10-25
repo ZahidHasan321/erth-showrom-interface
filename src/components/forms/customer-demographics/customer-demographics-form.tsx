@@ -57,6 +57,7 @@ interface CustomerDemographicsFormProps {
   onProceed?: () => void;
   onClear?: () => void;
   onSave?: (data: Partial<CustomerDemographicsSchema>) => void;
+  isOrderClosed?: boolean;
 }
 
 export function CustomerDemographicsForm({
@@ -66,6 +67,7 @@ export function CustomerDemographicsForm({
   onProceed,
   onClear,
   onSave,
+  isOrderClosed,
 }: CustomerDemographicsFormProps) {
   const [isEditing, setIsEditing] = useState(true);
   const [confirmationDialog, setConfirmationDialog] = useState({
@@ -145,7 +147,7 @@ export function CustomerDemographicsForm({
 
   const handleCustomerFound = (customer: Customer) => {
     const formValues = mapCustomerToFormValues(customer);
-    onSave?.(formValues);
+    // onSave?.(formValues);
     setTimeout(() => {
       setIsEditing(false);
     }, 0);
@@ -309,7 +311,7 @@ export function CustomerDemographicsForm({
           <h1 className="text-2xl font-bold mb-4">Demographics</h1>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
+        { !isOrderClosed && <motion.div variants={itemVariants}>
           <ErrorBoundary fallback={<div>Search Customer crashed</div>}>
             <SearchCustomer
               onCustomerFound={handleCustomerFound}
@@ -321,7 +323,7 @@ export function CustomerDemographicsForm({
               }}
             />
           </ErrorBoundary>
-        </motion.div>
+        </motion.div> }
 
         <motion.div variants={itemVariants}>
           <ErrorBoundary fallback={<div>Name field crashed</div>}>
@@ -871,7 +873,7 @@ export function CustomerDemographicsForm({
         >
           <ErrorBoundary fallback={<div>Action buttons crashed</div>}>
             {/* Customer loaded, not editing */}
-            {!isEditing && customerRecordId && (
+            {!isEditing && customerRecordId && !isOrderClosed && (
               <>
                 <Button type="button" variant="outline" onClick={handleEdit}>
                   Edit Customer
@@ -887,7 +889,7 @@ export function CustomerDemographicsForm({
             )}
 
             {/* Editing an existing customer */}
-            {isEditing && customerRecordId && (
+            { !isOrderClosed && isEditing && customerRecordId && (
               <>
                 <Button type="submit" disabled={isUpdating}>
                   {isUpdating ? "Updating..." : "Update Customer"}
@@ -903,7 +905,7 @@ export function CustomerDemographicsForm({
             )}
 
             {/* Creating a new customer */}
-            {isEditing && !customerRecordId && (
+            {isEditing && !customerRecordId && !isOrderClosed && (
               <>
                 <Button type="submit" disabled={isCreating}>
                   {isCreating ? "Creating..." : "Create Customer"}

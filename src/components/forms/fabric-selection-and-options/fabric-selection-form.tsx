@@ -1,14 +1,15 @@
 "use client";
 
-import { getMeasurementsByCustomerId } from "@/api/measurements";
+import { getFabrics } from "@/api/fabrics";
 import { createGarment, updateGarment } from "@/api/garments";
+import { getMeasurementsByCustomerId } from "@/api/measurements";
 import { Button } from "@/components/ui/button";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import {
   FormProvider,
   type UseFormReturn,
-  useFieldArray,
+  useFieldArray
 } from "react-hook-form";
 import { toast } from "sonner";
 import { DataTable } from "./data-table";
@@ -24,11 +25,13 @@ import {
 } from "./style-options/style-options-schema";
 
 import { getCampaigns } from "@/api/campaigns";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SignaturePad } from "../signature-pad";
 import { mapFormGarmentToApiGarment } from "@/lib/garment-mapper";
+import { AlertCircle, XCircle } from "lucide-react";
+import { SignaturePad } from "../signature-pad";
 
 interface FabricSelectionFormProps {
   customerId: string | null;
@@ -46,6 +49,7 @@ interface FabricSelectionFormProps {
   onProceed: () => void;
   isProceedDisabled?: boolean;
   onCampaignsChange: (campaigns: string[]) => void;
+  isOrderClosed: boolean;
 }
 
 export function FabricSelectionForm({
@@ -58,6 +62,7 @@ export function FabricSelectionForm({
   onProceed,
   onCampaignsChange,
   isProceedDisabled = false,
+  isOrderClosed,
 }: FabricSelectionFormProps) {
   const [numRowsToAdd, setNumRowsToAdd] = React.useState(0);
   const [selectedCampaigns, setSelectedCampaigns] = React.useState<string[]>(
@@ -65,6 +70,66 @@ export function FabricSelectionForm({
   );
   const [isEditing, setIsEditing] = React.useState(true);
   const [isSaved, setIsSaved] = React.useState(false);
+  const [validationErrors, setValidationErrors] = React.useState<string[]>([]);
+
+  // Fetch fabrics for validation
+  const { data: fabricsResponse } = useQuery({
+    queryKey: ["fabrics"],
+    queryFn: getFabrics,
+  });
+
+  const fabrics = fabricsResponse?.data || [];
+
+  // Validate stock before saving
+  const validateStock = React.useCallback(() => {
+    const errors: string[] = [];
+    const fabricSelections = form.getValues("fabricSelections");
+
+    fabricSelections.forEach((selection, index) => {
+      // Check if required fields are filled
+      if (!selection.fabricSource) {
+        errors.push(`Row ${index + 1}: Fabric source is required`);
+      }
+
+      if (!selection.measurementId) {
+        errors.push(`Row ${index + 1}: Measurement ID is required`);
+      }
+
+      if (!selection.fabricLength || parseFloat(selection.fabricLength) <= 0) {
+        errors.push(`Row ${index + 1}: Valid fabric length is required`);
+      }
+
+      // Validate stock for "In" source
+      if (selection.fabricSource === "In") {
+        if (!selection.fabricId) {
+          errors.push(`Row ${index + 1}: Fabric selection is required for "In" source`);
+        } else {
+          const selectedFabric = fabrics.find((f) => f.id === selection.fabricId);
+          if (selectedFabric) {
+            const stock = selectedFabric.fields.RealStock || 0;
+            const requestedLength = parseFloat(selection.fabricLength);
+
+            if (!isNaN(requestedLength) && requestedLength > stock) {
+              errors.push(
+                `Row ${index + 1}: Insufficient stock. Requested: ${requestedLength}, Available: ${stock}`
+              );
+            }
+          }
+        }
+
+        if (!selection.color) {
+          errors.push(`Row ${index + 1}: Color is required`);
+        }
+      }
+
+      // Validate "Out" source
+      if (selection.fabricSource === "Out" && !selection.color) {
+        errors.push(`Row ${index + 1}: Color is required for "Out" source`);
+      }
+    });
+
+    return errors;
+  }, [form, fabrics]);
 
   // Mutation to save garments
   const { mutate: saveGarmentsMutation, isPending: isSaving } = useMutation({
@@ -90,12 +155,11 @@ export function FabricSelectionForm({
             styleOption
           );
 
+
           // Update if ID exists, otherwise create
           if (fabricSelection.id && fabricSelection.id !== "") {
-            // console.log("update: ", garmentData.fields);
             return updateGarment(fabricSelection.id, garmentData.fields);
           } else {
-            // console.log("create: ", garmentData.fields);
             return createGarment(garmentData.fields);
           }
         }
@@ -106,7 +170,7 @@ export function FabricSelectionForm({
     onSuccess: (responses) => {
       toast.success(`${responses.length} garment(s) saved successfully!`);
 
-      // // Update form with response IDs
+      // Update form with response IDs
       const updatedFabricSelections = form
         .getValues("fabricSelections")
         .map((fabric, index) => ({
@@ -115,8 +179,7 @@ export function FabricSelectionForm({
           orderId: [orderId!],
         }));
 
-      // form.setValue("fabricSelections", updatedFabricSelections);
-
+      setValidationErrors([]);
       setIsSaved(true);
       setIsEditing(false);
 
@@ -132,6 +195,26 @@ export function FabricSelectionForm({
   });
 
   const handleSaveSelections = () => {
+    // Validate first
+    const errors = validateStock();
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      toast.error(`Cannot save: ${errors.length} validation error(s) found`);
+
+      // Scroll to the validation alert
+      setTimeout(() => {
+        const alertElement = document.getElementById("validation-errors");
+        if (alertElement) {
+          alertElement.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+
+      return;
+    }
+
+    // Clear errors and proceed with save
+    setValidationErrors([]);
     const data = form.getValues();
     saveGarmentsMutation(data);
   };
@@ -181,11 +264,11 @@ export function FabricSelectionForm({
   const measurementOptions =
     measurementQuery?.data && measurementQuery.data.length > 0
       ? measurementQuery.data
-          .filter((m) => !!m.id)
-          .map((m) => ({
-            id: m.id as string,
-            MeasurementID: m.fields.MeasurementID,
-          }))
+        .filter((m) => !!m.id)
+        .map((m) => ({
+          id: m.id as string,
+          MeasurementID: m.fields.MeasurementID,
+        }))
       : [];
 
   const addFabricRow = (index: number, orderId?: string) => {
@@ -197,6 +280,10 @@ export function FabricSelectionForm({
 
   const removeFabricRow = (rowIndex: number) => {
     removeFabricSelection(rowIndex);
+    // Clear validation errors for this row
+    setValidationErrors((prev) =>
+      prev.filter((error) => !error.startsWith(`Row ${rowIndex + 1}:`))
+    );
   };
 
   const addStyleRow = (index: number) => {
@@ -234,164 +321,200 @@ export function FabricSelectionForm({
       }
     }
   }
-  // const isSyncDisabled = numRowsToAdd <= 0;
+
   const isFormDisabled = isSaved && !isEditing;
+
+  // Check if there are any form errors
+  const hasFormErrors = Object.keys(form.formState.errors).length > 0;
 
   return (
     <FormProvider {...form}>
-      <div className="p-4 border rounded-lg bg-muted max-w-full w-full overflow-hidden">
-        <div className="flex flex-wrap items-center space-x-2 mb-4 gap-4">
-          <Label htmlFor="num-fabrics">How many pieces? </Label>
-          <Input
-            id="num-fabrics"
-            type="number"
-            placeholder="e.g., 2"
-            onChange={(e) => setNumRowsToAdd(parseInt(e.target.value, 10))}
-            className="w-24"
-            disabled={isFormDisabled}
+      <form onSubmit={form.handleSubmit(handleSaveSelections)}
+      className="w-full">
+        <div className="p-4 border rounded-lg bg-muted w-full overflow-hidden">
+          {/* Validation Errors Alert */}
+          {validationErrors.length > 0 && (
+            <Alert
+              id="validation-errors"
+              variant="destructive"
+              className="mb-4 border-2 border-red-500"
+            >
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle className="font-bold">
+                Validation Errors ({validationErrors.length})
+              </AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  {validationErrors.map((error, index) => (
+                    <li key={index} className="text-sm">
+                      {error}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => setValidationErrors([])}
+                >
+                  <XCircle className="h-4 w-4 mr-1" />
+                  Dismiss
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Form Errors Alert */}
+          {hasFormErrors && validationErrors.length === 0 && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Form has errors</AlertTitle>
+              <AlertDescription>
+                Please check the fields marked in red and correct the errors
+                before saving.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="flex flex-wrap items-center space-x-2 mb-4 gap-4">
+            <Label htmlFor="num-fabrics">How many pieces? </Label>
+            <Input
+              id="num-fabrics"
+              type="number"
+              placeholder="e.g., 2"
+              onChange={(e) => setNumRowsToAdd(parseInt(e.target.value, 10))}
+              className="w-24"
+              disabled={isFormDisabled}
+            />
+
+            <Button
+              onClick={() => {
+                if (numRowsToAdd > 0) {
+                  syncRows(numRowsToAdd, fabricSelectionFields, {
+                    addRow: addFabricRow,
+                    removeRow: removeFabricRow,
+                  });
+                  syncRows(numRowsToAdd, styleOptionFields, {
+                    addRow: addStyleRow,
+                    removeRow: removeStyleRow,
+                  });
+                }
+              }}
+              disabled={isFormDisabled}
+            >
+              Add / Sync
+            </Button>
+          </div>
+          <div className="flex flex-col gap-2 mb-6 border shadow-lg w-fit p-4 rounded-lg bg-card">
+            <Label className="text-md text-bold">Campaign Offers:</Label>
+            {activeCampaigns.length &&
+              activeCampaigns.map((campaign) => (
+                <div key={campaign.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={campaign.id}
+                    checked={selectedCampaigns.includes(campaign.id)}
+                    onCheckedChange={(checked) => {
+                      const updatedCampaigns = checked
+                        ? Array.from(new Set([...selectedCampaigns, campaign.id]))
+                        : selectedCampaigns.filter((id) => id !== campaign.id);
+
+                      setSelectedCampaigns(updatedCampaigns);
+                      onCampaignsChange(updatedCampaigns);
+                    }}
+                    disabled={isFormDisabled}
+                  />
+                  <Label htmlFor={campaign.id}>{campaign.fields.Name}</Label>
+                </div>
+              ))}
+          </div>
+          <h2 className="text-2xl font-bold mb-4">Fabric Selections</h2>
+          <DataTable
+            columns={fabricSelectionColumns}
+            data={fabricSelectionFields}
+            removeRow={removeFabricRow}
+            measurementOptions={measurementOptions}
+            updateData={(rowIndex, columnId, value) =>
+              form.setValue(
+                `fabricSelections.${rowIndex}.${columnId}` as any,
+                value
+              )
+            }
+            isFormDisabled={isFormDisabled}
+          />
+          <h2 className="font-bold mb-2 mt-8">Signature</h2>
+          <SignaturePad
+            onSave={(signature) => {
+              console.log("Fabric Signature:", signature);
+            }}
           />
 
-          <Button
-            onClick={() => {
-              if (numRowsToAdd > 0) {
-                syncRows(numRowsToAdd, fabricSelectionFields, {
-                  addRow: addFabricRow,
-                  removeRow: removeFabricRow,
-                });
-                syncRows(numRowsToAdd, styleOptionFields, {
-                  addRow: addStyleRow,
-                  removeRow: removeStyleRow,
-                });
-              }
+          <h2 className="text-2xl font-bold mb-4 mt-8">Style Options</h2>
+          <DataTable
+            columns={styleOptionsColumns}
+            measurementOptions={measurementOptions}
+            data={styleOptionFields}
+            removeRow={removeStyleRow}
+            updateData={(rowIndex, columnId, value) =>
+              form.setValue(`styleOptions.${rowIndex}.${columnId}` as any, value)
+            }
+            isFormDisabled={isFormDisabled}
+          />
+
+          <h2 className="font-bold mb-2 mt-8">Signature</h2>
+          <SignaturePad
+            onSave={(signature) => {
+              console.log("Style Signature:", signature);
             }}
-            disabled={isFormDisabled}
-          >
-            Add / Sync
-          </Button>
+          />
         </div>
-        <div className="flex flex-col gap-2 mb-6 border shadow-lg w-fit p-4 rounded-lg bg-card">
-          <Label className="text-md text-bold">Campaign Offers:</Label>
-          {activeCampaigns.length &&
-            activeCampaigns.map((campaign) => (
-              <div key={campaign.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={campaign.id}
-                  checked={selectedCampaigns.includes(campaign.id)}
-                  onCheckedChange={(checked) => {
-                    const updatedCampaigns = checked
-                      ? Array.from(new Set([...selectedCampaigns, campaign.id]))
-                      : selectedCampaigns.filter((id) => id !== campaign.id);
-
-                    setSelectedCampaigns(updatedCampaigns);
-                    onCampaignsChange(updatedCampaigns);
-                  }}
-                  disabled={isFormDisabled}
-                />
-                <Label htmlFor={campaign.id}>{campaign.fields.Name}</Label>
-              </div>
-            ))}
-        </div>
-        <h2 className="text-2xl font-bold mb-4">Fabric Selections</h2>
-        <DataTable
-          columns={fabricSelectionColumns}
-          data={fabricSelectionFields}
-          removeRow={removeFabricRow}
-          measurementOptions={measurementOptions}
-          updateData={(rowIndex, columnId, value) =>
-            form.setValue(
-              `fabricSelections.${rowIndex}.${columnId}` as any,
-              value
-            )
-          }
-          isFormDisabled={isFormDisabled}
-        />
-        <h2 className="font-bold mb-2 mt-8">Signature</h2>
-        <SignaturePad
-          onSave={(signature) => {
-            console.log("Fabric Signature:", signature);
-          }}
-        />
-        {/* <Button
-          onClick={addFabricRow}
-          className="mt-4"
-          disabled={!(measurementIDs.length === 0)}
-        >
-          Add Fabric Line
-        </Button> */}
-
-        <h2 className="text-2xl font-bold mb-4 mt-8">Style Options</h2>
-        <DataTable
-          columns={styleOptionsColumns}
-          measurementOptions={measurementOptions}
-          data={styleOptionFields}
-          removeRow={removeStyleRow}
-          updateData={(rowIndex, columnId, value) =>
-            form.setValue(`styleOptions.${rowIndex}.${columnId}` as any, value)
-          }
-          isFormDisabled={isFormDisabled}
-        />
-        {/* <Button onClick={addStyleRow} className="mt-4">
-          Add Style Line
-        </Button> */}
-
-        <h2 className="font-bold mb-2 mt-8">Signature</h2>
-        <SignaturePad
-          onSave={(signature) => {
-            console.log("Style Signature:", signature);
-          }}
-        />
-      </div>
-      <div>
-        {!isSaved || isEditing ? (
-          <>
-            <Button
-              className="m-4"
-              variant={"outline"}
-              onClick={() => {
-                const errors = form.formState.errors;
-                if (Object.keys(errors).length > 0) {
-                  console.error("Fabric selection form errors:", errors);
-                }
-                handleSaveSelections();
-              }}
-              disabled={isSaving}
-            >
-              {isSaving ? "Saving..." : "Save Selections"}
-            </Button>
-            {isEditing && isSaved && (
+        <div>
+          {isOrderClosed ? null : !isSaved || isEditing ? (
+            <>
               <Button
                 className="m-4"
-                variant="ghost"
+                variant={"outline"}
+                // onClick={handleSaveSelections}
+                type="submit"
+                disabled={isSaving}
+              >
+                {isSaving ? "Saving..." : "Save Selections"}
+              </Button>
+              {isEditing && isSaved && (
+                <Button
+                  className="m-4"
+                  variant="ghost"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setValidationErrors([]);
+                  }}
+                >
+                  Cancel
+                </Button>
+              )}
+            </>
+          ) : (
+            <>
+              <Button
+                className="m-4"
+                variant={"outline"}
                 onClick={() => {
-                  setIsEditing(false);
+                  setIsEditing(true);
+                  onEdit?.();
                 }}
               >
-                Cancel
+                Edit Selections
               </Button>
-            )}
-          </>
-        ) : (
-          <>
-            <Button
-              className="m-4"
-              variant={"outline"}
-              onClick={() => {
-                setIsEditing(true);
-                onEdit?.();
-              }}
-            >
-              Edit Selections
-            </Button>
-            <Button
-              className="m-4"
-              onClick={onProceed}
-              disabled={isProceedDisabled}
-            >
-              Proceed
-            </Button>
-          </>
-        )}
-      </div>
+              <Button
+                className="m-4"
+                onClick={onProceed}
+                disabled={isProceedDisabled}
+              >
+                Proceed
+              </Button>
+            </>
+          )}
+        </div>
+      </form>
     </FormProvider>
   );
 }

@@ -48,10 +48,10 @@ import type { Measurement } from "@/types/measurement";
 // ---------------------------------------
 interface CustomerMeasurementsFormProps {
   form: UseFormReturn<z.infer<typeof customerMeasurementsSchema>>;
-  onSubmit: (values: z.infer<typeof customerMeasurementsSchema>) => void;
   customerId: string | null;
   customerRecordId: string | undefined;
   onProceed?: () => void;
+  isOrderClosed: Boolean
 }
 
 const unit = "cm";
@@ -132,10 +132,10 @@ const SmallSpinner = () => (
 // ---------------------------------------
 export function CustomerMeasurementsForm({
   form,
-  onSubmit,
   customerId,
   customerRecordId,
   onProceed,
+  isOrderClosed
 }: CustomerMeasurementsFormProps) {
   const queryClient = useQueryClient();
   const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<
@@ -153,7 +153,7 @@ export function CustomerMeasurementsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   useAutoProvision(form);
@@ -178,7 +178,7 @@ export function CustomerMeasurementsForm({
 
   const { mutate: createMeasurementMutation, isPending: isCreating } = useMutation({
     mutationFn: createMeasurement,
-    onSuccess: (response, values) => {
+    onSuccess: (response) => {
       if (response.status === "success") {
         setIsEditing(false);
         setIsCreatingNew(false);
@@ -186,7 +186,6 @@ export function CustomerMeasurementsForm({
         queryClient.invalidateQueries({
           queryKey: ["measurements", customerId],
         });
-        onSubmit(values as unknown as CustomerMeasurementsSchema);
       } else {
         toast.error(response.message || "Failed to create measurement.");
       }
@@ -199,7 +198,7 @@ export function CustomerMeasurementsForm({
 
   const { mutate: updateMeasurementMutation, isPending: isUpdating } = useMutation({
     mutationFn: ({ recordId, values }: { recordId: string, values: Partial<Measurement["fields"]> }) => updateMeasurement(recordId, values),
-    onSuccess: (response, { values }) => {
+    onSuccess: (response) => {
       if (response.status === "success") {
         setIsEditing(false);
         setIsCreatingNew(false);
@@ -207,7 +206,6 @@ export function CustomerMeasurementsForm({
         queryClient.invalidateQueries({
           queryKey: ["measurements", customerId],
         });
-        onSubmit(values as unknown as CustomerMeasurementsSchema);
       } else {
         toast.error(response.message || "Failed to update measurement.");
       }
@@ -286,7 +284,7 @@ export function CustomerMeasurementsForm({
           toast.error("No measurement selected for updating.");
           return;
         }
-        
+
         const recordId = measurements.get(selectedMeasurementId)?.measurementRecord
         if (!recordId) {
           toast.error("No measurement selected for updating.");
@@ -625,15 +623,15 @@ export function CustomerMeasurementsForm({
           variants={itemVariants}
           className="flex flex-wrap justify-center gap-6 pt-4"
         >
-          <Button
+          {!isOrderClosed && <Button
             type="button"
             variant="outline"
             onClick={() => setIsEditing(true)}
             disabled={!selectedMeasurementId || isEditing}
           >
             Edit
-          </Button>
-          {(isEditing || isCreatingNew) && (
+          </Button>}
+          {(isEditing || isCreatingNew && !isOrderClosed) && (
             <div className="flex gap-4">
               <Button
                 type="button"
@@ -654,7 +652,7 @@ export function CustomerMeasurementsForm({
               </Button>
             </div>
           )}
-          {!isEditing && (
+          {!isEditing && !isOrderClosed && (
             <div className="flex gap-4">
               <Button
                 type="button"

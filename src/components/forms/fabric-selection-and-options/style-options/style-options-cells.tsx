@@ -155,7 +155,7 @@ export const CollarCell = ({
                     undefined
                   }
                   alt={collarTypes.find((c) => c.value === collarType)?.alt}
-                  className="min-w-[40px] h-10 object-contain"
+                  className="min-w-10 h-10 object-contain"
                 />
               ) : (
                 <SelectValue placeholder="Select Type" />
@@ -168,7 +168,7 @@ export const CollarCell = ({
                     <img
                       src={ct.image || undefined}
                       alt={ct.alt}
-                      className="min-w-[48px] h-12 object-contain"
+                      className="min-w-12 h-12 object-contain"
                     />
                     <span>{ct.displayText}</span>
                   </div>
@@ -197,7 +197,7 @@ export const CollarCell = ({
                   alt={
                     collarButtons.find((b) => b.value === collarButton)?.alt
                   }
-                  className="min-w-[40px] h-10 object-contain"
+                  className="min-w-10 h-10 object-contain"
                 />
               ) : (
                 <SelectValue placeholder="Select Button" />
@@ -210,7 +210,7 @@ export const CollarCell = ({
                     <img
                       src={button.image || undefined}
                       alt={button.alt}
-                      className="min-w-[48px] h-12 object-contain"
+                      className="min-w-12 h-12 object-contain"
                     />
                     <span>{button.displayText}</span>
                   </div>
@@ -235,7 +235,7 @@ export const CollarCell = ({
               <img
                 src={smallTabaggiImage}
                 alt="Small Tabaggi"
-                className="min-w-[32px] h-8 object-contain"
+                className="min-w-8 h-8 object-contain"
               />
             </label>
           </div>
@@ -286,7 +286,7 @@ export const JabzoorCell = ({
                     undefined
                   }
                   alt={jabzourTypes.find((j) => j.value === jabzour1)?.alt}
-                  className="min-w-[40px] h-10 object-contain"
+                  className="min-w-10 h-10 object-contain"
                 />
               ) : (
                 <SelectValue placeholder="Select Type" />
@@ -302,7 +302,7 @@ export const JabzoorCell = ({
                     <img
                       src={jabzourType.image || undefined}
                       alt={jabzourType.alt}
-                      className="min-w-[48px] h-12 object-contain"
+                      className="min-w-12 h-12 object-contain"
                     />
                     <span>{jabzourType.displayText}</span>
                   </div>
@@ -312,7 +312,7 @@ export const JabzoorCell = ({
           </Select>
         )}
       />
-      <Plus className="min-w-[20px] h-6 mt-2" />
+      <Plus className="min-w-5 h-6 mt-2" />
       {jabzour1 === "ZIP" ? (
         <Controller
           name={`styleOptions.${row.index}.jabzoor.jabzour2`}
@@ -333,7 +333,7 @@ export const JabzoorCell = ({
                     alt={
                       jabzourTypes.find((j) => j.value === jabzour2)?.alt
                     }
-                    className="min-w-[40px] h-10 object-contain"
+                    className="min-w-10 h-10 object-contain"
                   />
                 ) : (
                   <SelectValue placeholder="Select Type" />
@@ -351,7 +351,7 @@ export const JabzoorCell = ({
                         <img
                           src={jabzourType.image || undefined}
                           alt={jabzourType.alt}
-                          className="min-w-[48px] h-12 object-contain"
+                          className="min-w-12 h-12 object-contain"
                         />
                         <span>{jabzourType.displayText}</span>
                       </div>
@@ -420,7 +420,7 @@ export const SidePocketCell = ({
               <img
                 src={phoneIcon}
                 alt="Phone Pocket"
-                className="min-w-[40px] h-14 object-contain"
+                className="min-w-10 h-14 object-contain"
               />
             </label>
           </div>
@@ -441,7 +441,7 @@ export const SidePocketCell = ({
               <img
                 src={walletIcon}
                 alt="Wallet Pocket"
-                className="min-w-[40px] h-14 object-contain"
+                className="min-w-10 h-14 object-contain"
               />
             </label>
           </div>
@@ -485,7 +485,7 @@ export const FrontPocketCell = ({
                   alt={
                     topPocketTypes.find((j) => j.value === frontPocketType)?.alt
                   }
-                  className="min-w-[28px] h-7 object-contain"
+                  className="min-w-7 h-7 object-contain"
                 />
               ) : (
                 <SelectValue placeholder="Select Type" />
@@ -498,7 +498,7 @@ export const FrontPocketCell = ({
                     <img
                       src={tpt.image || undefined}
                       alt={tpt.alt}
-                      className="min-w-[48px] h-12 object-contain"
+                      className="min-w-12 h-12 object-contain"
                     />
                     <span>{tpt.displayText}</span>
                   </div>
@@ -549,7 +549,7 @@ export const FrontPocketCell = ({
               <img
                 src={penIcon}
                 alt="Pen Holder"
-                className="min-w-[40px] h-14 object-contain"
+                className="min-w-10 h-14 object-contain"
               />
             </label>
           </div>
@@ -594,7 +594,7 @@ export const CuffsCell = ({
                     alt={
                       cuffTypes.find((c) => c.value === cuffsType)?.alt ?? ""
                     }
-                    className="min-w-[40px] h-10 object-contain"
+                    className="min-w-10 h-10 object-contain"
                   />
                 ) : (
                   <span>
@@ -616,7 +616,7 @@ export const CuffsCell = ({
                       <img
                         src={ct.image || undefined}
                         alt={ct.alt ?? ""}
-                        className="min-w-[48px] h-12 object-contain"
+                        className="min-w-12 h-12 object-contain"
                       />
                     )}
                     <span>{ct.displayText}</span>

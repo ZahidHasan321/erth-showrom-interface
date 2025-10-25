@@ -55,25 +55,33 @@ export const MeasurementIdCell = ({
       <Controller
         name={`fabricSelections.${row.index}.measurementId`}
         control={control}
-        render={({ field }) => (
-          <Select
-            onValueChange={field.onChange}
-            value={field.value}
-            disabled={isFormDisabled}
-          >
-            <SelectTrigger className="w-[150px] min-w-[150px]">
-              <SelectValue placeholder="Select ID" />
-            </SelectTrigger>
-            <SelectContent>
-              {measurementOptions.map(
-                (m: { id: string; MeasurementID: string }) => (
-                  <SelectItem key={m.id} value={m.id}>
-                    {m.MeasurementID}
-                  </SelectItem>
-                )
-              )}
-            </SelectContent>
-          </Select>
+        render={({ field, fieldState: { error } }) => (
+          <div className="flex flex-col gap-1">
+            <Select
+              onValueChange={field.onChange}
+              value={field.value}
+              disabled={isFormDisabled}
+            >
+              <SelectTrigger className={cn(
+                "w-[150px] min-w-[150px]",
+                error && "border-red-500"
+              )}>
+                <SelectValue placeholder="Select ID" />
+              </SelectTrigger>
+              <SelectContent>
+                {measurementOptions.map(
+                  (m: { id: string; MeasurementID: string }) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.MeasurementID}
+                    </SelectItem>
+                  )
+                )}
+              </SelectContent>
+            </Select>
+            {error && (
+              <span className="text-xs text-red-500">{error.message}</span>
+            )}
+          </div>
         )}
       />
     </div>
@@ -90,7 +98,7 @@ export const BrovaCell = ({
   };
   const isFormDisabled = meta?.isFormDisabled || false;
   return (
-    <div className="w-full flex justify-center items-center min-w-[80px]">
+    <div className="w-full flex justify-center items-center min-w-20">
       <Controller
         name={`fabricSelections.${row.index}.brova`}
         control={control}
@@ -132,20 +140,25 @@ export const FabricSourceCell = ({
       <Controller
         name={`fabricSelections.${row.index}.fabricSource`}
         control={control}
-        render={({ field }) => (
-          <Select
-            onValueChange={field.onChange}
-            value={field.value}
-            disabled={isFormDisabled}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select source" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="In">In</SelectItem>
-              <SelectItem value="Out">Out</SelectItem>
-            </SelectContent>
-          </Select>
+        render={({ field, fieldState: { error } }) => (
+          <div className="flex flex-col gap-1">
+            <Select
+              onValueChange={field.onChange}
+              value={field.value}
+              disabled={isFormDisabled}
+            >
+              <SelectTrigger className={cn(error && "border-red-500")}>
+                <SelectValue placeholder="Select source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="In">In</SelectItem>
+                <SelectItem value="Out">Out</SelectItem>
+              </SelectContent>
+            </Select>
+            {error && (
+              <span className="text-xs text-red-500">{error.message}</span>
+            )}
+          </div>
         )}
       />
     </div>
@@ -205,6 +218,7 @@ export const IfInsideCell = ({
       }),
     [fabrics]
   );
+
   const fabricOptions = React.useMemo(() => {
     const results = searchQuery
       ? fuse.search(searchQuery).map((r) => r.item)
@@ -237,18 +251,24 @@ export const IfInsideCell = ({
         <Controller
           name={`fabricSelections.${row.index}.fabricId`}
           control={control}
-          render={({ field }) => (
-            <Combobox
-              options={fabricOptions}
-              {...field}
-              onChange={(value) => {
-                field.onChange(value);
-                setSearchQuery("");
-              }}
-              onSearch={setSearchQuery}
-              placeholder="Search fabric..."
-              disabled={isFormDisabled}
-            />
+          render={({ field, fieldState: { error } }) => (
+            <div className="flex flex-col gap-1">
+              <Combobox
+                options={fabricOptions}
+                {...field}
+                onChange={(value) => {
+                  field.onChange(value);
+                  setSearchQuery("");
+                }}
+                onSearch={setSearchQuery}
+                placeholder="Search fabric..."
+                disabled={isFormDisabled}
+                className={cn(error && "border-red-500")}
+              />
+              {error && (
+                <span className="text-xs text-red-500">{error.message}</span>
+              )}
+            </div>
           )}
         />
       )}
@@ -277,12 +297,17 @@ export const ColorCell = ({
       <Controller
         name={`fabricSelections.${row.index}.color`}
         control={control}
-        render={({ field }) => (
-          <Input
-            className="min-w-[120px]"
-            {...field}
-            readOnly={isReadOnly || isFormDisabled}
-          />
+        render={({ field, fieldState: { error } }) => (
+          <div className="flex flex-col gap-1">
+            <Input
+              className={cn("min-w-[120px]", error && "border-red-500")}
+              {...field}
+              readOnly={isReadOnly || isFormDisabled}
+            />
+            {error && (
+              <span className="text-xs text-red-500">{error.message}</span>
+            )}
+          </div>
         )}
       />
     </div>
@@ -317,15 +342,32 @@ export const FabricLengthCell = ({
       const selectedFabric = fabrics.find((f) => f.id === fabricId);
       if (selectedFabric) {
         const stock = selectedFabric.fields.RealStock || 0;
-        if (parseFloat(fabricLength as string) > stock) {
-          toast.error(`Stock unavailable. Available stock: ${stock}`);
+        const requestedLength = parseFloat(fabricLength as string);
+
+        if (isNaN(requestedLength) || requestedLength <= 0) {
           setError(`fabricSelections.${row.index}.fabricLength`, {
             type: "manual",
-            message: "Stock unavailable",
+            message: "Invalid length",
           });
+        } else if (requestedLength > stock) {
+          setError(`fabricSelections.${row.index}.fabricLength`, {
+            type: "manual",
+            message: `Insufficient stock (Available: ${stock})`,
+          });
+          toast.error(`Row ${row.index + 1}: Stock unavailable. Available: ${stock}`);
         } else {
           clearErrors(`fabricSelections.${row.index}.fabricLength`);
         }
+      }
+    } else if (fabricSource === "Out" && fabricLength) {
+      const requestedLength = parseFloat(fabricLength as string);
+      if (isNaN(requestedLength) || requestedLength <= 0) {
+        setError(`fabricSelections.${row.index}.fabricLength`, {
+          type: "manual",
+          message: "Invalid length",
+        });
+      } else {
+        clearErrors(`fabricSelections.${row.index}.fabricLength`);
       }
     }
   }, [
@@ -344,11 +386,18 @@ export const FabricLengthCell = ({
         name={`fabricSelections.${row.index}.fabricLength`}
         control={control}
         render={({ field, fieldState: { error } }) => (
-          <Input
-            {...field}
-            className={cn("min-w-[120px]", error ? "border-red-500" : "")}
-            readOnly={isFormDisabled}
-          />
+          <div className="flex flex-col gap-1">
+            <Input
+              {...field}
+              type="number"
+              step="0.01"
+              className={cn("min-w-[120px]", error && "border-red-500")}
+              readOnly={isFormDisabled}
+            />
+            {error && (
+              <span className="text-xs text-red-500">{error.message}</span>
+            )}
+          </div>
         )}
       />
     </div>
@@ -365,7 +414,7 @@ export const ExpressCell = ({
   };
   const isFormDisabled = meta?.isFormDisabled || false;
   return (
-    <div className="w-full flex justify-center items-center min-w-[80px]">
+    <div className="w-full flex justify-center items-center min-w-20">
       <Controller
         name={`fabricSelections.${row.index}.express`}
         control={control}
@@ -385,22 +434,42 @@ export const DeliveryDateCell = ({
   row,
   table,
 }: CellContext<FabricSelectionSchema, unknown>) => {
-  const { control } = useFormContext();
+  const { control, setValue, getValues } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
+
+  const handleDateChange = (date: Date | null) => {
+    // Update current row
+    setValue(`fabricSelections.${row.index}.deliveryDate`, date);
+
+    if (row.index === 0) {
+      const fabricSelections = getValues("fabricSelections") || [];
+      // Loop through all rows and update delivery date
+      for (let index = 1; index < fabricSelections.length; index++) {
+        setValue(`fabricSelections.${index}.deliveryDate`, date);
+      }
+    }
+  };
+
   return (
     <div className="w-50 min-w-[150px]">
       <Controller
         name={`fabricSelections.${row.index}.deliveryDate`}
         control={control}
-        render={({ field }) => (
-          <DatePicker
-            value={field.value}
-            onChange={field.onChange}
-            disabled={isFormDisabled}
-          />
+        render={({ field, fieldState: { error } }) => (
+          <div className="flex flex-col gap-1">
+            <DatePicker
+              value={field.value}
+              onChange={handleDateChange}
+              disabled={isFormDisabled}
+              className={cn(error && "border-red-500")}
+            />
+            {error && (
+              <span className="text-xs text-red-500">{error.message}</span>
+            )}
+          </div>
         )}
       />
     </div>
@@ -444,7 +513,7 @@ export const FabricAmountCell = ({
   }, [fabricId, fabricLength, fabricSource, fabrics, row.index, setValue]);
 
   return (
-    <div className="min-w-[160px]">
+    <div className="min-w-40">
       <Controller
         name={`fabricSelections.${row.index}.fabricAmount`}
         control={control}
@@ -453,7 +522,7 @@ export const FabricAmountCell = ({
             type="number"
             {...field}
             readOnly
-            className="w-40 min-w-[160px]"
+            className="w-40 min-w-40"
           />
         )}
       />
@@ -478,7 +547,7 @@ export const NoteCell = ({
         render={({ field }) => (
           <Textarea
             {...field}
-            className="min-w-[190px] min-h-[40px] max-h-[190px]"
+            className="min-w-[190px] min-h-10 max-h-[190px]"
             readOnly={isFormDisabled}
           />
         )}
