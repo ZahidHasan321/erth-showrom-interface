@@ -2,9 +2,6 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
-
 import type { StyleOptionsSchema } from "./style-options-schema";
 import * as StyleCells from "./style-options-cells";
 
@@ -48,7 +45,7 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
   {
     accessorKey: "sidePocket",
     header: "Side Pocket",
-    minSize: 220,
+    minSize: 360,
     cell: StyleCells.SidePocketCell,
   },
   {
@@ -64,28 +61,9 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     cell: StyleCells.CuffsCell,
   },
   {
-    id: "delete",
-    minSize: 80,
-    cell: ({ row, table }) => {
-      const meta = table.options.meta as {
-        removeRow: (rowIndex: number) => void;
-        isFormDisabled?: boolean;
-      };
-      const isFormDisabled = meta?.isFormDisabled || false;
-      const handleDelete = () => {
-        meta?.removeRow(row.index);
-      };
-
-      return (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleDelete}
-          disabled={isFormDisabled}
-        >
-          <Trash2 size={42} color="red" />
-        </Button>
-      );
-    },
+    accessorKey: "extraAmount",
+    header: "Extra Amount",
+    minSize: 100,
+    cell: StyleCells.ExtraAmountCell,
   },
 ];

@@ -1,7 +1,5 @@
 "use client";
 
-import { createOrder, updateOrder } from "@/api/orders";
-import { updateShelf } from "@/api/shelves";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
 import {
   customerDemographicsDefaults,
@@ -17,17 +15,17 @@ import {
   shelvesFormSchema,
   type ShelvesFormValues,
 } from "@/components/forms/shelved-products/schema";
-import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
-import { mapApiOrderToFormOrder, mapFormOrderToApiOrder } from "@/lib/order-mapper";
+import { OrderInfoCard } from "@/components/orders-at-showroom/OrderInfoCard";
+import { OrderCreationPrompt } from "@/components/orders-at-showroom/OrderCreationPrompt";
 import { orderDefaults, orderSchema, type OrderSchema } from "@/schemas/work-order-schema";
 import { createSalesOrderStore } from "@/store/current-sales-order";
-import { type Order } from "@/types/order";
+import { useOrderMutations } from "@/hooks/useOrderMutations";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
+import { useStepNavigation } from "@/hooks/useStepNavigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useInView } from "framer-motion";
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -50,102 +48,28 @@ const steps = [
 const useCurrentSalesOrderStore = createSalesOrderStore("main");
 
 function NewSalesOrder() {
+  // ============================================================================
+  // STATE & STORE
+  // ============================================================================
   const [askedToCreateOrder, setAskedToCreateOrder] = React.useState(false);
-  const [confirmationDialog, setConfirmationDialog] = React.useState({
-    isOpen: false,
-    title: "",
-    description: "",
-    onConfirm: () => { },
-  });
 
-  const queryClient = useQueryClient()
-
-  // Zustand store
+  // Store selectors
   const currentStep = useCurrentSalesOrderStore((s) => s.currentStep);
   const setCurrentStep = useCurrentSalesOrderStore((s) => s.setCurrentStep);
   const savedSteps = useCurrentSalesOrderStore((s) => s.savedSteps);
   const addSavedStep = useCurrentSalesOrderStore((s) => s.addSavedStep);
   const removeSavedStep = useCurrentSalesOrderStore((s) => s.removeSavedStep);
-  const customerDemographics = useCurrentSalesOrderStore(
-    (s) => s.customerDemographics
-  );
-  const setCustomerDemographics = useCurrentSalesOrderStore(
-    (s) => s.setCustomerDemographics
-  );
+  const customerDemographics = useCurrentSalesOrderStore((s) => s.customerDemographics);
+  const setCustomerDemographics = useCurrentSalesOrderStore((s) => s.setCustomerDemographics);
   const orderId = useCurrentSalesOrderStore((s) => s.orderId);
   const setOrderId = useCurrentSalesOrderStore((s) => s.setOrderId);
   const order = useCurrentSalesOrderStore((s) => s.order);
   const setOrder = useCurrentSalesOrderStore((s) => s.setOrder);
   const resetSalesOrder = useCurrentSalesOrderStore((s) => s.resetSalesOrder);
 
-  React.useEffect(() => {
-    return () => {
-      resetSalesOrder();
-    };
-  }, [resetSalesOrder]);
-
-  const { mutate: createNewOrder, isPending } = useMutation({
-    mutationFn: () => createOrder({ fields: { OrderStatus: "Pending" } }),
-    onSuccess: (response) => {
-      if (response.data) {
-        const order = response.data as Order;
-        const formattedOrder = mapApiOrderToFormOrder(order);
-        setOrderId(order.id);
-        setOrder(formattedOrder);
-        toast.success("New sales order created successfully!");
-      }
-    },
-    onError: () => toast.error("Failed to create new sales order."),
-  });
-
-
-  type UpdateOrderPayload = {
-    fields: Partial<OrderSchema>;
-    orderId: string;
-    onSuccessAction?: "customer" | "payment" | "fabric" | "campaigns" | "updated" | "cancelled" | null;
-  };
-
-  const { mutate: updateOrderFn } = useMutation({
-    mutationFn: ({ fields, orderId }: UpdateOrderPayload) => {
-      const orderMapped = mapFormOrderToApiOrder(fields);
-      return updateOrder(orderMapped["fields"], orderId);
-    },
-    onSuccess: (_response, variables) => {
-      // variables contains what you passed to mutate()
-      if (variables.onSuccessAction === "customer") {
-        toast.success("Customer updated ✅");
-        setOrder(variables.fields);
-        setCustomerDemographics(demographicsForm.getValues());
-        handleProceed(0); // move to next step
-      } else if (variables.onSuccessAction === "updated") {
-        toast.success("Order updated successfully✅");
-        handleProceed(4);
-      } else if (variables.onSuccessAction === "cancelled") {
-        toast.success("Order cancelled");
-      }
-    },
-    onError: () => toast.error("Failed to update order"),
-  });
-
-  const { mutate: updateShelfFn } = useMutation({
-    mutationFn: (shelvedData: ShelvesFormValues) => {
-      const promises = shelvedData.products.map((item) => {
-        if (item.id && item.Stock && item.quantity)
-          return updateShelf(item.id, { Stock: item.Stock - item.quantity });
-      });
-      return Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] })
-    },
-    onError: () => {
-      toast.error("Unable to update the shelves stock");
-    },
-  });
-
-  // ---------------------------
-  // Forms
-  // ---------------------------
+  // ============================================================================
+  // FORMS SETUP
+  // ============================================================================
   const demographicsForm = useForm<z.infer<typeof customerDemographicsSchema>>({
     resolver: zodResolver(customerDemographicsSchema),
     defaultValues: customerDemographicsDefaults,
@@ -153,10 +77,14 @@ function NewSalesOrder() {
 
   const ShelvesForm = useForm<ShelvesFormValues>({
     resolver: zodResolver(shelvesFormSchema),
-    defaultValues: {
-      products: [],
-    },
+    defaultValues: { products: [] },
   });
+
+  const OrderForm = useForm<z.infer<typeof orderSchema>>({
+    resolver: zodResolver(orderSchema),
+    defaultValues: orderDefaults,
+  });
+
   const paymentForm = useForm<z.infer<typeof paymentTypeSchema>>({
     resolver: zodResolver(paymentTypeSchema),
     defaultValues: {
@@ -166,102 +94,117 @@ function NewSalesOrder() {
     },
   });
 
-  const OrderForm = useForm<z.infer<typeof orderSchema>>({
-    resolver: zodResolver(orderSchema),
-    defaultValues: orderDefaults,
-  });
-
+  // Watch form values
   const orderStatus = useWatch({
     control: OrderForm.control,
     name: "orderStatus",
   });
-
-  const isOrderClosed = orderStatus === "Completed" || orderStatus === "Cancelled";
 
   const products = useWatch({
     control: ShelvesForm.control,
     name: "products",
   });
 
+  const isOrderClosed = orderStatus === "Completed" || orderStatus === "Cancelled";
+
   const totalShelveAmount =
-    products?.reduce(
-      (acc, p) => acc + (p.quantity ?? 0) * (p.unitPrice ?? 0),
-      0
-    ) ?? 0;
+    products?.reduce((acc, p) => acc + (p.quantity ?? 0) * (p.unitPrice ?? 0), 0) ?? 0;
 
-  React.useEffect(() => {
-    OrderForm.setValue("charges.shelf", totalShelveAmount);
-  }, [totalShelveAmount, OrderForm]);
+  // ============================================================================
+  // NAVIGATION & UI HOOKS
+  // ============================================================================
+  const { dialog, openDialog, closeDialog } = useConfirmationDialog();
 
-  // ---------------------------
-  // Dynamic step visibility tracking
-  // ---------------------------
-  const sectionRefs = steps.map(() =>
-    React.useRef<HTMLDivElement | null>(null)
-  );
-  const inViewStates = sectionRefs.map((ref) =>
-    useInView(ref, { amount: 0.5, margin: "-10% 0px -40% 0px" })
-  );
+  const { sectionRefs, handleStepChange, handleProceed } = useStepNavigation({
+    steps,
+    setCurrentStep,
+    addSavedStep,
+  });
 
-  React.useEffect(() => {
-    const activeIndex = inViewStates.findIndex((isInView) => isInView);
-    if (activeIndex !== -1 && activeIndex !== currentStep) {
-      setCurrentStep(activeIndex);
-    }
-  }, [inViewStates, currentStep, setCurrentStep]);
+  // ============================================================================
+  // ORDER MUTATIONS
+  // ============================================================================
+  const {
+    createOrder: createOrderMutation,
+    updateOrder: updateOrderMutation,
+    updateShelf: updateShelfMutation,
+  } = useOrderMutations({
+    onOrderCreated: (id, formattedOrder) => {
+      setOrderId(id);
+      setOrder(formattedOrder);
+    },
+    onOrderUpdated: (action) => {
+      if (action === "customer") {
+        setOrder(OrderForm.getValues());
+        setCustomerDemographics(demographicsForm.getValues());
+        handleProceed(0);
+      } else if (action === "updated") {
+        handleProceed(3);
+      }
+    },
+  });
 
-  const handleStepChange = (i: number) => {
-    sectionRefs[i].current?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
-  };
-
-  const handleProceed = (step: number) => {
-    addSavedStep(step);
-    handleStepChange(step + 1);
-  };
-
-  // ---------------------------
-  // Order creation prompt
-  // ---------------------------
-  React.useEffect(() => {
-    if (!orderId && !askedToCreateOrder) {
-      setAskedToCreateOrder(true);
-      setConfirmationDialog({
-        isOpen: true,
-        title: "Create New Sales Order",
-        description: "Do you want to create a new sales order?",
-        onConfirm: () => {
-          createNewOrder();
-          setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
-        },
+  // ============================================================================
+  // DEMOGRAPHICS FORM HANDLERS
+  // ============================================================================
+  const handleDemographicsProceed = () => {
+    const recordID = demographicsForm.getValues("customerRecordId");
+    if (orderId && recordID) {
+      updateOrderMutation.mutate({
+        fields: { customerID: [recordID] },
+        orderId: orderId,
+        onSuccessAction: "customer",
       });
     }
-  }, [orderId, askedToCreateOrder, createNewOrder]);
+  };
 
-  const handleOrderConfirmation = () => {
-    // Check if all steps EXCEPT the confirmation step are complete
-    const requiredSteps = steps.length - 1; // Exclude the last confirmation step
+  // ============================================================================
+  // SHELVES FORM HANDLERS
+  // ============================================================================
+  const handleShelvesProceed = () => {
+    handleProceed(1);
+  };
+
+  // ============================================================================
+  // ORDER & PAYMENT HANDLERS
+  // ============================================================================
+  const handleOrderFormSubmit = (data: Partial<OrderSchema>) => {
+    setOrder(data);
+    if (orderId) {
+      updateOrderMutation.mutate({
+        fields: data,
+        orderId: orderId,
+        onSuccessAction: "payment",
+      });
+    }
+  };
+
+  // ============================================================================
+  // ORDER CONFIRMATION
+  // ============================================================================
+  const validateOrderCompletion = () => {
+    const requiredSteps = steps.length - 1;
     if (savedSteps.length < requiredSteps) {
       toast.error("Complete all the steps before confirming order!!");
-      return;
+      return false;
     }
-    // check address for home delivery
-    const isAddressDefined = Object.values(
-      demographicsForm.getValues().address
-    ).every((value) => value !== undefined && value.trim() != "");
-    if (
-      OrderForm.getValues().orderType === "homeDelivery" &&
-      !isAddressDefined
-    ) {
+
+    const isAddressDefined = Object.values(demographicsForm.getValues().address).every(
+      (value) => value !== undefined && value.trim() !== ""
+    );
+
+    if (OrderForm.getValues().orderType === "homeDelivery" && !isAddressDefined) {
       toast.error("Need address for home delivery");
-      return;
+      return false;
     }
-    const currentStore = useCurrentSalesOrderStore.getState();
-    console.log("🧾 Full Sales Order Store:", currentStore);
 
+    return true;
+  };
 
+  const handleOrderConfirmation = () => {
+    if (!validateOrderCompletion()) return;
+
+    console.log("🧾 Full Sales Order Store:", useCurrentSalesOrderStore.getState());
 
     const formOrder: Partial<OrderSchema> = {
       ...OrderForm.getValues(),
@@ -269,21 +212,59 @@ function NewSalesOrder() {
       orderStatus: "Completed",
       orderDate: new Date().toISOString(),
     };
-    OrderForm.setValue("orderStatus", "Completed")
+
+    OrderForm.setValue("orderStatus", "Completed");
     setOrder(formOrder);
+
     if (orderId) {
-      updateOrderFn({ fields: formOrder, orderId: orderId, onSuccessAction: "updated" });
+      updateOrderMutation.mutate({
+        fields: formOrder,
+        orderId: orderId,
+        onSuccessAction: "updated",
+      });
     }
 
-    // update stocks
-    updateShelfFn(ShelvesForm.getValues());
+    // Update stocks
+    updateShelfMutation.mutate(ShelvesForm.getValues());
 
     handleProceed(3);
   };
 
-  // ---------------------------
-  // Rendering
-  // ---------------------------
+  // ============================================================================
+  // SIDE EFFECTS
+  // ============================================================================
+  // Sync shelf amount to order charges
+  React.useEffect(() => {
+    OrderForm.setValue("charges.shelf", totalShelveAmount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalShelveAmount]);
+
+  // Prompt for order creation on mount
+  React.useEffect(() => {
+    if (!orderId && !askedToCreateOrder) {
+      setAskedToCreateOrder(true);
+      openDialog(
+        "Create New Sales Order",
+        "Do you want to create a new sales order?",
+        () => {
+          createOrderMutation.mutate();
+          closeDialog();
+        }
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, askedToCreateOrder]);
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      resetSalesOrder();
+    };
+  }, [resetSalesOrder]);
+
+  // ============================================================================
+  // RENDER: LOADING STATE
+  // ============================================================================
   if (!orderId && !askedToCreateOrder) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -292,56 +273,44 @@ function NewSalesOrder() {
     );
   }
 
+  // ============================================================================
+  // RENDER: NO ORDER STATE
+  // ============================================================================
   if (!orderId) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-center space-y-6">
-        <h2 className="text-2xl font-semibold">No order created yet 📝</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          You need to create a new sales order before proceeding.
-        </p>
-        <Button
-          size="lg"
-          onClick={() =>
-            setConfirmationDialog({
-              isOpen: true,
-              title: "Create New Sales Order",
-              description: "This will initialize a new order entry.",
-              onConfirm: () => {
-                createNewOrder();
-                setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
-              },
-            })
-          }
-          disabled={isPending}
-        >
-          {isPending ? "Creating..." : "Create New Sales Order"}
-        </Button>
-        <ConfirmationDialog
-          isOpen={confirmationDialog.isOpen}
-          onClose={() =>
-            setConfirmationDialog((prev) => ({ ...prev, isOpen: false }))
-          }
-          onConfirm={confirmationDialog.onConfirm}
-          title={confirmationDialog.title}
-          description={confirmationDialog.description}
-        />
-      </div>
+      <OrderCreationPrompt
+        orderType="Sales Order"
+        isPending={createOrderMutation.isPending}
+        onCreateOrder={() => {
+          openDialog(
+            "Create New Sales Order",
+            "This will initialize a new order entry.",
+            () => {
+              createOrderMutation.mutate();
+              closeDialog();
+            }
+          );
+        }}
+        dialogState={dialog}
+        onCloseDialog={closeDialog}
+      />
     );
   }
 
+  // ============================================================================
+  // RENDER: MAIN ORDER FLOW
+  // ============================================================================
   return (
     <div className="mb-64">
       <ConfirmationDialog
-        isOpen={confirmationDialog.isOpen}
-        onClose={() =>
-          setConfirmationDialog((prev) => ({ ...prev, isOpen: false }))
-        }
-        onConfirm={confirmationDialog.onConfirm}
-        title={confirmationDialog.title}
-        description={confirmationDialog.description}
+        isOpen={dialog.isOpen}
+        onClose={closeDialog}
+        onConfirm={dialog.onConfirm}
+        title={dialog.title}
+        description={dialog.description}
       />
 
-      {/* Stepper */}
+      {/* Sticky Header with Stepper */}
       <div className="sticky w-full top-0 z-10 bg-white dark:bg-gray-950 shadow-md">
         <HorizontalStepper
           steps={steps}
@@ -349,110 +318,95 @@ function NewSalesOrder() {
           currentStep={currentStep}
           onStepChange={handleStepChange}
         />
-        {/* Order Info Card */}
-        <div className="w-fit absolute right-2.5 flex justify-end mt-2">
-          <div className="bg-card p-4 shadow-lg rounded-lg z-10 border-b border-border max-w-xs mr-4">
-            <h2 className="text-lg font-semibold tracking-tight">
-              Sales Order #{order.orderID}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Status:{" "}
-              <span className="font-medium text-green-600">
-                {order.orderStatus ?? "Pending"}
-              </span>
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Customer:{" "}
-              <span className="font-medium">
-                {order.customerID?.length
-                  ? customerDemographics.nickName
-                  : "No customer yet"}
-              </span>
-            </p>
-          </div>
-        </div>
+        <OrderInfoCard
+          orderID={order.orderID}
+          orderStatus={order.orderStatus ?? "Pending"}
+          customerName={order.customerID?.length ? customerDemographics.nickName : undefined}
+          orderType="Sales Order"
+          deliveryType={order.orderType}
+          paymentType={order.paymentType}
+          totalAmount={order.charges ? Object.values(order.charges).reduce((a, b) => a + b, 0) : 0}
+          advance={order.advance}
+          balance={order.balance}
+        />
       </div>
 
       {/* Step Content */}
-      <div className="flex flex-col flex-1 items-center space-y-10 py-10 mx-[10%]">
-        {steps.map((step, index) => (
-          <div
-            key={step.id}
-            id={step.id}
-            ref={sectionRefs[index]}
-            className="w-full flex flex-col items-center"
-          >
-            {index === 0 && (
-              <CustomerDemographicsForm
-                form={demographicsForm}
-                isOrderClosed={isOrderClosed}
-                onProceed={() => {
-                  const recordID =
-                    demographicsForm.getValues("customerRecordId");
-                  if (orderId && recordID) {
-                    updateOrderFn({
-                      fields: {
-                        customerID: [recordID],
-                      },
-                      orderId: orderId!,
-                      onSuccessAction: "customer",
-                    });
-                  }
-                }}
-                onEdit={() => removeSavedStep(0)}
-                onCancel={() => addSavedStep(0)}
-                onClear={() => removeSavedStep(0)}
-              />
-            )}
+      <div className="flex flex-col flex-1 items-center gap-40 py-10 mx-[10%]">
+        {/* STEP 0: Demographics */}
+        <div
+          id={steps[0].id}
+          ref={(el) => {
+            sectionRefs.current[0] = el;
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          <CustomerDemographicsForm
+            form={demographicsForm}
+            isOrderClosed={isOrderClosed}
+            onProceed={handleDemographicsProceed}
+            onEdit={() => removeSavedStep(0)}
+            onCancel={() => addSavedStep(0)}
+            onClear={() => removeSavedStep(0)}
+          />
+        </div>
 
-            {index === 1 && (
-              <ShelvedProductsForm
-                form={ShelvesForm}
-                isOrderClosed={isOrderClosed}
-                onProceed={() => handleProceed(1)}
-              />
-            )}
+        {/* STEP 1: Shelved Products */}
+        <div
+          id={steps[1].id}
+          ref={(el) => {
+            sectionRefs.current[1] = el;
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          <ShelvedProductsForm
+            form={ShelvesForm}
+            isOrderClosed={isOrderClosed}
+            onProceed={handleShelvesProceed}
+          />
+        </div>
 
-            {index === 2 && (
-              <OrderTypeAndPaymentForm
-                form={OrderForm}
-                optional={false}
-                onSubmit={(data) => {
-                  setOrder(data);
-                  if (orderId) {
-                    updateOrderFn({
-                      fields: data,
-                      orderId: orderId,
-                      onSuccessAction: "payment",
-                    });
-                  }
-                }}
-                onProceed={() => {
-                  // handleProceed(2) is called in the onSuccess of the mutation
-                }}
-              />
-            )}
+        {/* STEP 2: Order & Payment Info */}
+        <div
+          id={steps[2].id}
+          ref={(el) => {
+            sectionRefs.current[2] = el;
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          <OrderTypeAndPaymentForm
+            form={OrderForm}
+            optional={false}
+            onSubmit={handleOrderFormSubmit}
+            onProceed={() => {}}
+            customerAddress={customerDemographics?.address}
+          />
+        </div>
 
-            {index === 3 && (
-              <PaymentTypeForm
-                form={paymentForm}
-                isOrderClosed={isOrderClosed}
-                onConfirm={() => {
-                  setConfirmationDialog({
-                    isOpen: true,
-                    title: "Confirm new work order",
-                    description: "Do you want to confirm a new work order?",
-                    onConfirm: () => {
-                      handleOrderConfirmation();
-                      setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
-                    },
-                  });
-                }}
-                onCancel={() => { }}
-              />
-            )}
-          </div>
-        ))}
+        {/* STEP 3: Confirmation & Payment */}
+        <div
+          id={steps[3].id}
+          ref={(el) => {
+            sectionRefs.current[3] = el;
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          <PaymentTypeForm
+            form={paymentForm}
+            isOrderClosed={isOrderClosed}
+            onConfirm={() => {
+              openDialog(
+                "Confirm new sales order",
+                "Do you want to confirm a new sales order?",
+                () => {
+                  handleOrderConfirmation();
+                  closeDialog();
+                }
+              );
+            }}
+            onCancel={() => {}}
+          />
+        </div>
       </div>
     </div>
   );

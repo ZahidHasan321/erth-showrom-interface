@@ -47,8 +47,10 @@ import {
 import { SearchCustomer } from "./search-customer";
 import { AnimatedMessage } from "@/components/animation/AnimatedMessage";
 import WhatsappLogo from "@/assets/whatsapp.svg";
-import { motion } from "framer-motion";
+
 import { ErrorBoundary } from "@/components/global/error-boundary";
+import { FlagIcon } from "@/components/ui/flag-icon";
+import { Pencil, ArrowRight, X, Save, Check } from "lucide-react";
 
 interface CustomerDemographicsFormProps {
   form: UseFormReturn<z.infer<typeof customerDemographicsSchema>>;
@@ -74,7 +76,7 @@ export function CustomerDemographicsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
   const [warnings, setWarnings] = React.useState<{
     [K in keyof CustomerDemographicsSchema]?: string;
@@ -219,9 +221,8 @@ export function CustomerDemographicsForm({
     setConfirmationDialog({
       isOpen: true,
       title: customerRecordId ? "Update Customer" : "Create Customer",
-      description: `Are you sure you want to ${
-        customerRecordId ? "update" : "create"
-      } this customer?`,
+      description: `Are you sure you want to ${customerRecordId ? "update" : "create"
+        } this customer?`,
       onConfirm,
     });
   };
@@ -270,27 +271,9 @@ export function CustomerDemographicsForm({
 
   const isReadOnly = !isEditing;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 },
-  };
-
   return (
     <Form {...form}>
-      <motion.form
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+      <form
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-8 w-full"
       >
@@ -304,14 +287,16 @@ export function CustomerDemographicsForm({
           description={confirmationDialog.description}
         />
 
-        <motion.div
-          variants={itemVariants}
-          className="flex justify-between items-start"
-        >
-          <h1 className="text-2xl font-bold mb-4">Demographics</h1>
-        </motion.div>
+        <div className="flex justify-between items-start mb-2">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-foreground bg-linear-to-r from-primary to-secondary bg-clip-text">
+              Demographics
+            </h1>
+            <p className="text-sm text-muted-foreground">Customer information and contact details</p>
+          </div>
+        </div>
 
-        { !isOrderClosed && <motion.div variants={itemVariants}>
+        {!isOrderClosed && <div>
           <ErrorBoundary fallback={<div>Search Customer crashed</div>}>
             <SearchCustomer
               onCustomerFound={handleCustomerFound}
@@ -323,23 +308,24 @@ export function CustomerDemographicsForm({
               }}
             />
           </ErrorBoundary>
-        </motion.div> }
+        </div>}
 
-        <motion.div variants={itemVariants}>
+        <div className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
+          <h3 className="text-lg font-semibold text-foreground">Basic Information</h3>
           <ErrorBoundary fallback={<div>Name field crashed</div>}>
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="bg-muted p-4 rounded-lg">
-                  <FormLabel className="font-bold">
-                    <span className="text-red-500">*</span>Name
+                <FormItem>
+                  <FormLabel className="font-semibold">
+                    <span className="text-destructive">*</span> Name
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter full name (e.g., Nasser Al-Sabah)"
                       {...field}
-                      className="bg-white"
+                      className="bg-background border-border/60"
                       readOnly={isReadOnly}
                     />
                   </FormControl>
@@ -348,29 +334,88 @@ export function CustomerDemographicsForm({
               )}
             />
           </ErrorBoundary>
-        </motion.div>
+          <ErrorBoundary fallback={<div>Arabic name field crashed</div>}>
+            <FormField
+              control={form.control}
+              name="arabicName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-medium">Arabic Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="أدخل الاسم بالعربي"
+                      {...field}
+                      className="bg-background border-border/60"
+                      readOnly={isReadOnly}
+                      dir="rtl"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary fallback={<div>Email field crashed</div>}>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-medium">E-mail</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter email (e.g., nasser@erth.com)"
+                      {...field}
+                      className="bg-background border-border/60"
+                      readOnly={isReadOnly}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </ErrorBoundary>
+        </div>
 
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-          <div className="space-y-4 bg-muted p-4 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
+            <h3 className="text-base font-semibold text-foreground">Personal Details</h3>
             <ErrorBoundary fallback={<div>Nickname crashed</div>}>
               <FormField
                 control={form.control}
                 name="nickName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-bold">
-                      <span className="text-red-500">*</span>
-                      Nick Name
+                    <FormLabel className="font-semibold">
+                      <span className="text-destructive">*</span> Nick Name
                     </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Enter nickname (e.g., Abu Nasser)"
                         {...field}
-                        className="bg-white"
+                        className="bg-background border-border/60"
                         readOnly={isReadOnly}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </ErrorBoundary>
+            <ErrorBoundary fallback={<div>Arabic nickname crashed</div>}>
+              <FormField
+                control={form.control}
+                name="arabicNickname"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-medium">Arabic Nickname</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="أدخل الكنية بالعربي"
+                        {...field}
+                        className="bg-background border-border/60"
+                        readOnly={isReadOnly}
+                        dir="rtl"
                       />
                     </FormControl>
                     <FormMessage />
@@ -384,12 +429,12 @@ export function CustomerDemographicsForm({
                 name="instagram"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Instagram ID</FormLabel>
+                    <FormLabel className="font-medium">Instagram ID</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Enter Instagram handle (e.g., @erth)"
                         {...field}
-                        className="bg-white"
+                        className="bg-background border-border/60"
                         readOnly={isReadOnly}
                       />
                     </FormControl>
@@ -404,7 +449,7 @@ export function CustomerDemographicsForm({
                 name="dob"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>DOB</FormLabel>
+                    <FormLabel className="font-medium">DOB</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value}
@@ -419,15 +464,16 @@ export function CustomerDemographicsForm({
             </ErrorBoundary>
           </div>
 
-          <div className="space-y-4 bg-muted p-4 rounded-lg">
+          <div className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
+            <h3 className="text-base font-semibold text-foreground">Contact Information</h3>
             <ErrorBoundary fallback={<div>Mobile number crashed</div>}>
               <FormField
                 control={form.control}
                 name="mobileNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-bold">
-                      <span className="text-red-500">*</span>Mobile No
+                    <FormLabel className="font-semibold">
+                      <span className="text-destructive">*</span> Mobile No
                     </FormLabel>
                     <div className="flex flex-col md:flex-row gap-2">
                       <FormField
@@ -440,7 +486,13 @@ export function CustomerDemographicsForm({
                               disabled={isReadOnly}
                               options={countries.map((country) => ({
                                 value: country.phoneCode,
-                                label: `${country.flag}: ${country.name} ${country.phoneCode}`,
+                                label: `${country.name} ${country.phoneCode}`,
+                                node: (
+                                  <span className="flex items-center gap-2">
+                                    <FlagIcon code={country.code} />
+                                    {country.name} {country.phoneCode}
+                                  </span>
+                                ),
                               }))}
                               value={field.value || ""}
                               onChange={field.onChange}
@@ -454,7 +506,7 @@ export function CustomerDemographicsForm({
                         <Input
                           placeholder="Enter mobile number"
                           {...field}
-                          className="bg-white"
+                          className="bg-background border-border/60"
                           readOnly={isReadOnly}
                           onChange={(e) => {
                             field.onChange(e);
@@ -471,7 +523,7 @@ export function CustomerDemographicsForm({
                               <Checkbox
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
-                                className="bg-white"
+                                className="bg-background border-border/60"
                                 disabled={isReadOnly}
                               />
                             </FormControl>
@@ -494,9 +546,9 @@ export function CustomerDemographicsForm({
                       }
                       warning={
                         warnings.mobileNumber &&
-                        !isFetching &&
-                        existingUsers?.count &&
-                        existingUsers.count > 0
+                          !isFetching &&
+                          existingUsers?.count &&
+                          existingUsers.count > 0
                           ? warnings.mobileNumber
                           : undefined
                       }
@@ -513,7 +565,7 @@ export function CustomerDemographicsForm({
                 name="alternativeMobileNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Alternative Mobile No</FormLabel>
+                    <FormLabel className="font-medium">Alternative Mobile No</FormLabel>
                     <div className="flex flex-col md:flex-row gap-2">
                       <FormField
                         control={form.control}
@@ -524,7 +576,13 @@ export function CustomerDemographicsForm({
                               disabled={isReadOnly}
                               options={countries.map((country) => ({
                                 value: country.phoneCode,
-                                label: `${country.flag}: ${country.name} ${country.phoneCode}`,
+                                label: `${country.name} ${country.phoneCode}`,
+                                node: (
+                                  <span className="flex items-center gap-2">
+                                    <FlagIcon code={country.code} />
+                                    {country.name} {country.phoneCode}
+                                  </span>
+                                ),
                               }))}
                               value={field.value || ""}
                               onChange={field.onChange}
@@ -538,7 +596,7 @@ export function CustomerDemographicsForm({
                         <Input
                           placeholder="Enter alternative mobile number"
                           {...field}
-                          className="bg-white"
+                          className="bg-background border-border/60"
                           readOnly={isReadOnly}
                         />
                       </FormControl>
@@ -551,7 +609,7 @@ export function CustomerDemographicsForm({
                               <Checkbox
                                 checked={field.value}
                                 onCheckedChange={field.onChange}
-                                className="bg-white"
+                                className="bg-background border-border/60"
                                 disabled={isReadOnly}
                               />
                             </FormControl>
@@ -577,14 +635,20 @@ export function CustomerDemographicsForm({
                 name="nationality"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className="font-bold">
-                      <span className="text-red-500">*</span>Nationality
+                    <FormLabel className="font-semibold">
+                      <span className="text-destructive">*</span> Nationality
                     </FormLabel>
                     <Combobox
                       disabled={isReadOnly}
                       options={countries.map((country) => ({
                         value: country.name,
-                        label: `${country.flag} ${country.name}`,
+                        label: country.name,
+                        node: (
+                          <span className="flex items-center gap-2">
+                            <FlagIcon code={country.code} />
+                            {country.name}
+                          </span>
+                        ),
                       }))}
                       value={field.value || ""}
                       onChange={field.onChange}
@@ -596,50 +660,25 @@ export function CustomerDemographicsForm({
               />
             </ErrorBoundary>{" "}
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
-          <ErrorBoundary fallback={<div>Email field crashed</div>}>
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem className="bg-muted p-4 rounded-lg">
-                  <FormLabel>E-mail</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter email (e.g., nasser@erth.com)"
-                      {...field}
-                      className="bg-white"
-                      readOnly={isReadOnly}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </ErrorBoundary>
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <ErrorBoundary fallback={<div>Account Info crashed</div>}>
-            <section className="flex flex-col rounded-lg bg-muted p-4 gap-2">
+            <section className="flex flex-col rounded-xl bg-card p-6 gap-4 border border-border shadow-sm">
+              <h3 className="text-base font-semibold text-foreground">Account Information</h3>
               <FormField
                 control={form.control}
                 name="accountType"
                 render={({ field }) => (
-                  <FormItem className="w-full bg-muted">
-                    <FormLabel>Account Type</FormLabel>
+                  <FormItem className="w-full">
+                    <FormLabel className="font-medium">Account Type</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
                       disabled={true}
                     >
                       <FormControl>
-                        <SelectTrigger className="bg-white">
+                        <SelectTrigger className="bg-background border-border/60">
                           <SelectValue placeholder="Select account type" />
                         </SelectTrigger>
                       </FormControl>
@@ -657,22 +696,22 @@ export function CustomerDemographicsForm({
                 control={form.control}
                 name="relation"
                 render={({ field }) => (
-                  <FormItem className="w-full bg-muted">
+                  <FormItem className="w-full">
                     <FormLabel
-                      className={AccountType === "Secondary" ? "font-bold" : ""}
+                      className={AccountType === "Secondary" ? "font-semibold" : "font-medium"}
                     >
                       {AccountType === "Secondary" && (
-                        <span className="text-red-500">*</span>
-                      )}
+                        <span className="text-destructive">*</span>
+                      )}{" "}
                       Account Relation
                     </FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={isReadOnly || AccountType === "Primary"}
+                      value={field.value || ""}
+                      disabled={isReadOnly || AccountType !== "Secondary"}
                     >
                       <FormControl>
-                        <SelectTrigger className="bg-white">
+                        <SelectTrigger className="bg-background border-border/60">
                           <SelectValue
                             placeholder={
                               AccountType === "Primary"
@@ -695,20 +734,21 @@ export function CustomerDemographicsForm({
               />
             </section>
 
-            <section className="overflow-hidden rounded-lg">
+            <section className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
+              <h3 className="text-base font-semibold text-foreground">Customer Details</h3>
               <FormField
                 control={form.control}
                 name="customerSegment"
                 render={({ field }) => (
-                  <FormItem className="w-full bg-muted p-4">
-                    <FormLabel>Customer Segment</FormLabel>
+                  <FormItem className="w-full">
+                    <FormLabel className="font-medium">Customer Segment</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
                       disabled={isReadOnly}
                     >
                       <FormControl>
-                        <SelectTrigger className="bg-white">
+                        <SelectTrigger className="bg-background border-border/60">
                           <SelectValue placeholder="Select customer segment" />
                         </SelectTrigger>
                       </FormControl>
@@ -725,13 +765,13 @@ export function CustomerDemographicsForm({
                 control={form.control}
                 name="note"
                 render={({ field }) => (
-                  <FormItem className="bg-muted p-4">
-                    <FormLabel>Note</FormLabel>
+                  <FormItem>
+                    <FormLabel className="font-medium">Note</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Add any notes about the customer"
                         {...field}
-                        className="bg-white"
+                        className="bg-background border-border/60"
                         readOnly={isReadOnly}
                       />
                     </FormControl>
@@ -741,14 +781,12 @@ export function CustomerDemographicsForm({
               />
             </section>
           </ErrorBoundary>
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          className="bg-muted p-4 rounded-lg space-y-4"
+        </div>
+        <div
+          className="bg-card p-6 rounded-xl space-y-4 border border-border shadow-sm"
         >
           <ErrorBoundary fallback={<div>Address fields crashed</div>}>
-            <h2 className="text-lg font-semibold">Address</h2>
+            <h3 className="text-lg font-semibold text-foreground">Address</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <FormField
@@ -756,12 +794,12 @@ export function CustomerDemographicsForm({
                   name="address.city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>City</FormLabel>
+                      <FormLabel className="font-medium">City</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter city name"
                           {...field}
-                          className="bg-white"
+                          className="bg-background border-border/60"
                           readOnly={isReadOnly}
                         />
                       </FormControl>
@@ -774,12 +812,12 @@ export function CustomerDemographicsForm({
                   name="address.area"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Area</FormLabel>
+                      <FormLabel className="font-medium">Area</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter area or locality"
                           {...field}
-                          className="bg-white"
+                          className="bg-background border-border/60"
                           readOnly={isReadOnly}
                         />
                       </FormControl>
@@ -792,12 +830,12 @@ export function CustomerDemographicsForm({
                   name="address.block"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Block</FormLabel>
+                      <FormLabel className="font-medium">Block</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter block number/name"
                           {...field}
-                          className="bg-white"
+                          className="bg-background border-border/60"
                           readOnly={isReadOnly}
                         />
                       </FormControl>
@@ -810,12 +848,12 @@ export function CustomerDemographicsForm({
                   name="address.street"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Street</FormLabel>
+                      <FormLabel className="font-medium">Street</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter street name"
                           {...field}
-                          className="bg-white"
+                          className="bg-background border-border/60"
                           readOnly={isReadOnly}
                         />
                       </FormControl>
@@ -828,12 +866,12 @@ export function CustomerDemographicsForm({
                   name="address.houseNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>House / Building no.</FormLabel>
+                      <FormLabel className="font-medium">House / Building no.</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter house or building number"
                           {...field}
-                          className="bg-white"
+                          className="bg-background border-border/60"
                           readOnly={isReadOnly}
                         />
                       </FormControl>
@@ -849,12 +887,12 @@ export function CustomerDemographicsForm({
                   name="address.addressNote"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Address Note</FormLabel>
+                      <FormLabel className="font-medium">Address Note</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Add any address details or delivery instructions"
                           {...field}
-                          className="bg-white"
+                          className="bg-background border-border/60"
                           readOnly={isReadOnly}
                         />
                       </FormControl>
@@ -865,17 +903,17 @@ export function CustomerDemographicsForm({
               </div>
             </div>
           </ErrorBoundary>
-        </motion.div>
+        </div>
 
-        <motion.div
-          variants={itemVariants}
-          className="flex gap-6 justify-center"
+        <div
+          className="flex gap-4 justify-end"
         >
           <ErrorBoundary fallback={<div>Action buttons crashed</div>}>
             {/* Customer loaded, not editing */}
             {!isEditing && customerRecordId && !isOrderClosed && (
               <>
-                <Button type="button" variant="outline" onClick={handleEdit}>
+                <Button type="button" variant="secondary" onClick={handleEdit}>
+                  <Pencil className="w-4 h-4 mr-2" />
                   Edit Customer
                 </Button>
                 <Button
@@ -883,23 +921,26 @@ export function CustomerDemographicsForm({
                   onClick={onProceed}
                   disabled={!customerRecordId}
                 >
-                  Proceed
+                  Continue to Next Step
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </>
             )}
 
             {/* Editing an existing customer */}
-            { !isOrderClosed && isEditing && customerRecordId && (
+            {!isOrderClosed && isEditing && customerRecordId && (
               <>
-                <Button type="submit" disabled={isUpdating}>
-                  {isUpdating ? "Updating..." : "Update Customer"}
-                </Button>
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="outline"
                   onClick={handleCancelEdit}
                 >
-                  Cancel Edit
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isUpdating}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {isUpdating ? "Saving..." : "Save Changes"}
                 </Button>
               </>
             )}
@@ -907,21 +948,23 @@ export function CustomerDemographicsForm({
             {/* Creating a new customer */}
             {isEditing && !customerRecordId && !isOrderClosed && (
               <>
-                <Button type="submit" disabled={isCreating}>
-                  {isCreating ? "Creating..." : "Create Customer"}
-                </Button>
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="outline"
                   onClick={handleCancelCreation}
                 >
-                  Cancel Creation
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isCreating}>
+                  <Check className="w-4 h-4 mr-2" />
+                  {isCreating ? "Creating..." : "Create Customer"}
                 </Button>
               </>
             )}
           </ErrorBoundary>
-        </motion.div>
-      </motion.form>
+        </div>
+      </form>
     </Form>
   );
 }

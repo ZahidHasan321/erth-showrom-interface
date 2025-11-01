@@ -38,13 +38,13 @@ export function GroupedMeasurementFields({
   wrapperClassName,
 }: GroupedMeasurementFieldsProps) {
   return (
-    <div className={`bg-card border rounded-lg p-4 ${wrapperClassName}`}>
-      <h4 className="text-xl font-bold mb-2">{title}</h4>
+    <div className={cn("bg-card border border-border rounded-xl p-6 shadow-sm", wrapperClassName)}>
+      <h4 className="text-lg font-semibold mb-4 text-foreground">{title}</h4>
       <div className="flex flex-col gap-y-4">
         {fields.map((fieldOrFieldGroup, index) => {
           if (Array.isArray(fieldOrFieldGroup)) {
             return (
-              <div key={index} className="flex flex-wrap w-fit shadow hover:shadow-lg gap-x-12 border p-2 rounded-md">
+              <div key={index} className="flex flex-wrap w-fit gap-x-12 border border-border p-3 rounded-lg bg-card">
                 {fieldOrFieldGroup.map((fieldConfig) => (
                   <MeasurementInput
                     key={fieldConfig.name}
@@ -71,7 +71,7 @@ export function GroupedMeasurementFields({
               label={fieldConfig.label}
               unit={unit}
               isDisabled={isDisabled || (fieldConfig.isDisabled ?? false)}
-              className={cn( fieldConfig.className, "border shadow p-2 rounded-lg w-fit hover:shadow-lg" )}
+              className={cn( fieldConfig.className, "border border-border p-3 rounded-lg w-fit bg-card" )}
               labelClassName={fieldConfig.labelClassName}
             />
           );

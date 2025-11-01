@@ -5,23 +5,21 @@ export interface Order {
     OrderID?: string;
     CustomerID?: string[];
     OrderDate?: string;
-    OrderStatus: "Pending" | "Completed" | "Cancelled" | "Processing";
-    OrderTotal?: number;
+    OrderStatus: "Pending" | "Completed" | "Cancelled";
     Notes?: string;
     Campaigns?: string[];
     PaymentType?: "k-net" | "cash" | "link-payment" | "installments" | "others";
-
+    PaymentRefNo?: string;
+    OrderTaker?: string[];
     OrderType?: "pickUp" | "homeDelivery";
-    DiscountType?: "flat" | "referral" | "loyalty";
+    DiscountType?: "flat" | "referral" | "loyalty" | "byValue";
     ReferralCode?: string;
     DiscountValue?: number;
-
     FabricCharge?: number;
     StitchingCharge?: number;
     StyleCharge?: number;
     DeliveryCharge?: number;
     ShelfCharge?: number;
-
     Advance?: number;
     Balance?: number;
     NumOfFabrics?: number;

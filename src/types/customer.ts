@@ -6,6 +6,8 @@ export interface Customer {
     Phone: string;
     Name: string;
     NickName?: string;
+    ArabicName?: string;
+    ArabicNickname?: string;
     CountryCode: string;
     AlternateCountryCode?: string;
     AlternateMobile?: string;

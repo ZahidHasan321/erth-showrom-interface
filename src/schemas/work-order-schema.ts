@@ -5,17 +5,18 @@ export const orderSchema = z.object({
   orderID: z.string().optional(),
   customerID: z.array(z.string()).optional(),
   orderDate: z.string().optional(),
-  orderStatus: z.enum(["Pending", "Completed", "Cancelled", "Processing"]),
-  orderTotal: z.number().optional(),
+  orderStatus: z.enum(["Pending", "Completed", "Cancelled"]),
+  // orderTotal: z.number().optional(),
   notes: z.string().optional(),
   campaigns: z.array(z.string()).optional(),
 
-  // Fields from orderTypeAndPaymentSchema
   orderType: z.enum(["pickUp", "homeDelivery"]),
   paymentType: z
     .enum(["k-net", "cash", "link-payment", "installments", "others"])
     .optional(),
-  discountType: z.enum(["flat", "referral", "loyalty"]).optional(),
+  paymentRefNo: z.string().optional(),
+  orderTaker: z.string().optional(),
+  discountType: z.enum(["flat", "referral", "loyalty", "byValue"]).optional(),
   discountPercentage: z.number().optional(),
   discountInKwd: z.string().optional(),
   referralCode: z.string().optional(),
@@ -35,7 +36,7 @@ export const orderSchema = z.object({
 export const orderDefaults: OrderSchema = {
   orderStatus: "Pending",
   orderDate: new Date().toISOString(),
-  orderTotal: 0,
+  // orderTotal: 0,
   paymentType: "cash",
   orderType: "pickUp",
   discountValue: 0,

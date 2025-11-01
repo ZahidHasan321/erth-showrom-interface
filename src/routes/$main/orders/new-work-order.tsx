@@ -1,8 +1,7 @@
 "use client";
 
-import { createOrder, updateOrder } from "@/api/orders";
-import { getPrices } from "@/api/prices";
-import { updateShelf } from "@/api/shelves";
+import { getFabrics } from "@/api/fabrics";
+import { getStyles } from "@/api/styles";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
 import {
   customerDemographicsDefaults,
@@ -30,28 +29,27 @@ import {
   shelvesFormSchema,
   type ShelvesFormValues,
 } from "@/components/forms/shelved-products/schema";
-import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
-import {
-  mapApiOrderToFormOrder,
-  mapFormOrderToApiOrder,
-} from "@/lib/order-mapper";
+import { ErrorBoundary } from "@/components/global/error-boundary";
+import { OrderInfoCard } from "@/components/orders-at-showroom/OrderInfoCard";
+import { OrderCreationPrompt } from "@/components/orders-at-showroom/OrderCreationPrompt";
 import {
   orderDefaults,
   orderSchema,
   type OrderSchema,
 } from "@/schemas/work-order-schema";
 import { createWorkOrderStore } from "@/store/current-work-order";
+import { useOrderMutations } from "@/hooks/useOrderMutations";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
+import { useStepNavigation } from "@/hooks/useStepNavigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ErrorBoundary } from "@/components/global/error-boundary";
-import { getFabrics, updateFabric } from "@/api/fabrics";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
@@ -72,92 +70,45 @@ const steps = [
 const useCurrentWorkOrderStore = createWorkOrderStore("main");
 
 function NewWorkOrder() {
-  const { data: pricesData } = useQuery({
-    queryKey: ["prices"],
-    queryFn: getPrices,
+  // ============================================================================
+  // DATA FETCHING & STORE
+  // ============================================================================
+  const { data: fabricsResponse } = useQuery({
+    queryKey: ["fabrics"],
+    queryFn: getFabrics,
     staleTime: Infinity,
     gcTime: Infinity,
   });
 
-  const queryClient = useQueryClient()
-
-  const pricesMap = React.useMemo(() => {
-    const map = new Map<string, number>();
-    if (pricesData?.data) {
-      pricesData.data.forEach((item) => {
-        map.set(item.fields.name, item.fields.price);
-      });
-    }
-    return map;
-  }, [pricesData]);
-
-  // confirmation dialog
-  const [confirmationDialog, setConfirmationDialog] = React.useState({
-    isOpen: false,
-    title: "",
-    description: "",
-    onConfirm: () => { },
+  const { data: stylesResponse } = useQuery({
+    queryKey: ["styles"],
+    queryFn: getStyles,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
-  const { data: fabricsResponse } = useQuery({
-    queryKey: ["fabrics"],
-    queryFn: getFabrics,
-  });
-  // store selectors
+  const styles = stylesResponse?.data || [];
+
+  // Store selectors
   const currentStep = useCurrentWorkOrderStore((s) => s.currentStep);
   const setCurrentStep = useCurrentWorkOrderStore((s) => s.setCurrentStep);
   const savedSteps = useCurrentWorkOrderStore((s) => s.savedSteps);
   const addSavedStep = useCurrentWorkOrderStore((s) => s.addSavedStep);
   const removeSavedStep = useCurrentWorkOrderStore((s) => s.removeSavedStep);
-  const customerDemographics = useCurrentWorkOrderStore(
-    (s) => s.customerDemographics
-  );
-  const setCustomerDemographics = useCurrentWorkOrderStore(
-    (s) => s.setCustomerDemographics
-  );
+  const customerDemographics = useCurrentWorkOrderStore((s) => s.customerDemographics);
+  const setCustomerDemographics = useCurrentWorkOrderStore((s) => s.setCustomerDemographics);
   const fabricSelections = useCurrentWorkOrderStore((s) => s.fabricSelections);
-  const setFabricSelections = useCurrentWorkOrderStore(
-    (s) => s.setFabricSelections
-  );
+  const setFabricSelections = useCurrentWorkOrderStore((s) => s.setFabricSelections);
   const setStyleOptions = useCurrentWorkOrderStore((s) => s.setStyleOptions);
-  // const setShelvedProducts = useCurrentWorkOrderStore(
-  // 	(s) => s.setShelvedProducts
-  // );
-  // const shelvedProducts = useCurrentWorkOrderStore((s) => s.shelvedProducts);
   const orderId = useCurrentWorkOrderStore((s) => s.orderId);
   const setOrderId = useCurrentWorkOrderStore((s) => s.setOrderId);
   const order = useCurrentWorkOrderStore((s) => s.order);
   const setOrder = useCurrentWorkOrderStore((s) => s.setOrder);
   const resetWorkOrder = useCurrentWorkOrderStore((s) => s.resetWorkOrder);
 
-  // mutation to create order
-  const { mutate: createNewOrder, isPending } = useMutation({
-    mutationFn: () => createOrder({ fields: { OrderStatus: "Pending" } }),
-    onSuccess: (response) => {
-      if (response.data) {
-        const order = response.data;
-        const formattedOrder = mapApiOrderToFormOrder(order);
-        // resetWorkOrder()
-        demographicsForm.reset();
-        measurementsForm.reset();
-        fabricSelectionForm.reset();
-        ShelvesForm.reset();
-        OrderForm.reset;
-
-        setOrderId(order.id);
-        console.log(formattedOrder);
-        setOrder(formattedOrder);
-
-        toast.success("New work order created successfully!");
-      }
-    },
-    onError: () => {
-      toast.error("Failed to create new work order.");
-      resetWorkOrder();
-    },
-  });
-
-  // forms
+  // ============================================================================
+  // FORMS SETUP
+  // ============================================================================
   const demographicsForm = useForm<z.infer<typeof customerDemographicsSchema>>({
     resolver: zodResolver(customerDemographicsSchema),
     defaultValues: customerDemographicsDefaults,
@@ -167,10 +118,6 @@ function NewWorkOrder() {
     resolver: zodResolver(customerMeasurementsSchema),
     defaultValues: customerMeasurementsDefaults,
   });
-
-  React.useEffect(() => {
-    measurementsForm.reset(customerMeasurementsDefaults);
-  }, [customerDemographics.id, measurementsForm]);
 
   const fabricSelectionForm = useForm<{
     fabricSelections: FabricSelectionSchema[];
@@ -185,23 +132,14 @@ function NewWorkOrder() {
     defaultValues: { fabricSelections: [], styleOptions: [] },
   });
 
+  const ShelvesForm = useForm<ShelvesFormValues>({
+    resolver: zodResolver(shelvesFormSchema),
+    defaultValues: { products: [] },
+  });
+
   const OrderForm = useForm<z.infer<typeof orderSchema>>({
     resolver: zodResolver(orderSchema),
     defaultValues: orderDefaults,
-  });
-
-  const orderStatus = useWatch({
-    control: OrderForm.control,
-    name: "orderStatus",
-  });
-
-  const isOrderClosed = orderStatus === "Completed" || orderStatus === "Cancelled";
-
-  const ShelvesForm = useForm<ShelvesFormValues>({
-    resolver: zodResolver(shelvesFormSchema),
-    defaultValues: {
-      products: [],
-    },
   });
 
   const paymentForm = useForm<z.infer<typeof paymentTypeSchema>>({
@@ -209,91 +147,218 @@ function NewWorkOrder() {
     defaultValues: { paymentType: "cash" },
   });
 
-  // ----------------------------
-  // stable refs for sections
-  // ----------------------------
-  const sectionRefs = React.useRef<(HTMLDivElement | null)[]>([]);
-  // ensure array length
-  React.useEffect(() => {
-    sectionRefs.current = steps.map((_, i) => sectionRefs.current[i] ?? null);
-  }, []);
+  // Watch form values
+  const orderStatus = useWatch({
+    control: OrderForm.control,
+    name: "orderStatus",
+  });
 
-  React.useEffect(() => {
-    return () => {
+  const products = useWatch({
+    control: ShelvesForm.control,
+    name: "products",
+  });
+
+  const isOrderClosed = orderStatus === "Completed" || orderStatus === "Cancelled";
+
+  const totalShelveAmount =
+    products?.reduce((acc, p) => acc + (p.quantity ?? 0) * (p.unitPrice ?? 0), 0) ?? 0;
+
+  // ============================================================================
+  // NAVIGATION & UI HOOKS
+  // ============================================================================
+  const { dialog, openDialog, closeDialog } = useConfirmationDialog();
+
+  const { sectionRefs, handleStepChange, handleProceed } = useStepNavigation({
+    steps,
+    setCurrentStep,
+    addSavedStep,
+  });
+
+  // ============================================================================
+  // ORDER MUTATIONS
+  // ============================================================================
+  const {
+    createOrder: createOrderMutation,
+    updateOrder: updateOrderMutation,
+    updateShelf: updateShelfMutation,
+    updateFabricStock: updateFabricStockMutation,
+  } = useOrderMutations({
+    onOrderCreated: (id, formattedOrder) => {
+      setOrderId(id);
+      setOrder(formattedOrder);
       demographicsForm.reset();
-      resetWorkOrder();
-    };
-  }, []);
-
-  // ----------------------------
-  // scroll tracking (rAF-throttled)
-  // ----------------------------
-  React.useEffect(() => {
-    let ticking = false;
-
-    const updateActive = () => {
-      // compute centers for each section
-      const centers = steps.map((_, i) => {
-        const el = sectionRefs.current[i];
-        if (!el) return Number.POSITIVE_INFINITY;
-        const rect = el.getBoundingClientRect();
-        // absolute center relative to document
-        const topAbs = window.scrollY + rect.top;
-        return topAbs + rect.height / 2;
-      });
-
-      const viewportCenter = window.scrollY + window.innerHeight / 2;
-
-      // find nearest center
-      let nearest = 0;
-      let minDist = Infinity;
-      centers.forEach((c, idx) => {
-        const d = Math.abs(viewportCenter - c);
-        if (d < minDist) {
-          minDist = d;
-          nearest = idx;
-        }
-      });
-
-      setCurrentStep(nearest);
-      ticking = false;
-    };
-
-    const onScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => updateActive());
-        ticking = true;
+      measurementsForm.reset();
+      fabricSelectionForm.reset();
+      ShelvesForm.reset();
+      OrderForm.reset();
+    },
+    onOrderUpdated: (action) => {
+      if (action === "customer") {
+        // Save the updated order state to store
+        const updatedOrder = OrderForm.getValues();
+        setOrder(updatedOrder);
+        handleProceed(0);
+      } else if (action === "updated") {
+        handleProceed(4);
       }
-    };
+    },
+    onOrderError: () => {
+      resetWorkOrder();
+    },
+  });
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    // run once on mount
-    onScroll();
+  // ============================================================================
+  // DEMOGRAPHICS FORM HANDLERS
+  // ============================================================================
+  const handleDemographicsProceed = () => {
+    const recordID = demographicsForm.getValues("customerRecordId");
+    const customerData = demographicsForm.getValues();
 
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [setCurrentStep]);
 
-  // completed steps
-  const completedSteps = savedSteps;
+    if (!recordID) {
+      toast.error("Please save customer information first");
+      return;
+    }
 
-  // scroll to step when clicked
-  const handleStepChange = (i: number) => {
-    const el = sectionRefs.current[i];
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      const headerOffset = 120; // height of your sticky header
-      const offsetPosition = window.scrollY + rect.top - headerOffset;
+    // Update OrderForm with customerID
+    OrderForm.setValue("customerID", [recordID]);
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
+    // Update store with customer demographics
+    setCustomerDemographics(customerData);
+
+    // Update order in backend
+    if (orderId) {
+      updateOrderMutation.mutate({
+        fields: { customerID: [recordID] },
+        orderId: orderId,
+        onSuccessAction: "customer",
       });
     }
   };
 
-  const handleProceed = (step: number) => {
-    addSavedStep(step);
-    handleStepChange(step + 1);
+  // ============================================================================
+  // MEASUREMENTS FORM HANDLERS
+  // ============================================================================
+  const handleMeasurementsProceed = () => {
+    handleProceed(1);
+  };
+
+  // ============================================================================
+  // FABRIC SELECTION HANDLERS
+  // ============================================================================
+  /**
+   * Calculate stitching price from styles data
+   * Uses the Stitch field from styles table for each selected style code
+   */
+  const calculateStitchingPrice = (styleOptions: StyleOptionsSchema[]) => {
+    // Create a lookup map: Code -> Stitch value
+    const styleStitchMap = new Map<string, number>();
+    styles.forEach((style) => {
+      const stitchValue = typeof style.fields.Stitch === "string"
+        ? parseFloat(style.fields.Stitch)
+        : style.fields.Stitch;
+      styleStitchMap.set(style.fields.Code, stitchValue || 0);
+    });
+
+    let totalStitching = 0;
+
+    styleOptions.forEach((styleOption) => {
+      // Add stitching for all selected style codes
+      if (styleOption.style) {
+        const code = styleOption.style === "kuwaiti" ? "STY_KUWAITI" : "STY_DESIGNER";
+        totalStitching += styleStitchMap.get(code) || 0;
+      }
+
+      if (styleOption.lines) {
+        totalStitching += styleStitchMap.get("STY_LINE") || 0;
+      }
+
+      if (styleOption.collar?.collarType) {
+        totalStitching += styleStitchMap.get(styleOption.collar.collarType) || 0;
+      }
+
+      if (styleOption.collar?.collarButton) {
+        totalStitching += styleStitchMap.get(styleOption.collar.collarButton) || 0;
+      }
+
+      if (styleOption.jabzoor?.jabzour1) {
+        totalStitching += styleStitchMap.get(styleOption.jabzoor.jabzour1) || 0;
+      }
+
+      if (styleOption.sidePocket?.side_pocket_type) {
+        totalStitching += styleStitchMap.get(styleOption.sidePocket.side_pocket_type) || 0;
+      }
+
+      if (styleOption.frontPocket?.front_pocket_type) {
+        totalStitching += styleStitchMap.get(styleOption.frontPocket.front_pocket_type) || 0;
+      }
+
+      if (styleOption.cuffs?.cuffs_type) {
+        totalStitching += styleStitchMap.get(styleOption.cuffs.cuffs_type) || 0;
+      }
+    });
+
+    return totalStitching;
+  };
+
+  /**
+   * Calculate style price from styles data
+   * Uses the RatePerItem field from styles table for each selected style code
+   */
+  const calculateStylePrice = (styleOptions: StyleOptionsSchema[]) => {
+    // Create a lookup map: Code -> RatePerItem value
+    const styleRateMap = new Map<string, number>();
+    styles.forEach((style) => {
+      styleRateMap.set(style.fields.Code, style.fields.RatePerItem || 0);
+    });
+
+    let totalStyle = 0;
+
+    styleOptions.forEach((styleOption) => {
+      // Add RatePerItem for all selected style codes
+      if (styleOption.style) {
+        const code = styleOption.style === "kuwaiti" ? "STY_KUWAITI" : "STY_DESIGNER";
+        totalStyle += styleRateMap.get(code) || 0;
+      }
+
+      if (styleOption.lines) {
+        totalStyle += styleRateMap.get("STY_LINE") || 0;
+      }
+
+      if (styleOption.collar?.collarType) {
+        totalStyle += styleRateMap.get(styleOption.collar.collarType) || 0;
+      }
+
+      if (styleOption.collar?.collarButton) {
+        totalStyle += styleRateMap.get(styleOption.collar.collarButton) || 0;
+      }
+
+      if (styleOption.jabzoor?.jabzour1) {
+        totalStyle += styleRateMap.get(styleOption.jabzoor.jabzour1) || 0;
+      }
+
+      if (styleOption.sidePocket?.side_pocket_type) {
+        totalStyle += styleRateMap.get(styleOption.sidePocket.side_pocket_type) || 0;
+      }
+
+      if (styleOption.frontPocket?.front_pocket_type) {
+        totalStyle += styleRateMap.get(styleOption.frontPocket.front_pocket_type) || 0;
+      }
+
+      if (styleOption.cuffs?.cuffs_type) {
+        totalStyle += styleRateMap.get(styleOption.cuffs.cuffs_type) || 0;
+      }
+    });
+
+    return totalStyle;
+  };
+
+  const calculateFabricPrice = (fabricSelections: FabricSelectionSchema[]) => {
+    let fabricPrice = 0;
+    fabricSelections.forEach((fabric) => {
+      if (fabric.fabricAmount) fabricPrice += fabric.fabricAmount;
+    });
+    return fabricPrice;
   };
 
   const handleFabricSelectionSubmit = (data: {
@@ -302,297 +367,109 @@ function NewWorkOrder() {
   }) => {
     setFabricSelections(data.fabricSelections);
     setStyleOptions(data.styleOptions);
-    addSavedStep(2); // Mark this step as saved
+    addSavedStep(2);
 
-    // Calculate style prices
-    let stylePrice = 0;
-    const addPrice = (key?: string) => {
-      if (!key) return;
-      const price = pricesMap.get(key);
-      if (price) stylePrice += price;
-      else console.warn("Missing price for:", key);
-    };
-    data.styleOptions.forEach((style) => {
-      addPrice(style.collar?.collarButton);
-      addPrice(style.collar?.collarButton);
-      addPrice("smallTabaggi");
-      addPrice(style.style);
-      addPrice(style.lines);
-      addPrice("phone");
-      addPrice("wallet");
-      addPrice("pen_holder");
-      if (style.jabzoor?.jabzour1 === "ZIP") {
-        addPrice(
-          `${style.jabzoor.jabzour1}-${style.jabzoor.jabzour2}-${style.jabzoor.jabzour_thickness}`
-        );
-      } else {
-        addPrice(
-          `${style.jabzoor?.jabzour1}-${style.jabzoor?.jabzour_thickness}`
-        );
-      }
-      addPrice(`${style.cuffs?.cuffs_type}-${style.cuffs?.cuffs_thickness}`);
-      addPrice(
-        `${style.frontPocket?.front_pocket_type}-${style.frontPocket?.front_pocket_thickness}`
-      );
-    });
+    // Update number of fabrics
+    const numFabrics = data.fabricSelections.length;
+    OrderForm.setValue("numOfFabrics", numFabrics);
+    setOrder({ ...order, numOfFabrics: numFabrics });
 
-    let fabricPrice = 0;
+    // Calculate prices using styles data
+    const stitchingPrice = calculateStitchingPrice(data.styleOptions);
+    const stylePrice = calculateStylePrice(data.styleOptions);
+    const fabricPrice = calculateFabricPrice(data.fabricSelections);
 
-    data.fabricSelections.forEach((fabric) => {
-      if (fabric.fabricAmount) fabricPrice += fabric.fabricAmount;
-    });
-
-    let stitchingPrice = pricesMap.get("stitching");
-
+    // Update order form with calculated prices
     OrderForm.setValue("charges.fabric", fabricPrice);
-    OrderForm.setValue("charges.style", stylePrice); // charges
-    if (stitchingPrice)
-      OrderForm.setValue(
-        "charges.stitching",
-        stitchingPrice * data.fabricSelections.length
-      );
+    OrderForm.setValue("charges.stitching", stitchingPrice);
+    OrderForm.setValue("charges.style", stylePrice);
   };
 
-  const products = useWatch({
-    control: ShelvesForm.control,
-    name: "products", // Add this to watch the products array
-  });
+  // ============================================================================
+  // SHELVES FORM HANDLERS
+  // ============================================================================
+  const handleShelvesProceed = () => {
+    handleProceed(3);
+  };
 
-  const totalShelveAmount =
-    products?.reduce(
-      (acc, p) => acc + (p.quantity ?? 0) * (p.unitPrice ?? 0),
-      0
-    ) ?? 0;
+  // ============================================================================
+  // ORDER & PAYMENT HANDLERS
+  // ============================================================================
+  const handleOrderFormSubmit = (data: Partial<OrderSchema>) => {
+    setOrder(data);
+  };
 
-  React.useEffect(() => {
-    OrderForm.setValue("charges.shelf", totalShelveAmount);
-  }, [totalShelveAmount, OrderForm]);
+  const handleOrderFormProceed = () => {
+    handleProceed(4);
+  };
 
-  React.useEffect(() => {
-    if (!orderId) {
-      setConfirmationDialog({
-        isOpen: true,
-        title: "Create New Work Order",
-        description: "Do you want to create a new work order?",
-        onConfirm: () => {
-          createNewOrder();
-          setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
-        },
-      });
+  // ============================================================================
+  // ORDER CONFIRMATION & CANCELLATION
+  // ============================================================================
+  const validateOrderCompletion = () => {
+    if (savedSteps.length !== steps.length - 1) {
+      toast.error("Complete all the steps to confirm order!!");
+      return false;
     }
-  }, [orderId, createNewOrder]);
 
-  type UpdateOrderPayload = {
-    fields: Partial<OrderSchema>;
-    orderId: string;
-    onSuccessAction?: "customer" | "payment" | "fabric" | "campaigns" | "updated" | "cancelled" | null;
-  };
+    const address = demographicsForm.getValues().address ?? {};
 
-  const { mutate: updateOrderFn } = useMutation({
-    mutationFn: ({ fields, orderId }: UpdateOrderPayload) => {
-      const orderMapped = mapFormOrderToApiOrder(fields);
-      return updateOrder(orderMapped["fields"], orderId);
-    },
-    onSuccess: (_response, variables) => {
-      // variables contains what you passed to mutate()
-      if (variables.onSuccessAction === "customer") {
-        toast.success("Customer updated ✅");
-        setOrder(variables.fields);
-        setCustomerDemographics(demographicsForm.getValues());
-        handleProceed(0); // move to next step
-      } else if (variables.onSuccessAction === "updated") {
-        toast.success("Order updated successfully✅");
-        handleProceed(4);
-      } else if (variables.onSuccessAction === "cancelled") {
-        toast.success("Order cancelled");
-      }
-    },
-    onError: () => toast.error("Failed to update order"),
-  });
+    const requiredFields: (keyof typeof address)[] = [
+      "city",
+      "area",
+      "block",
+      "street",
+      "houseNumber",
+    ];
 
-  const { mutate: updateShelfFn } = useMutation({
-    mutationFn: (shelvedData: ShelvesFormValues) => {
-      const promises = shelvedData.products.map((item) => {
-        return updateShelf(item.id, { Stock: item.Stock - item.quantity });
-      });
-
-      return Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] })
-    },
-    onError: () => {
-      toast.error("Unable to update the shelves stock");
-    },
-  });
-
-  const { mutate: updateFabricStockFn } = useMutation({
-    mutationFn: async (fabricSelections: FabricSelectionSchema[]) => {
-      // Filter only fabrics from "In" source
-      const internalFabrics = fabricSelections.filter(
-        (fabric) => fabric.fabricSource === "In" && fabric.fabricId
-      );
-
-      if (internalFabrics.length === 0) {
-        return Promise.resolve([]);
-      }
-
-      // Fetch current fabric data to get existing stock
-      const fabrics = fabricsResponse?.data || [];
-
-      // Create update promises
-      const promises = internalFabrics.map((fabricSelection) => {
-        const currentFabric = fabrics.find((f) => f.id === fabricSelection.fabricId);
-        const currentId = fabricSelection.fabricId
-
-
-        if (!currentFabric) {
-          console.error(`Fabric not found: ${fabricSelection.fabricId}`);
-          return Promise.resolve(null);
-        }
-
-        const currentStock = currentFabric.fields.RealStock || 0;
-        const usedLength = parseFloat(fabricSelection.fabricLength);
-
-        if (isNaN(usedLength) || usedLength <= 0) {
-          console.error(`Invalid fabric length: ${fabricSelection.fabricLength}`);
-          return Promise.resolve(null);
-        }
-
-        const newStock = currentStock - usedLength;
-
-        // Prevent negative stock
-        if (newStock < 0) {
-          console.error(
-            `Insufficient stock for fabric ${fabricSelection.fabricId}. Current: ${currentStock}, Requested: ${usedLength}`
-          );
-          return Promise.resolve(null);
-        }
-
-
-        if (!currentId) {
-          console.error(`Fabric not found: ${fabricSelection.fabricId}`);
-          return Promise.resolve(null);
-        }
-
-        return updateFabric(currentId, {
-          ...currentFabric.fields,
-          RealStock: newStock,
-        });
-      });
-
-      return Promise.all(promises);
-    },
-    onSuccess: (results) => {
-      const successCount = results.filter((r) => r !== null).length;
-      if (successCount > 0) {
-        toast.success(`${successCount} fabric stock(s) updated ✅`);
-        queryClient.invalidateQueries({ queryKey: ["fabrics"] });
-      }
-    },
-    onError: (error) => {
-      console.error("Failed to update fabric stock:", error);
-      toast.error("Failed to update fabric stock");
-    },
-  });
-
-
-
-  // If not created yet
-  if (!orderId) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-center space-y-6">
-        <h2 className="text-2xl font-semibold">No order created yet 📝</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          You need to create a new work order before proceeding.
-        </p>
-
-        <Button
-          size="lg"
-          onClick={() =>
-            setConfirmationDialog({
-              isOpen: true,
-              title: "Create New Work Order",
-              description:
-                "Do you want to create a new work order? This will initialize a new order entry.",
-              onConfirm: () => {
-                createNewOrder();
-                setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
-              },
-            })
-          }
-          disabled={isPending}
-        >
-          {isPending ? "Creating..." : "Create New Work Order"}
-        </Button>
-
-        <ConfirmationDialog
-          isOpen={confirmationDialog.isOpen}
-          onClose={() =>
-            setConfirmationDialog((prev) => ({ ...prev, isOpen: false }))
-          }
-          onConfirm={confirmationDialog.onConfirm}
-          title={confirmationDialog.title}
-          description={confirmationDialog.description}
-        />
-      </div>
+    const isAddressDefined = requiredFields.every(
+      (key) => typeof address[key] === "string" && address[key]!.trim() !== ""
     );
-  }
+
+    if (OrderForm.getValues().orderType === "homeDelivery" && !isAddressDefined) {
+      toast.error("Need address for home delivery");
+      return false;
+    }
+
+    return true;
+  };
 
   const handleOrderConfirmation = () => {
-    if (completedSteps.length !== steps.length - 1) {
-      toast.error("Complete all the steps to confirm order!!");
-      return;
-    }
-    // check address for home delivery
-    const isAddressDefined = Object.values(
-      demographicsForm.getValues().address
-    ).every((value) => value !== undefined && value.trim() != "");
-    if (
-      OrderForm.getValues().orderType === "homeDelivery" &&
-      !isAddressDefined
-    ) {
-      toast.error("Need address for home delivery");
-      return;
-    }
-    const currentStore = useCurrentWorkOrderStore.getState();
-    console.log("🧾 Full Work Order Store:", currentStore);
+    if (!validateOrderCompletion()) return;
 
-    console.log(OrderForm.getValues());
+
     const formOrder: Partial<OrderSchema> = {
       ...OrderForm.getValues(),
       ...paymentForm.getValues(),
       orderStatus: "Completed",
       orderDate: new Date().toISOString(),
-      // ensure customerID is an array if we have a record id
-      // customerID: demographicsForm.getValues("customerRecordId")
-      //   ? [demographicsForm.getValues("customerRecordId") as string]
-      //   : undefined,
-
-      // number of fabrics from fabric selection form
-      numOfFabrics:
-        fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
+      numOfFabrics: fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
     };
 
-    OrderForm.setValue("orderStatus", "Completed")
+    OrderForm.setValue("orderStatus", "Completed");
     setOrder(formOrder);
 
     if (orderId) {
-      updateOrderFn({ fields: formOrder, orderId: orderId, onSuccessAction: "updated" });
+      updateOrderMutation.mutate({
+        fields: formOrder,
+        orderId: orderId,
+        onSuccessAction: "updated",
+      });
     }
 
-    // update stocks
-    updateShelfFn(ShelvesForm.getValues());
-    // updateFabricStock();
+    // Update stocks
+    updateShelfMutation.mutate(ShelvesForm.getValues());
 
     const fabricSelectionsData = fabricSelectionForm.getValues().fabricSelections;
     if (fabricSelectionsData && fabricSelectionsData.length > 0) {
-      updateFabricStockFn(fabricSelectionsData);
+      updateFabricStockMutation.mutate({
+        fabricSelections: fabricSelectionsData,
+        fabricsData: fabricsResponse?.data || [],
+      });
     }
 
     handleProceed(5);
   };
-
 
   const handleOrderCancellation = () => {
     const formOrder: Partial<OrderSchema> = {
@@ -600,196 +477,255 @@ function NewWorkOrder() {
       ...paymentForm.getValues(),
       orderDate: new Date().toISOString(),
       orderStatus: "Cancelled",
-      // ensure customerID is an array if we have a record id
-      // customerID: demographicsForm.getValues("customerRecordId")
-      //   ? [demographicsForm.getValues("customerRecordId") as string]
-      //   : undefined,
-
-      // number of fabrics from fabric selection form
-      numOfFabrics:
-        fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
+      numOfFabrics: fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
     };
 
-    OrderForm.setValue("orderStatus", "Cancelled")
+    OrderForm.setValue("orderStatus", "Cancelled");
     setOrder(formOrder);
 
     if (orderId) {
-      updateOrderFn({ fields: formOrder, orderId: orderId, onSuccessAction: "cancelled" });
+      updateOrderMutation.mutate({
+        fields: formOrder,
+        orderId: orderId,
+        onSuccessAction: "cancelled",
+      });
     }
   };
 
-  // ----------------------------
-  // MAIN RENDER
-  // ----------------------------
+  // ============================================================================
+  // SIDE EFFECTS
+  // ============================================================================
+  // Sync shelf amount to order charges
+  React.useEffect(() => {
+    OrderForm.setValue("charges.shelf", totalShelveAmount);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalShelveAmount]);
+
+  // Reset measurements when customer changes
+  React.useEffect(() => {
+    measurementsForm.reset(customerMeasurementsDefaults);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customerDemographics.id]);
+
+  // Prompt for order creation on mount
+  React.useEffect(() => {
+    if (!orderId) {
+      openDialog(
+        "Create New Work Order",
+        "Do you want to create a new work order?",
+        () => {
+          createOrderMutation.mutate();
+          closeDialog();
+        }
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId]);
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      demographicsForm.reset();
+      resetWorkOrder();
+    };
+  }, []);
+
+  // ============================================================================
+  // RENDER: NO ORDER STATE
+  // ============================================================================
+  if (!orderId) {
+    return (
+      <OrderCreationPrompt
+        orderType="Work Order"
+        isPending={createOrderMutation.isPending}
+        onCreateOrder={() => {
+          openDialog(
+            "Create New Work Order",
+            "Do you want to create a new work order? This will initialize a new order entry.",
+            () => {
+              createOrderMutation.mutate();
+              closeDialog();
+            }
+          );
+        }}
+        dialogState={dialog}
+        onCloseDialog={closeDialog}
+      />
+    );
+  }
+
+  // ============================================================================
+  // RENDER: MAIN ORDER FLOW
+  // ============================================================================
   return (
     <div className="mb-64">
       <ConfirmationDialog
-        isOpen={confirmationDialog.isOpen}
-        onClose={() =>
-          setConfirmationDialog((prev) => ({ ...prev, isOpen: false }))
-        }
-        onConfirm={confirmationDialog.onConfirm}
-        title={confirmationDialog.title}
-        description={confirmationDialog.description}
+        isOpen={dialog.isOpen}
+        onClose={closeDialog}
+        onConfirm={dialog.onConfirm}
+        title={dialog.title}
+        description={dialog.description}
       />
+
+      {/* Sticky Header with Stepper */}
       <div className="sticky top-0 z-20">
         <HorizontalStepper
           steps={steps}
-          completedSteps={completedSteps}
+          completedSteps={savedSteps}
           currentStep={currentStep}
           onStepChange={handleStepChange}
         />
-        <div className="w-fit absolute right-2.5 flex justify-end mt-2 ">
-          <div className="bg-card p-4 shadow-lg rounded-lg z-10 border-b border-border max-w-xs mr-4">
-            <h2 className="text-lg font-semibold tracking-tight">
-              Work Order #{order.orderID}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Status:{" "}
-              <span className="font-medium text-green-600">
-                {order.orderStatus ?? "Pending"}
-              </span>
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Customer:{" "}
-              <span className="font-medium">
-                {order.customerID?.length
-                  ? customerDemographics.nickName
-                  : "No customer yet"}
-              </span>
-            </p>
-          </div>
-        </div>
+        <OrderInfoCard
+          orderID={order.orderID}
+          orderStatus={order.orderStatus ?? "Pending"}
+          customerName={order.customerID?.length ? customerDemographics.nickName : undefined}
+          orderType="Work Order"
+          deliveryType={order.orderType}
+          paymentType={order.paymentType}
+          numOfFabrics={order.numOfFabrics}
+          totalAmount={order.charges ? Object.values(order.charges).reduce((a, b) => a + b, 0) : 0}
+          advance={order.advance}
+          balance={order.balance}
+        />
       </div>
-      {/* Make space so sticky header does not overlap content */}
+
       {/* Step Content */}
-      <div className="flex flex-col flex-1 items-center space-y-10 py-10 mx-[10%]">
-        {steps.map((step, index) => (
-          <div
-            key={step.id}
-            id={step.id}
-            ref={(el) => {
-              sectionRefs.current[index] = el;
-            }}
-            className="w-full flex flex-col items-center"
-          >
-            {/* Render the appropriate form for each step */}
-            {index === 0 && (
-              <CustomerDemographicsForm
-                form={demographicsForm}
-                isOrderClosed={isOrderClosed}
-                onEdit={() => removeSavedStep(0)}
-                onCancel={() => addSavedStep(0)}
-                onProceed={() => {
-                  const recordID =
-                    demographicsForm.getValues("customerRecordId");
-                  if (orderId && recordID) {
-                    updateOrderFn({
-                      fields: {
-                        customerID: [recordID],
-                      },
-                      orderId: orderId!,
-                      onSuccessAction: "customer",
-                    });
+      <div className="flex flex-col flex-1 items-center gap-40 py-10 mx-[10%]">
+        {/* STEP 0: Demographics */}
+        <div
+          id={steps[0].id}
+          ref={(el) => {
+            sectionRefs.current[0] = el;
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          <CustomerDemographicsForm
+            form={demographicsForm}
+            isOrderClosed={isOrderClosed}
+            onEdit={() => removeSavedStep(0)}
+            onCancel={() => addSavedStep(0)}
+            onProceed={handleDemographicsProceed}
+            onClear={() => removeSavedStep(0)}
+          />
+        </div>
+
+        {/* STEP 1: Measurements */}
+        <div
+          id={steps[1].id}
+          ref={(el) => {
+            sectionRefs.current[1] = el;
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          <ErrorBoundary fallback={<div>Customer Measurements crashed</div>}>
+            <CustomerMeasurementsForm
+              form={measurementsForm}
+              isOrderClosed={isOrderClosed}
+              customerId={customerDemographics.id?.toString() || null}
+              customerRecordId={customerDemographics.customerRecordId}
+              onProceed={handleMeasurementsProceed}
+            />
+          </ErrorBoundary>
+        </div>
+
+        {/* STEP 2: Fabric Selection */}
+        <div
+          id={steps[2].id}
+          ref={(el) => {
+            sectionRefs.current[2] = el;
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          <ErrorBoundary fallback={<div>Fabric Selection crashed</div>}>
+            <FabricSelectionForm
+              customerId={customerDemographics.id?.toString() || null}
+              form={fabricSelectionForm}
+              isOrderClosed={isOrderClosed}
+              onSubmit={handleFabricSelectionSubmit}
+              onProceed={() => handleProceed(2)}
+              orderId={order.orderID || null}
+              orderRecordId={orderId}
+              onCampaignsChange={(campaigns) => {
+                if (orderId) {
+                  OrderForm.setValue("campaigns", campaigns);
+                }
+              }}
+              isProceedDisabled={fabricSelections.length === 0}
+            />
+          </ErrorBoundary>
+        </div>
+
+        {/* STEP 3: Shelved Products */}
+        <div
+          id={steps[3].id}
+          ref={(el) => {
+            sectionRefs.current[3] = el;
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          <ErrorBoundary fallback={<div>Shelved Products crashed</div>}>
+            <ShelvedProductsForm
+              form={ShelvesForm}
+              isOrderClosed={isOrderClosed}
+              onProceed={handleShelvesProceed}
+            />
+          </ErrorBoundary>
+        </div>
+
+        {/* STEP 4: Order & Payment Info */}
+        <div
+          id={steps[4].id}
+          ref={(el) => {
+            sectionRefs.current[4] = el;
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          <ErrorBoundary fallback={<div>Order and Payment crashed</div>}>
+            <OrderTypeAndPaymentForm
+              form={OrderForm}
+              onSubmit={handleOrderFormSubmit}
+              onProceed={handleOrderFormProceed}
+              customerAddress={customerDemographics?.address}
+              fabricSelections={fabricSelections}
+            />
+          </ErrorBoundary>
+        </div>
+
+        {/* STEP 5: Confirmation */}
+        <div
+          id={steps[5].id}
+          ref={(el) => {
+            sectionRefs.current[5] = el;
+          }}
+          className="w-full flex flex-col items-center"
+        >
+          <ErrorBoundary fallback={<div>Payment crashed</div>}>
+            <PaymentTypeForm
+              form={paymentForm}
+              isOrderClosed={isOrderClosed}
+              onConfirm={() => {
+                openDialog(
+                  "Confirm new work order",
+                  "Do you want to confirm a new work order?",
+                  () => {
+                    handleOrderConfirmation();
+                    closeDialog();
                   }
-                }}
-                onClear={() => removeSavedStep(0)}
-              />
-            )}
-
-            {index === 1 && (
-              <ErrorBoundary
-                fallback={<div>Customer Measurements crashed</div>}
-              >
-                <CustomerMeasurementsForm
-                  form={measurementsForm}
-                  isOrderClosed={isOrderClosed}
-                  customerId={customerDemographics.id?.toString() || null}
-                  customerRecordId={customerDemographics.customerRecordId}
-                  onProceed={() => handleProceed(1)}
-                />
-              </ErrorBoundary>
-            )}
-
-            {index === 2 && (
-              <ErrorBoundary fallback={<div>Fabric Selection crashed</div>}>
-                <FabricSelectionForm
-                  customerId={customerDemographics.id?.toString() || null}
-                  form={fabricSelectionForm}
-                  isOrderClosed={isOrderClosed}
-                  onEdit={() => removeSavedStep(2)}
-                  onSubmit={handleFabricSelectionSubmit}
-                  onProceed={() => handleProceed(2)}
-                  orderId={order.orderID || null}
-                  orderRecordId={orderId}
-                  onCampaignsChange={(campaigns) => {
-                    if (orderId) {
-                      OrderForm.setValue("campaigns", campaigns);
-                    }
-                  }}
-                  isProceedDisabled={fabricSelections.length === 0}
-                />
-              </ErrorBoundary>
-            )}
-
-            {index === 3 && (
-              <ErrorBoundary fallback={<div>Shelved Products crashed</div>}>
-                <ShelvedProductsForm
-                  form={ShelvesForm}
-                  isOrderClosed={isOrderClosed}
-                  onProceed={() => {
-                    handleProceed(3);
-                  }}
-                />
-              </ErrorBoundary>
-            )}
-
-            {index === 4 && (
-              <ErrorBoundary fallback={<div>Order and Payment crashed</div>}>
-                <OrderTypeAndPaymentForm
-                  form={OrderForm}
-                  onSubmit={(data) => {
-                    setOrder(data);
-                  }}
-                  onProceed={() => handleProceed(4)}
-                />
-              </ErrorBoundary>
-            )}
-
-            {index === 5 && (
-              <ErrorBoundary fallback={<div>Payment crashed</div>}>
-                <PaymentTypeForm
-                  form={paymentForm}
-                  isOrderClosed={isOrderClosed}
-                  onConfirm={() => {
-
-                    setConfirmationDialog({
-                      isOpen: true,
-                      title: "Confirm new work order",
-                      description: "Do you want to confirm a new work order?",
-                      onConfirm: () => {
-                        handleOrderConfirmation();
-                        setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
-                      },
-                    });
-                  }}
-                  onCancel={() => {
-
-                    setConfirmationDialog({
-                      isOpen: true,
-                      title: "Cancel new work order",
-                      description: "Do you want to cancel a new work order?",
-                      onConfirm: () => {
-                        handleOrderCancellation();
-                        setConfirmationDialog((prev) => ({ ...prev, isOpen: false }));
-                      },
-                    });
-                  }}
-                />
-              </ErrorBoundary>
-            )}
-          </div>
-        ))}
+                );
+              }}
+              onCancel={() => {
+                openDialog(
+                  "Cancel new work order",
+                  "Do you want to cancel a new work order?",
+                  () => {
+                    handleOrderCancellation();
+                    closeDialog();
+                  }
+                );
+              }}
+            />
+          </ErrorBoundary>
+        </div>
       </div>
     </div>
   );

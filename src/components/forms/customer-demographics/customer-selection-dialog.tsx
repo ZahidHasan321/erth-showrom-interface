@@ -64,36 +64,50 @@ export function CustomerSelectionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Select a Customer</DialogTitle>
-        </DialogHeader>
-        {customers.map((customer, index) => (
-          <DialogDescription
-            key={customer.id}
-            onClick={() => handleSelect(customer)}
-            className={`p-2 border rounded-lg hover:bg-muted cursor-pointer flex flex-col ${
-              selectedIndex === index ? "border-primary border-2" : ""
-            }`}
-          >
-            <span className="font-medium">{customer.fields.Name}</span>
-            {customer.fields.City && (
-              <span className="text-xs text-muted-foreground">
-                <strong>City:</strong> {customer.fields.City}
-              </span>
-            )}
-            {customer.fields.Relation && (
-              <span className="text-xs text-muted-foreground">
-                <strong>Relation:</strong> {customer.fields.Relation}
-              </span>
-            )}
-            {customer.fields.AccountType && (
-              <span className="text-xs text-muted-foreground">
-                <strong>Account Type:</strong> {customer.fields.AccountType}
-              </span>
-            )}
+          <DialogTitle className="text-2xl font-bold">Select a Customer</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Multiple customers found. Please select one to continue.
           </DialogDescription>
-        ))}
+        </DialogHeader>
+        <div className="space-y-3 my-4">
+          {customers.map((customer, index) => (
+            <div
+              key={customer.id}
+              onClick={() => handleSelect(customer)}
+              className={`p-4 border rounded-xl cursor-pointer transition-all flex flex-col gap-2 ${
+                selectedIndex === index
+                  ? "border-primary bg-primary/5 shadow-md"
+                  : "border-border hover:border-primary/50 hover:bg-accent/10"
+              }`}
+            >
+              <span className="font-semibold text-lg text-foreground">
+                {customer.fields.Name}
+              </span>
+              <div className="flex flex-wrap gap-x-6 gap-y-1">
+                {customer.fields.City && (
+                  <span className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">City:</span>{" "}
+                    {customer.fields.City}
+                  </span>
+                )}
+                {customer.fields.Relation && (
+                  <span className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">Relation:</span>{" "}
+                    {customer.fields.Relation}
+                  </span>
+                )}
+                {customer.fields.AccountType && (
+                  <span className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">Account Type:</span>{" "}
+                    {customer.fields.AccountType}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

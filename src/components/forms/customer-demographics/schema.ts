@@ -6,6 +6,8 @@ export const customerDemographicsSchema = z
     customerRecordId: z.string().optional(),
     name: z.string("Invalid Name").min(1, "Name is required"),
     nickName: z.string(),
+    arabicName: z.string().optional(),
+    arabicNickname: z.string().optional(),
     countryCode: z.string().min(1, "Country code is required"),
     mobileNumber: z
       .string("Invalid Mobile Number")
@@ -66,6 +68,8 @@ export const customerDemographicsDefaults: CustomerDemographicsSchema = {
   customerRecordId: undefined,
   name: "",
   nickName: "",
+  arabicName: "",
+  arabicNickname: "",
   countryCode: "",
   mobileNumber: "",
   alternativeCountryCode: "",

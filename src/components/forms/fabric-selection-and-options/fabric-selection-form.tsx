@@ -3,6 +3,7 @@
 import { getFabrics } from "@/api/fabrics";
 import { createGarment, updateGarment } from "@/api/garments";
 import { getMeasurementsByCustomerId } from "@/api/measurements";
+import { getStyles } from "@/api/styles";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as React from "react";
@@ -30,8 +31,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { mapFormGarmentToApiGarment } from "@/lib/garment-mapper";
-import { AlertCircle, XCircle } from "lucide-react";
+import { getFabricValue } from "@/lib/utils/fabric-utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle, XCircle, Sparkles, Plus, X, Save, Pencil, ArrowRight } from "lucide-react";
 import { SignaturePad } from "../signature-pad";
+import { cn } from "@/lib/utils";
 
 interface FabricSelectionFormProps {
   customerId: string | null;
@@ -45,7 +49,6 @@ interface FabricSelectionFormProps {
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
   }) => void;
-  onEdit?: () => void;
   onProceed: () => void;
   isProceedDisabled?: boolean;
   onCampaignsChange: (campaigns: string[]) => void;
@@ -56,7 +59,6 @@ export function FabricSelectionForm({
   customerId,
   orderId,
   orderRecordId,
-  onEdit,
   form,
   onSubmit,
   onProceed,
@@ -71,17 +73,34 @@ export function FabricSelectionForm({
   const [isEditing, setIsEditing] = React.useState(true);
   const [isSaved, setIsSaved] = React.useState(false);
   const [validationErrors, setValidationErrors] = React.useState<string[]>([]);
+  const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<string | null>(null);
+  const [fabricMeter, setFabricMeter] = React.useState<number | null>(null);
+  const [qallabi, setQallabi] = React.useState<number | null>(null);
+  const [cuffs, setCuffs] = React.useState<number | null>(null);
 
   // Fetch fabrics for validation
   const { data: fabricsResponse } = useQuery({
     queryKey: ["fabrics"],
     queryFn: getFabrics,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   const fabrics = fabricsResponse?.data || [];
 
-  // Validate stock before saving
-  const validateStock = React.useCallback(() => {
+  // Fetch styles for pricing
+  const { data: stylesResponse } = useQuery({
+    queryKey: ["styles"],
+    queryFn: getStyles,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+
+  const styles = stylesResponse?.data || [];
+
+
+  // Validate fabric selections before saving
+  const validateFabricSelections = React.useCallback(() => {
     const errors: string[] = [];
     const fabricSelections = form.getValues("fabricSelections");
 
@@ -126,6 +145,11 @@ export function FabricSelectionForm({
       if (selection.fabricSource === "Out" && !selection.color) {
         errors.push(`Row ${index + 1}: Color is required for "Out" source`);
       }
+
+      // Validate delivery date when home delivery is selected
+      if (selection.homeDelivery && !selection.deliveryDate) {
+        errors.push(`Row ${index + 1}: Delivery date is required when home delivery is selected`);
+      }
     });
 
     return errors;
@@ -168,6 +192,7 @@ export function FabricSelectionForm({
       return Promise.all(promises);
     },
     onSuccess: (responses) => {
+      console.log("API Response on Save:", responses);
       toast.success(`${responses.length} garment(s) saved successfully!`);
 
       // Update form with response IDs
@@ -176,8 +201,12 @@ export function FabricSelectionForm({
         .map((fabric, index) => ({
           ...fabric,
           id: responses[index]?.data?.id || fabric.id,
-          orderId: [orderId!],
+          orderId: [orderRecordId!],
         }));
+
+      // IMPORTANT: Update the form state with the new IDs
+      // This ensures that subsequent edits will update the existing records
+      form.setValue("fabricSelections", updatedFabricSelections);
 
       setValidationErrors([]);
       setIsSaved(true);
@@ -196,7 +225,7 @@ export function FabricSelectionForm({
 
   const handleSaveSelections = () => {
     // Validate first
-    const errors = validateStock();
+    const errors = validateFabricSelections();
 
     if (errors.length > 0) {
       setValidationErrors(errors);
@@ -257,8 +286,34 @@ export function FabricSelectionForm({
       }
       return getMeasurementsByCustomerId(customerId);
     },
-    enabled: !!customerId,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
+
+  const measurements = measurementQuery?.data || [];
+
+  React.useEffect(() => {
+    if (selectedMeasurementId) {
+      const selectedMeasurement = measurements.find(m => m.id === selectedMeasurementId);
+      if (selectedMeasurement) {
+        const length = selectedMeasurement.fields.LengthFront;
+        const bottom = selectedMeasurement.fields.Bottom;
+
+        if (length && bottom) {
+          const meter = getFabricValue(length, bottom);
+          if (meter) {
+            setFabricMeter(meter);
+            setQallabi(meter + 0.25);
+            setCuffs(meter + 0.5);
+          } else {
+            setFabricMeter(null);
+            setQallabi(null);
+            setCuffs(null);
+          }
+        }
+      }
+    }
+  }, [selectedMeasurementId, measurements, getFabricValue]);
 
   // Pass array of { id, MeasurementID } for dropdown
   const measurementOptions =
@@ -280,6 +335,8 @@ export function FabricSelectionForm({
 
   const removeFabricRow = (rowIndex: number) => {
     removeFabricSelection(rowIndex);
+    // Also remove the corresponding style option row
+    removeStyleOption(rowIndex);
     // Clear validation errors for this row
     setValidationErrors((prev) =>
       prev.filter((error) => !error.startsWith(`Row ${rowIndex + 1}:`))
@@ -324,14 +381,25 @@ export function FabricSelectionForm({
 
   const isFormDisabled = isSaved && !isEditing;
 
-  // Check if there are any form errors
-  const hasFormErrors = Object.keys(form.formState.errors).length > 0;
+  // Check if there are any form errors AND the form has been submitted
+  const hasFormErrors = Object.keys(form.formState.errors).length > 0 && form.formState.isSubmitted;
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(handleSaveSelections)}
-      className="w-full">
-        <div className="p-4 border rounded-lg bg-muted w-full overflow-hidden">
+      <form onSubmit={form.handleSubmit(handleSaveSelections, (errors) => console.log('validation errors: ', errors))}
+        className="w-full space-y-6">
+
+        {/* Title Section */}
+        <div className="flex justify-between items-start mb-2">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-foreground">
+              Fabric Selection & Style Options
+            </h1>
+            <p className="text-sm text-muted-foreground">Choose fabrics and customize style options for garments</p>
+          </div>
+        </div>
+
+        <div className="p-6 border border-border rounded-xl bg-card w-full overflow-hidden shadow-sm space-y-6">
           {/* Validation Errors Alert */}
           {validationErrors.length > 0 && (
             <Alert
@@ -376,58 +444,116 @@ export function FabricSelectionForm({
             </Alert>
           )}
 
-          <div className="flex flex-wrap items-center space-x-2 mb-4 gap-4">
-            <Label htmlFor="num-fabrics">How many pieces? </Label>
-            <Input
-              id="num-fabrics"
-              type="number"
-              placeholder="e.g., 2"
-              onChange={(e) => setNumRowsToAdd(parseInt(e.target.value, 10))}
-              className="w-24"
-              disabled={isFormDisabled}
-            />
+          <div className="flex flex-wrap justify-between gap-4">
+            <div className="flex flex-wrap gap-4">
+              {/* How many pieces? */}
+              <div className="flex flex-col gap-4 items-center border border-border w-fit p-5 rounded-xl bg-accent/5 shadow-sm">
+                <Label htmlFor="num-fabrics" className="text-base font-semibold">How many pieces?</Label>
+                <Input
+                  id="num-fabrics"
+                  type="number"
+                  placeholder="e.g., 2"
+                  onChange={(e) => setNumRowsToAdd(parseInt(e.target.value, 10))}
+                  className="w-24 bg-background border-border/60"
+                  disabled={isFormDisabled}
+                />
+                <Button
+                  onClick={() => {
+                    if (numRowsToAdd > 0) {
+                      syncRows(numRowsToAdd, fabricSelectionFields, {
+                        addRow: addFabricRow,
+                        removeRow: removeFabricRow,
+                      });
+                      syncRows(numRowsToAdd, styleOptionFields, {
+                        addRow: addStyleRow,
+                        removeRow: removeStyleOption,
+                      });
+                    }
+                  }}
+                  disabled={isFormDisabled}
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add / Sync
+                </Button>
+              </div>
 
-            <Button
-              onClick={() => {
-                if (numRowsToAdd > 0) {
-                  syncRows(numRowsToAdd, fabricSelectionFields, {
-                    addRow: addFabricRow,
-                    removeRow: removeFabricRow,
-                  });
-                  syncRows(numRowsToAdd, styleOptionFields, {
-                    addRow: addStyleRow,
-                    removeRow: removeStyleRow,
-                  });
-                }
-              }}
-              disabled={isFormDisabled}
-            >
-              Add / Sync
-            </Button>
-          </div>
-          <div className="flex flex-col gap-2 mb-6 border shadow-lg w-fit p-4 rounded-lg bg-card">
-            <Label className="text-md text-bold">Campaign Offers:</Label>
-            {activeCampaigns.length &&
-              activeCampaigns.map((campaign) => (
-                <div key={campaign.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={campaign.id}
-                    checked={selectedCampaigns.includes(campaign.id)}
-                    onCheckedChange={(checked) => {
-                      const updatedCampaigns = checked
-                        ? Array.from(new Set([...selectedCampaigns, campaign.id]))
-                        : selectedCampaigns.filter((id) => id !== campaign.id);
-
-                      setSelectedCampaigns(updatedCampaigns);
-                      onCampaignsChange(updatedCampaigns);
-                    }}
-                    disabled={isFormDisabled}
-                  />
-                  <Label htmlFor={campaign.id}>{campaign.fields.Name}</Label>
+              {/* Campaign Offers */}
+              <div className="flex flex-col gap-3 border-2 border-primary/30 w-fit p-5 rounded-xl bg-linear-to-br from-primary/5 to-secondary/5 shadow-md">
+                <div className="flex items-center gap-2 mb-1">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  <Label className="text-lg font-bold text-primary">Campaign Offers</Label>
                 </div>
-              ))}
+                {activeCampaigns.length > 0 ? (
+                  <div className="space-y-2">
+                    {activeCampaigns.map((campaign) => (
+                      <label
+                        key={campaign.id}
+                        htmlFor={campaign.id}
+                        className={cn(
+                          "flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer",
+                          selectedCampaigns.includes(campaign.id)
+                            ? "border-primary bg-primary/10 shadow-sm"
+                            : "border-border/50 bg-background hover:border-primary/50 hover:bg-accent/20"
+                        )}
+                      >
+                        <Checkbox
+                          id={campaign.id}
+                          checked={selectedCampaigns.includes(campaign.id)}
+                          onCheckedChange={(checked) => {
+                            const updatedCampaigns = checked
+                              ? Array.from(new Set([...selectedCampaigns, campaign.id]))
+                              : selectedCampaigns.filter((id) => id !== campaign.id);
+
+                            setSelectedCampaigns(updatedCampaigns);
+                            onCampaignsChange(updatedCampaigns);
+                          }}
+                          disabled={isFormDisabled}
+                        />
+                        <span className={cn(
+                          "font-medium text-sm",
+                          selectedCampaigns.includes(campaign.id) ? "text-primary" : "text-foreground"
+                        )}>
+                          {campaign.fields.Name}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">No active campaigns</p>
+                )}
+              </div>
+            </div>
+
+            {/* Measurement Helper */}
+            <div className="flex flex-col gap-3 border border-border w-fit p-5 rounded-xl bg-accent/5 shadow-sm">
+              <Label className="text-base font-semibold">Measurement Helper:</Label>
+              <Select onValueChange={setSelectedMeasurementId} value={selectedMeasurementId || ""}>
+                <SelectTrigger className="w-[180px] bg-background border-border/60">
+                  <SelectValue placeholder="Select Measurement ID" />
+                </SelectTrigger>
+                <SelectContent>
+                  {measurements.map((m) => (
+                    <SelectItem key={m.id} value={m.id ?? ""}>
+                      {m.fields.MeasurementID}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {fabricMeter !== null && (
+                <div className="mt-4">
+                  <p><strong>Fabric Meter:</strong> {fabricMeter}</p>
+                  <p><strong>Qallabi:</strong> {qallabi}</p>
+                  <p><strong>Cuffs:</strong> {cuffs}</p>
+                </div>
+              )}
+            </div>
           </div>
-          <h2 className="text-2xl font-bold mb-4">Fabric Selections</h2>
+
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold text-foreground">Fabric Selections</h2>
+            <p className="text-sm text-muted-foreground">Select fabric source, type, and measurements for each garment</p>
+          </div>
           <DataTable
             columns={fabricSelectionColumns}
             data={fabricSelectionFields}
@@ -441,14 +567,20 @@ export function FabricSelectionForm({
             }
             isFormDisabled={isFormDisabled}
           />
-          <h2 className="font-bold mb-2 mt-8">Signature</h2>
-          <SignaturePad
-            onSave={(signature) => {
-              console.log("Fabric Signature:", signature);
-            }}
-          />
 
-          <h2 className="text-2xl font-bold mb-4 mt-8">Style Options</h2>
+          <div className="space-y-2 pt-4">
+            <h3 className="text-lg font-semibold text-foreground">Customer Signature</h3>
+            <SignaturePad
+              onSave={(signature) => {
+                console.log("Fabric Signature:", signature);
+              }}
+            />
+          </div>
+
+          <div className="space-y-1 pt-4">
+            <h2 className="text-2xl font-bold text-foreground">Style Options</h2>
+            <p className="text-sm text-muted-foreground">Customize collar, pockets, buttons, and other style details</p>
+          </div>
           <DataTable
             columns={styleOptionsColumns}
             measurementOptions={measurementOptions}
@@ -458,58 +590,64 @@ export function FabricSelectionForm({
               form.setValue(`styleOptions.${rowIndex}.${columnId}` as any, value)
             }
             isFormDisabled={isFormDisabled}
+            styles={styles}
           />
 
-          <h2 className="font-bold mb-2 mt-8">Signature</h2>
-          <SignaturePad
-            onSave={(signature) => {
-              console.log("Style Signature:", signature);
-            }}
-          />
+          <div className="space-y-2 pt-4">
+            <h3 className="text-lg font-semibold text-foreground">Customer Signature</h3>
+            <SignaturePad
+              onSave={(signature) => {
+                console.log("Style Signature:", signature);
+              }}
+            />
+          </div>
         </div>
-        <div>
+
+        {/* Buttons */}
+        <div className="flex gap-4 justify-end pt-4">
           {isOrderClosed ? null : !isSaved || isEditing ? (
             <>
-              <Button
-                className="m-4"
-                variant={"outline"}
-                // onClick={handleSaveSelections}
-                type="submit"
-                disabled={isSaving}
-              >
-                {isSaving ? "Saving..." : "Save Selections"}
-              </Button>
               {isEditing && isSaved && (
                 <Button
-                  className="m-4"
-                  variant="ghost"
+                  variant="outline"
                   onClick={() => {
                     setIsEditing(false);
                     setValidationErrors([]);
                   }}
                 >
+                  <X className="w-4 h-4 mr-2" />
                   Cancel
                 </Button>
               )}
+              <Button
+                type="submit"
+                disabled={isSaving}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isSaving ? "Saving..." : "Save Selections"}
+              </Button>
             </>
           ) : (
             <>
               <Button
-                className="m-4"
-                variant={"outline"}
-                onClick={() => {
-                  setIsEditing(true);
-                  onEdit?.();
+                type="button"
+                variant="secondary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Delay the state change slightly to avoid instant re-render focus-submit
+                  setTimeout(() => setIsEditing(true), 0);
                 }}
               >
+                <Pencil className="w-4 h-4 mr-2" />
                 Edit Selections
               </Button>
               <Button
-                className="m-4"
                 onClick={onProceed}
                 disabled={isProceedDisabled}
               >
-                Proceed
+                Continue to Payment & Order
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </>
           )}

@@ -4,6 +4,7 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
   measurementID: "",
   measurementType: "Body",
   measurementReference: "Other", // fallback
+  measurer: "",
   notes: "",
   collar: {
     width: 0,
@@ -60,6 +61,7 @@ export const customerMeasurementsSchema = z.object({
   measurementID: z.string(),
   measurementType: z.enum(["Body", "Dishdasha"]),
   measurementReference: z.enum(["Winter", "Summer", "Eid", "Occasion", "Other"]),
+  measurer: z.string().optional(),
   notes: z.string().optional(),
   collar: z.object({
     width: z.number().min(1, "Width is required"),

@@ -17,7 +17,7 @@ export function SignaturePad({ onSave }: SignaturePadProps) {
 
   const save = () => {
     if (sigCanvas.current && onSave) {
-      onSave(sigCanvas.current.getTrimmedCanvas().toDataURL("image/png"));
+      onSave(sigCanvas.current.getCanvas().toDataURL("image/png"));
     }
   };
 
@@ -31,10 +31,10 @@ export function SignaturePad({ onSave }: SignaturePadProps) {
         />
       </div>
       <div className="flex space-x-2">
-        <Button onClick={clear} variant="outline">
+        <Button type="button" onClick={clear} variant="outline">
           Clear
         </Button>
-        <Button onClick={save}>Save Signature</Button>
+        <Button type="button" onClick={save}>Save Signature</Button>
       </div>
     </div>
   );

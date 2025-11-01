@@ -9,6 +9,7 @@ export const mapMeasurementToFormValues = (
     measurementID: measurement.fields.MeasurementID || "",
     measurementType: measurement.fields.MeasurementType || "Body",
     measurementReference: measurement.fields.MeasurementReference || "Other",
+    measurer: measurement.fields.Measurer?.[0] || "",
     notes: measurement.fields.Notes || "",
     collar: {
       width: measurement.fields.CollarWidth || 0,
@@ -71,6 +72,7 @@ export const mapFormValuesToMeasurement = (
       MeasurementID: formValues.measurementID,
       MeasurementType: formValues.measurementType,
       MeasurementReference: formValues.measurementReference,
+      Measurer: formValues.measurer ? [formValues.measurer] : undefined,
       Notes: formValues.notes,
       CollarWidth: formValues.collar.width,
       CollarHeight: formValues.collar.height,

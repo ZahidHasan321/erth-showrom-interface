@@ -1,33 +1,35 @@
 // constants/styleOptions.ts
-import japaneseCollar from "@/assets/collar-assets/collar-types/JAPANES COLLAR.png";
-import qalabiCollar from "@/assets/collar-assets/collar-types/QALABI COLLAR.png";
-import roundCollar from "@/assets/collar-assets/collar-types/ROUND COLLAR.png";
+import japaneseCollar from "@/assets/collar-assets/collar-types/Japanese.png";
+import qalabiCollar from "@/assets/collar-assets/collar-types/Qallabi.png";
+import roundCollar from "@/assets/collar-assets/collar-types/Down Collar.png";
 
-import multiHoles from "@/assets/collar-assets/collar-buttons/MULTI HOLES.png";
-import visibleButtonWithHole from "@/assets/collar-assets/collar-buttons/VISIBLE BUTTON WITH BUTTONHOLE.png";
-import visiblePushButton from "@/assets/collar-assets/collar-buttons/VISIBLE PUSH-BUTTON.png";
+import araviZarrar from "@/assets/collar-assets/collar-buttons/Aravi Zarrar.png";
+import zarrarTabbagi from "@/assets/collar-assets/collar-buttons/Zarrar + Tabbagi.png";
+import tabbagi from "@/assets/collar-assets/collar-buttons/Tabbagi.png";
 
-import smallTabaggiImage from "@/assets/collar-assets/SMALL TABAGGI.png";
+import smallTabaggiImage from "@/assets/collar-assets/Small Tabbagi.png";
 
-import apparent from "@/assets/jabzour-assets/APPARENT.png";
-import apparentTriangle from "@/assets/jabzour-assets/APPARENT+TRIANGLE.png";
-import hide from "@/assets/jabzour-assets/HIDE.png";
-import hideTriangle from "@/assets/jabzour-assets/HIDE+TRIANGLE.png";
-import zip from "@/assets/jabzour-assets/ZIP.png";
+import bainMurabba from "@/assets/jabzour-assets/Bain Murabba.png";
+import bainMusallas from "@/assets/jabzour-assets/Bain Musallas.png";
+import magfiMurabba from "@/assets/jabzour-assets/Magfi Murabba.png";
+import magfiMusallas from "@/assets/jabzour-assets/Magfi  Musallas.png";
+import shaab from "@/assets/jabzour-assets/Shaab.png";
 
-import circularWithoutThickness from "@/assets/top-pocket-assets/CIRCULAR WITHOUT THICKNESS.png";
-import square from "@/assets/top-pocket-assets/SQUARE.png";
-import triangle from "@/assets/top-pocket-assets/TRIANGLE.png";
-import withCorner from "@/assets/top-pocket-assets/WITH CORNER.png";
+import mudawwarMagfiFrontPocket from "@/assets/top-pocket-assets/Mudawwar Magfi Front Pocket.png";
+import murabbaFrontPocket from "@/assets/top-pocket-assets/Murabba Front Pocket.png";
+import musallasFrontPocket from "@/assets/top-pocket-assets/Musallas Front Pocket.png";
+import mudawwarFrontPocket from "@/assets/top-pocket-assets/Mudawwar Front Pocket.png";
+
+import mudawwarSidePocket from "@/assets/side-pocket-assets/Mudawwar Side Pocket.png";
 
 import penIcon from "@/assets/Pen.png";
 import phoneIcon from "@/assets/Phone.png";
 import walletIcon from "@/assets/Wallet.png";
 
-import cuff1Image from "@/assets/sleeves-assets/sleeves-types/TYPE1.png";
-import cuff2Image from "@/assets/sleeves-assets/sleeves-types/TYPE2.png";
-import cuff3Image from "@/assets/sleeves-assets/sleeves-types/TYPE3.png";
-import cuff4Image from "@/assets/sleeves-assets/sleeves-types/TYPE4.png";
+import doubleGumsha from "@/assets/sleeves-assets/sleeves-types/Double Gumsha.png";
+import murabbaKabak from "@/assets/sleeves-assets/sleeves-types/Murabba Kabak.png";
+import musallasKabbak from "@/assets/sleeves-assets/sleeves-types/Musallas Kabbak.png";
+import mudawarKabbak from "@/assets/sleeves-assets/sleeves-types/Mudawar Kabbak.png";
 
 /* ---------- Interfaces ---------- */
 
@@ -63,41 +65,47 @@ export const thicknessOptions: ThicknessOption[] = [
 
 /** Collar types */
 export const collarTypes: BaseOption[] = [
-  { value: "JAPANESE COLLAR", alt: "Japanese Collar", displayText: "Japanese", image: japaneseCollar },
-  { value: "QALABI COLLAR", alt: "Qalabi Collar", displayText: "Qalabi", image: qalabiCollar },
-  { value: "ROUND COLLAR", alt: "Round Collar", displayText: "Round", image: roundCollar },
+  { value: "COL_QALLABI", alt: "Qallabi Collar", displayText: "Qallabi", image: qalabiCollar },
+  { value: "COL_DOWN_COLLAR", alt: "Round Collar", displayText: "Round", image: roundCollar },
+  { value: "COL_JAPANESE", alt: "Japanese Collar", displayText: "Japanese", image: japaneseCollar },
 ];
 
 /** Collar buttons */
 export const collarButtons: BaseOption[] = [
-  { value: "MULTI HOLES", alt: "Multi Holes", displayText: "Multi Holes", image: multiHoles },
-  { value: "VISIBLE BUTTON WITH BUTTONHOLE", alt: "Visible Button with Buttonhole", displayText: "Visible Button", image: visibleButtonWithHole },
-  { value: "VISIBLE PUSH-BUTTON", alt: "Visible Push Button", displayText: "Push Button", image: visiblePushButton },
+  { value: "COL_ARAVI_ZARRAR", alt: "Aravi Zarrar", displayText: "Aravi Zarrar", image: araviZarrar },
+  { value: "COL_ZARRAR__TABBAGI", alt: "Zarrar + Tabbagi", displayText: "Zarrar + Tabbagi", image: zarrarTabbagi },
+  { value: "COL_TABBAGI", alt: "Tabbagi", displayText: "Tabbagi", image: tabbagi },
 ];
 
 /** Jabzour types */
 export const jabzourTypes: BaseOption[] = [
-  { value: "APPARENT", alt: "Apparent", displayText: "Apparent", image: apparent },
-  { value: "APPARENT+TRIANGLE", alt: "Apparent + Triangle", displayText: "Apparent + Triangle", image: apparentTriangle },
-  { value: "HIDE", alt: "Hide", displayText: "Hide", image: hide },
-  { value: "HIDE+TRIANGLE", alt: "Hide + Triangle", displayText: "Hide + Triangle", image: hideTriangle },
-  { value: "ZIP", alt: "Zip", displayText: "Zip", image: zip },
+  { value: "JAB_BAIN_MURABBA", alt: "Bain Murabba", displayText: "Bain Murabba", image: bainMurabba },
+  { value: "JAB_BAIN_MUSALLAS", alt: "Bain Musallas", displayText: "Bain Musallas", image: bainMusallas },
+  { value: "JAB_MAGFI_MURABBA", alt: "Magfi Murabba", displayText: "Magfi Murabba", image: magfiMurabba },
+  { value: "JAB_MAGFI_MUSALLAS", alt: "Magfi  Musallas", displayText: "Magfi  Musallas", image: magfiMusallas },
+  { value: "JAB_SHAAB", alt: "Shaab", displayText: "Shaab", image: shaab },
 ];
 
 /** Top pocket types */
 export const topPocketTypes: BaseOption[] = [
-  { value: "CIRCULAR WITHOUT THICKNESS", alt: "Circular without thickness", displayText: "Circular without thickness", image: circularWithoutThickness },
-  { value: "SQUARE", alt: "Square", displayText: "Square", image: square },
-  { value: "TRIANGLE", alt: "Triangle", displayText: "Triangle", image: triangle },
-  { value: "WITH CORNER", alt: "With corner", displayText: "With corner", image: withCorner },
+  { value: "FRO_MUDAWWAR_MAGFI_FRONT_POCKET", alt: "Mudawwar Magfi Front Pocket", displayText: "Mudawwar Magfi Front Pocket", image: mudawwarMagfiFrontPocket },
+  { value: "FRO_MURABBA_FRONT_POCKET", alt: "Murabba Front Pocket", displayText: "Murabba Front Pocket", image: murabbaFrontPocket },
+  { value: "FRO_MUSALLAS_FRONT_POCKET", alt: "Musallas Front Pocket", displayText: "Musallas Front Pocket", image: musallasFrontPocket },
+  { value: "FRO_MUDAWWAR_FRONT_POCKET", alt: "Mudawwar Front Pocket", displayText: "Mudawwar Front Pocket", image: mudawwarFrontPocket },
+];
+
+/** Side pocket types */
+export const sidePocketTypes: BaseOption[] = [
+  { value: "SID_MUDAWWAR_SIDE_POCKET", alt: "Mudawwar Side Pocket", displayText: "Mudawwar Side Pocket", image: mudawwarSidePocket },
 ];
 
 /** Cuff types (used for sleeves/cuffs) */
 export const cuffTypes: BaseOption[] = [
-  { value: "CUFF1", alt: "Cuff 1", displayText: "Cuff 1", image: cuff1Image },
-  { value: "CUFF2", alt: "Cuff 2", displayText: "Cuff 2", image: cuff2Image },
-  { value: "CUFF3", alt: "Cuff 3", displayText: "Cuff 3", image: cuff3Image },
-  { value: "CUFF4", alt: "Cuff 4", displayText: "Cuff 4", image: cuff4Image },
+  { value: "CUF_DOUBLE_GUMSHA", alt: "Double Gumsha", displayText: "Double Gumsha", image: doubleGumsha },
+  { value: "CUF_MURABBA_KABAK", alt: "Murabba Kabak", displayText: "Murabba Kabak", image: murabbaKabak },
+  { value: "CUF_MUSALLAS_KABBAK", alt: "Musallas Kabbak", displayText: "Musallas Kabbak", image: musallasKabbak },
+  { value: "CUF_MUDAWAR_KABBAK", alt: "Mudawar Kabbak", displayText: "Mudawar Kabbak", image: mudawarKabbak },
+  { value: "CUF_NO_CUFF", alt: "No Cuff", displayText: "No Cuff", image: null },
 ];
 
 /** Fabric source & style types */

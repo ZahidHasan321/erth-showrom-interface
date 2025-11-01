@@ -25,3 +25,8 @@ dist-ssr
 .env
 .tanstack
 .gemini.md
+.claude
+CLAUDE.md
+# Schema reference (for development reference only)
+airtable-schema-reference.json
+docker-compose.yml

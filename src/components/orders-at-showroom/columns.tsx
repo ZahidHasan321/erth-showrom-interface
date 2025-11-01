@@ -21,7 +21,7 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
     id: "select",
     header: ({ table }) => (
       <Checkbox
-        className="translate-y-[2px]"
+        className="translate-y-0.5"
         checked={
           table.getIsAllPageRowsSelected()
             ? true
@@ -37,7 +37,7 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
     ),
     cell: ({ row }) => (
       <Checkbox
-        className="translate-y-[2px]"
+        className="translate-y-0.5"
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(Boolean(value))}
         aria-label={`Select order ${row.original.orderId}`}
@@ -57,7 +57,7 @@ export const ordersAtShowroomColumns: ColumnDef<OrderRow>[] = [
     accessorKey: "customerId",
     header: "Customer ID",
   },
-  {
+  {  
     accessorKey: "customerNickName",
     header: "Customer Nick name",
   },

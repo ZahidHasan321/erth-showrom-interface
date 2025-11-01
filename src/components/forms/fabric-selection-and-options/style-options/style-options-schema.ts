@@ -5,6 +5,7 @@ import {
   collarButtons,
   jabzourTypes,
   topPocketTypes,
+  sidePocketTypes,
   cuffTypes,
   thicknessOptions,
 } from "../constants";
@@ -14,6 +15,7 @@ const collarTypeValues = collarTypes.map(i => i.value) as [string, ...string[]];
 const collarButtonValues = collarButtons.map(i => i.value) as [string, ...string[]];
 const jabzourTypeValues = jabzourTypes.map(i => i.value) as [string, ...string[]];
 const topPocketTypeValues = topPocketTypes.map(i => i.value) as [string, ...string[]];
+const sidePocketTypeValues = sidePocketTypes.map(i => i.value) as [string, ...string[]];
 const cuffTypeValues = cuffTypes.map(i => i.value) as [string, ...string[]];
 const thicknessValues = thicknessOptions.map(i => i.value) as [string, ...string[]];
 
@@ -42,6 +44,7 @@ export const styleOptionsSchema = z.object({
 
   sidePocket: z
     .object({
+      side_pocket_type: z.enum(sidePocketTypeValues).optional(),
       phone: z.boolean().optional(),
       wallet: z.boolean().optional(),
     })
@@ -60,7 +63,21 @@ export const styleOptionsSchema = z.object({
       cuffs_thickness: z.enum(thicknessValues).optional(),
     })
     .optional(),
-});
+
+  extraAmount: z.number().optional(),
+}).refine(
+  (data) => {
+    // If jabzour1 is "JAB_SHAAB", jabzour2 must be selected
+    if (data.jabzoor?.jabzour1 === "JAB_SHAAB") {
+      return data.jabzoor?.jabzour2 !== null && data.jabzoor?.jabzour2 !== undefined;
+    }
+    return true;
+  },
+  {
+    message: "Jabzour 2 is required when Shaab is selected",
+    path: ["jabzoor", "jabzour2"],
+  }
+);
 
 export type StyleOptionsSchema = z.infer<typeof styleOptionsSchema>;
 
@@ -70,26 +87,27 @@ export const styleOptionsDefaults: StyleOptionsSchema = {
   style: "kuwaiti",
   lines: "line1",
   collar: {
-    collarType: "JAPANESE COLLAR",
-    collarButton: "MULTI HOLES",
+    collarType: "COL_JAPANESE",
+    collarButton: "COL_ARAVI_ZARRAR",
     smallTabaggi: false,
   },
   jabzoor: {
-    jabzour1: "APPARENT",
-    jabzour2: "APPARENT",
+    jabzour1: "JAB_BAIN_MURABBA",
+    jabzour2: "JAB_BAIN_MURABBA",
     jabzour_thickness: "SINGLE",
   },
   sidePocket: {
+    side_pocket_type: "SID_MUDAWWAR_SIDE_POCKET",
     phone: false,
     wallet: false,
   },
   frontPocket: {
-    front_pocket_type: "SQUARE",
+    front_pocket_type: "FRO_MURABBA_FRONT_POCKET",
     front_pocket_thickness: "SINGLE",
     pen_holder: false,
   },
   cuffs: {
-    cuffs_type: "CUFF1",
+    cuffs_type: "CUF_DOUBLE_GUMSHA",
     cuffs_thickness: "SINGLE",
   },
 };

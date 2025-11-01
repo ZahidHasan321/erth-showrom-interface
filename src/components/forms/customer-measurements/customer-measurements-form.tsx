@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Combobox } from "@/components/ui/combobox";
 import { GroupedMeasurementFields } from "./GroupedMeasurementFields";
 
 import {
@@ -35,13 +36,14 @@ import {
   getMeasurementsByCustomerId,
   updateMeasurement,
 } from "@/api/measurements";
+import { getEmployees } from "@/api/employees";
 import {
   mapFormValuesToMeasurement,
   mapMeasurementToFormValues,
 } from "@/lib/measurement-mapper";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 import type { Measurement } from "@/types/measurement";
+import { Pencil, X, Save, Plus, ArrowRight } from "lucide-react";
 
 // ---------------------------------------
 // Type definitions
@@ -158,6 +160,16 @@ export function CustomerMeasurementsForm({
 
   useAutoProvision(form);
 
+  // Fetch employees data
+  const { data: employeesResponse } = useQuery({
+    queryKey: ["employees"],
+    queryFn: getEmployees,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+
+  const employees = employeesResponse?.data || [];
+
   // For adding a *new* measurement (must be complete)
   const addMeasurement = (id: string, data: CustomerMeasurementsSchema) => {
     setMeasurements((prev) => {
@@ -227,6 +239,8 @@ export function CustomerMeasurementsForm({
       return getMeasurementsByCustomerId(customerId);
     },
     enabled: !!customerId,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   React.useEffect(() => {
@@ -347,27 +361,9 @@ export function CustomerMeasurementsForm({
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1 },
-  };
-
   return (
     <Form {...form}>
-      <motion.form
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+      <form
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-8 w-full"
       >
@@ -381,28 +377,30 @@ export function CustomerMeasurementsForm({
           description={confirmationDialog.description}
         />
 
-        <motion.h1 variants={itemVariants} className="text-2xl font-bold mb-4">
-          Measurement
-        </motion.h1>
+        <div className="flex justify-between items-start mb-6">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-foreground bg-linear-to-r from-primary to-secondary bg-clip-text">
+              Measurement
+            </h1>
+            <p className="text-sm text-muted-foreground">Customer body measurements and details</p>
+          </div>
+        </div>
 
         {/* ---- Top Controls ---- */}
-        <motion.div
-          variants={itemVariants}
-          className="flex flex-wrap w-fit justify-start gap-6 bg-muted p-4 rounded-lg"
-        >
+        <div className="flex flex-wrap justify-start gap-6 bg-card p-6 rounded-xl border border-border shadow-sm">
           <FormField
             control={form.control}
             name="measurementType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Measurement Type</FormLabel>
+                <FormLabel className="font-medium">Measurement Type</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
                   disabled={!isEditing}
                 >
                   <FormControl>
-                    <SelectTrigger className="bg-white w-auto min-w-24">
+                    <SelectTrigger className="bg-background border-border/60 w-auto min-w-24">
                       <SelectValue placeholder="Select Type" />
                     </SelectTrigger>
                   </FormControl>
@@ -420,7 +418,7 @@ export function CustomerMeasurementsForm({
             name="measurementID"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Measurement ID</FormLabel>
+                <FormLabel className="font-medium">Measurement ID</FormLabel>
                 <div className="flex items-center gap-2">
                   <Select
                     onValueChange={(value) => {
@@ -431,7 +429,7 @@ export function CustomerMeasurementsForm({
                     disabled={!customerId || isCreatingNew || isFetching}
                   >
                     <FormControl>
-                      <SelectTrigger className="bg-white w-auto min-w-24">
+                      <SelectTrigger className="bg-background border-border/60 w-auto min-w-24">
                         <SelectValue placeholder="Select ID" />
                       </SelectTrigger>
                     </FormControl>
@@ -454,14 +452,14 @@ export function CustomerMeasurementsForm({
             name="measurementReference"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Reference</FormLabel>
+                <FormLabel className="font-medium">Reference</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
                   disabled={!isEditing}
                 >
                   <FormControl>
-                    <SelectTrigger className="bg-white w-auto min-w-24">
+                    <SelectTrigger className="bg-background border-border/60 w-auto min-w-24">
                       <SelectValue placeholder="Reference" />
                     </SelectTrigger>
                   </FormControl>
@@ -476,13 +474,34 @@ export function CustomerMeasurementsForm({
               </FormItem>
             )}
           />
-        </motion.div>
+
+          <FormField
+            control={form.control}
+            name="measurer"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium">Measurer</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={employees.map((emp) => ({
+                      value: emp.id,
+                      label: emp.fields.Name,
+                    }))}
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    placeholder="Select measurer"
+                    disabled={!isEditing}
+                    className="w-auto min-w-48"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {/* ---- Measurement Groups ---- */}
-        <motion.div
-          variants={itemVariants}
-          className="flex flex-col 2xl:flex-row  2xl:flex-wrap gap-4 items-start pt-8"
-        >
+        <div className="flex flex-col 2xl:flex-row  2xl:flex-wrap gap-4 items-start pt-8">
           <div className="flex flex-row gap-6 flex-wrap">
             <GroupedMeasurementFields
               form={form}
@@ -556,12 +575,9 @@ export function CustomerMeasurementsForm({
               { name: "body.bottom", label: "Bottom" },
             ]}
           />
-        </motion.div>
+        </div>
 
-        <motion.div
-          variants={itemVariants}
-          className="flex flex-row gap-6 flex-wrap"
-        >
+        <div className="flex flex-row gap-6 flex-wrap">
           <GroupedMeasurementFields
             form={form}
             title="Top Pocket"
@@ -595,70 +611,77 @@ export function CustomerMeasurementsForm({
               { name: "sidePocket.opening", label: "Opening" },
             ]}
           />
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants}>
+        <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
           <FormField
             control={form.control}
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Notes</FormLabel>
+                <FormLabel className="font-medium">Notes</FormLabel>
                 <FormControl>
                   <Textarea
                     rows={5}
                     placeholder="Special requests or notes"
                     {...field}
                     disabled={!isEditing}
+                    className="bg-background border-border/60"
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </motion.div>
+        </div>
 
         {/* ---- Buttons ---- */}
-        <motion.div
-          variants={itemVariants}
-          className="flex flex-wrap justify-center gap-6 pt-4"
-        >
-          {!isOrderClosed && <Button
-            type="button"
-            variant="outline"
-            onClick={() => setIsEditing(true)}
-            disabled={!selectedMeasurementId || isEditing}
-          >
-            Edit
-          </Button>}
-          {(isEditing || isCreatingNew && !isOrderClosed) && (
-            <div className="flex gap-4">
+        <div className="flex flex-wrap justify-end gap-4 pt-4">
+          {!isOrderClosed && !isEditing && !isCreatingNew && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsEditing(true)}
+              disabled={!selectedMeasurementId}
+            >
+              <Pencil className="w-4 h-4 mr-2" />
+              Edit Measurement
+            </Button>
+          )}
+          {(isEditing || isCreatingNew) && !isOrderClosed && (
+            <>
               <Button
                 type="button"
-                variant="destructive"
+                variant="outline"
                 onClick={handleCancel}
               >
+                <X className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
-              <Button type="submit" variant="outline" disabled={isSaving}>
+              <Button type="submit" disabled={isSaving}>
                 {isSaving ? (
                   <>
                     <SmallSpinner />
                     <span className="ml-2">Saving...</span>
                   </>
                 ) : (
-                  "Save"
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Measurement
+                  </>
                 )}
               </Button>
-            </div>
+            </>
           )}
           {!isEditing && !isOrderClosed && (
-            <div className="flex gap-4">
+            <>
               <Button
                 type="button"
+                variant="outline"
                 onClick={handleNewMeasurement}
                 disabled={!customerId}
               >
+                <Plus className="w-4 h-4 mr-2" />
                 New Measurement
               </Button>
               <Button
@@ -666,12 +689,13 @@ export function CustomerMeasurementsForm({
                 onClick={onProceed}
                 disabled={measurements.size === 0}
               >
-                Proceed
+                Continue to Fabric Selection
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-            </div>
+            </>
           )}
-        </motion.div>
-      </motion.form>
+        </div>
+      </form>
     </Form>
   );
 }

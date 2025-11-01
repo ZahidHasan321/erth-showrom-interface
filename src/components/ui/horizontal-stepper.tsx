@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Check, ChevronRight } from "lucide-react";
+import { Check } from "lucide-react";
 import * as React from "react";
 import { motion } from "framer-motion";
 
@@ -26,50 +26,73 @@ const Step: React.FC<StepProps> = ({
       type="button"
       onClick={onClick}
       className={cn(
-        isActive ? "border shadow" : null,
-        "flex flex-col items-center cursor-pointer p-2 rounded-md transition-colors group",
-        "hover:bg-muted",
-        "focus:outline-none"
+        "flex flex-col items-center cursor-pointer px-4 py-3 rounded-xl transition-all group relative",
+        "hover:bg-accent/30 hover:shadow-sm",
+        "focus:outline-none",
+        isActive && "bg-accent/20 shadow-md"
       )}
     >
       <div className="relative flex flex-col items-center">
         <motion.div
           layout
           className={cn(
-            "w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors",
+            "w-11 h-11 rounded-full border-[3px] flex items-center justify-center transition-all font-semibold shadow-sm relative overflow-hidden",
             isCompleted
-              ? "border-primary bg-primary text-primary-foreground"
+              ? "border-primary bg-linear-to-br from-primary to-primary/90 text-primary-foreground shadow-primary/25"
               : isActive
-                ? "border-primary text-primary font-extrabold"
-                : "border-muted-foreground/50"
+                ? "border-secondary bg-linear-to-br from-secondary/10 to-secondary/20 text-secondary font-bold shadow-secondary/20"
+                : "border-border bg-background text-muted-foreground"
           )}
-          animate={{ scale: isActive ? 1.12 : 1 }}
+          animate={{
+            scale: isActive ? 1.08 : 1,
+            rotate: isCompleted ? [0, -10, 10, -10, 0] : 0
+          }}
           transition={{
-            duration: 0.28,
-            type: "spring",
-            stiffness: 260,
-            damping: 22,
+            scale: {
+              duration: isActive ? 0.3 : 0.5,
+              type: "spring",
+              stiffness: 280,
+              damping: 20,
+            },
+            rotate: {
+              duration: 0.5,
+              type: "tween",
+              ease: "easeInOut",
+            },
           }}
         >
+          {isCompleted && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute inset-0 bg-primary/10 rounded-full"
+            />
+          )}
           {isCompleted ? (
-            <Check className="w-4 h-4" />
+            <Check className="w-5 h-5 relative z-10" />
           ) : (
-            <span>{index + 1}</span>
+            <span className="text-base relative z-10">{index + 1}</span>
           )}
         </motion.div>
       </div>
 
-      <div className="mt-2 text-center hidden md:block">
-        <p
+      <div className="mt-2.5 text-center hidden md:block">
+        <motion.p
           className={cn(
-            "text-sm font-medium transition-colors",
-            isActive || isCompleted
-              ? "text-foreground"
-              : "text-muted-foreground"
+            "text-sm font-medium transition-all whitespace-nowrap",
+            isActive
+              ? "text-secondary font-semibold"
+              : isCompleted
+                ? "text-primary font-medium"
+                : "text-muted-foreground"
           )}
+          animate={{
+            scale: isActive ? 1.02 : 1,
+          }}
+          transition={{ duration: 0.2 }}
         >
           {title}
-        </p>
+        </motion.p>
       </div>
     </button>
   );
@@ -77,7 +100,7 @@ const Step: React.FC<StepProps> = ({
 
 interface StepperProps {
   steps: Array<{ title: string; description?: string; id: string }>;
-  completedSteps: number[];
+  completedSteps: number[];  
   currentStep: number;
   onStepChange: (index: number) => void;
 }
@@ -92,8 +115,8 @@ export const HorizontalStepper: React.FC<StepperProps> = ({
   onStepChange,
 }) => {
   return (
-    <div className="w-full bg-background border-b border-muted sticky top-0 z-40">
-      <div className="flex flex-row items-center justify-center px-4 py-3 overflow-x-auto 2xl:gap-10">
+    <div className="w-full bg-linear-to-b from-background to-accent/10 border-b border-border/60 sticky top-0 z-40 shadow-sm backdrop-blur-sm">
+      <div className="flex flex-row items-center justify-center px-4 py-5 overflow-x-auto gap-1 lg:gap-2 2xl:gap-6">
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
             <Step
@@ -105,7 +128,21 @@ export const HorizontalStepper: React.FC<StepperProps> = ({
               onClick={() => onStepChange(index)}
             />
             {index < steps.length - 1 && (
-              <ChevronRight className="h-6 w-6 hidden lg:block text-muted-foreground/30" />
+              <div className="hidden lg:flex items-center mx-1">
+                <motion.div
+                  className={cn(
+                    "h-0.5 w-8 rounded-full transition-all",
+                    completedSteps.includes(index)
+                      ? "bg-linear-to-r from-primary to-primary/80"
+                      : index === currentStep
+                        ? "bg-linear-to-r from-secondary/60 to-secondary/30"
+                        : "bg-border"
+                  )}
+                  animate={{
+                    width: completedSteps.includes(index) ? 32 : 32,
+                  }}
+                />
+              </div>
             )}
           </React.Fragment>
         ))}

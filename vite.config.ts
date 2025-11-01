@@ -5,6 +5,11 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    host: '0.0.0.0', // Bind to all network interfaces for Docker
+    port: 5173,
+    strictPort: true,
+  },
   plugins: [
     tanstackRouter({
       target: "react",

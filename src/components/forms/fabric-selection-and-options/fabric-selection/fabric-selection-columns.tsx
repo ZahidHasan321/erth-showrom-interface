@@ -9,6 +9,7 @@ import { useReactToPrint } from "react-to-print";
 import { FabricPrintSummary } from "./fabric-print-component";
 
 export const columns: ColumnDef<FabricSelectionSchema>[] = [
+  // IDs
   {
     accessorKey: "garmentId",
     header: "Garment ID",
@@ -21,12 +22,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     minSize: 150,
     cell: FabricCells.MeasurementIdCell,
   },
-  {
-    accessorKey: "brova",
-    header: "Brova",
-    minSize: 80,
-    cell: FabricCells.BrovaCell,
-  },
+  // Fabric Selection
   {
     accessorKey: "fabricSource",
     header: "Source",
@@ -35,39 +31,58 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
   },
   {
     accessorKey: "ifInside",
-    header: "If inside",
+    header: "Fabric",
     minSize: 200,
     cell: FabricCells.IfInsideCell,
   },
   {
+    accessorKey: "shopName",
+    header: "Shop Name",
+    minSize: 150,
+    cell: FabricCells.ShopNameCell,
+  },
+  {
     accessorKey: "color",
-    header: "Color/ اللون",
+    header: "Color / اللون",
     minSize: 120,
     cell: FabricCells.ColorCell,
   },
   {
     accessorKey: "fabricLength",
-    header: "Fabric Length",
+    header: "Length (m)",
     minSize: 120,
     cell: FabricCells.FabricLengthCell,
   },
   {
+    accessorKey: "fabricAmount",
+    header: "Amount / سعر القماش",
+    minSize: 160,
+    cell: FabricCells.FabricAmountCell,
+  },
+  // Order Details
+  {
+    accessorKey: "brova",
+    header: "Brova",
+    minSize: 80,
+    cell: FabricCells.BrovaCell,
+  },
+  {
     accessorKey: "express",
-    header: "Express/مستعجل",
+    header: "Express / مستعجل",
     minSize: 80,
     cell: FabricCells.ExpressCell,
   },
   {
     accessorKey: "deliveryDate",
-    header: "Delivery Date/موعد التسليم",
+    header: "Delivery Date / موعد التسليم",
     minSize: 150,
     cell: FabricCells.DeliveryDateCell,
   },
   {
-    accessorKey: "fabricAmount",
-    header: "Fabric Amount/سعر القماش",
-    minSize: 160,
-    cell: FabricCells.FabricAmountCell,
+    accessorKey: "homeDelivery",
+    header: "Home Delivery",
+    minSize: 120,
+    cell: FabricCells.HomeDeliveryCell,
   },
   {
     accessorKey: "note",

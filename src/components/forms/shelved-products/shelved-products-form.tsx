@@ -8,6 +8,7 @@ import type { ShelvedProduct, ShelvesFormValues } from './schema'
 import { getShelves } from '@/api/shelves'
 import { columns } from './shelves-columns'
 import { toast } from 'sonner'
+import { Plus, ArrowRight } from 'lucide-react'
 
 interface ShelvedProductsFormProps {
   form: UseFormReturn<ShelvesFormValues>
@@ -20,6 +21,8 @@ export function ShelvedProductsForm({ form, onProceed, isOrderClosed }: ShelvedP
   const { data: serverProducts, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: getShelves,
+    staleTime: Infinity,
+    gcTime: Infinity,
   })
 
   // Initialize state with form values or empty array
@@ -146,27 +149,50 @@ export function ShelvedProductsForm({ form, onProceed, isOrderClosed }: ShelvedP
   }
 
   return (
-    <div className='p-4 w-full mx-[10%] overflow-hidden bg-muted rounded-lg shadow'>
-      <h2 className='text-2xl font-bold mb-4'>Shelves Products</h2>
-      <DataTable
-        columns={columns}
-        data={data}
-        updateData={updateData}
-        removeRow={removeRow}
-        serverProducts={serverProducts?.data}
-        selectedProducts={getSelectedProducts()}
-      />
-      <div className="flex justify-between items-center mt-4">
-        {!isOrderClosed && <Button type="button" onClick={addRow}>
-          Add Item
-        </Button>}
-        <div className="text-right flex flex-col gap-4 font-bold">
-          <div>Total Amount: {totalAmount.toFixed(2)}</div>
-          {!isOrderClosed && <Button type="button" onClick={onProceed}>
-            Proceed
-          </Button>}
+    <div className="space-y-6 w-full">
+      {/* Title Section */}
+      <div className="flex justify-between items-start mb-2">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold text-foreground">
+            Shelved Products
+          </h1>
+          <p className="text-sm text-muted-foreground">Select products from inventory shelves</p>
         </div>
       </div>
+
+      {/* Content Section */}
+      <div className="bg-card p-6 rounded-xl border border-border shadow-sm space-y-6">
+        <DataTable
+          columns={columns}
+          data={data}
+          updateData={updateData}
+          removeRow={removeRow}
+          serverProducts={serverProducts?.data}
+          selectedProducts={getSelectedProducts()}
+        />
+
+        <div className="flex justify-between items-center pt-4 border-t border-border">
+          {!isOrderClosed && (
+            <Button type="button" variant="outline" onClick={addRow}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Item
+            </Button>
+          )}
+          <div className="text-lg font-semibold">
+            Total Amount: <span className="text-primary">{totalAmount.toFixed(2)} KWD</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      {!isOrderClosed && (
+        <div className="flex gap-4 justify-end">
+          <Button type="button" onClick={onProceed}>
+            Continue to Order & Payment
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

@@ -11,6 +11,8 @@ export const mapCustomerToFormValues = (
     customerRecordId: customer.id,
     name: fields.Name || "",
     nickName: fields.NickName || "",
+    arabicName: fields.ArabicName || "",
+    arabicNickname: fields.ArabicNickname || "",
     countryCode: fields.CountryCode || "",
     mobileNumber: fields.Phone || "", // Ensure phone is always a string
     alternativeCountryCode: fields.AlternateCountryCode || "",
@@ -46,6 +48,8 @@ export const mapFormValuesToCustomer = (
       Phone: values.mobileNumber,
       Name: values.name,
       NickName: values.nickName || undefined,
+      ArabicName: values.arabicName || undefined,
+      ArabicNickname: values.arabicNickname || undefined,
       CountryCode: values.countryCode,
       AlternateCountryCode: values.alternativeCountryCode,
       AlternateMobile: values.alternativeMobileNumber,

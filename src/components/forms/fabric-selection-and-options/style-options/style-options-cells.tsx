@@ -16,6 +16,7 @@ import {
   collarTypes,
   cuffTypes,
   jabzourTypes,
+  sidePocketTypes,
   penIcon,
   phoneIcon,
   smallTabaggiImage,
@@ -25,6 +26,8 @@ import {
 } from "../constants";
 import type { CellContext } from "@tanstack/react-table";
 import type { StyleOptionsSchema } from "./style-options-schema";
+import { calculateStylePrice } from "@/lib/utils/style-utils";
+import type { Style } from "@/types/style";
 
 export const GarmentIdCell = ({
   row,
@@ -72,7 +75,7 @@ export const StyleCell = ({
           value={field.value as string}
           disabled={isFormDisabled}
         >
-          <SelectTrigger className="min-w-[150px]">
+          <SelectTrigger className="bg-background border-border/60 min-w-[150px]">
             <SelectValue placeholder="Select Style" />
           </SelectTrigger>
           <SelectContent>
@@ -105,7 +108,7 @@ export const LinesCell = ({
             value={field.value as string}
             disabled={isFormDisabled}
           >
-            <SelectTrigger className="min-w-[140px]">
+            <SelectTrigger className="bg-background border-border/60 min-w-[140px]">
               <SelectValue placeholder="Select Lines" />
             </SelectTrigger>
             <SelectContent>
@@ -147,7 +150,7 @@ export const CollarCell = ({
             value={field.value as string}
             disabled={isFormDisabled}
           >
-            <SelectTrigger className="min-w-[120px]">
+            <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
               {collarType ? (
                 <img
                   src={
@@ -187,7 +190,7 @@ export const CollarCell = ({
             value={field.value as string}
             disabled={isFormDisabled}
           >
-            <SelectTrigger className="min-w-[120px]">
+            <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
               {collarButton ? (
                 <img
                   src={
@@ -262,7 +265,7 @@ export const JabzoorCell = ({
   });
 
   React.useEffect(() => {
-    if (jabzour1 !== "ZIP") {
+    if (jabzour1 !== "JAB_SHAAB") {
       setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, null);
     }
   }, [jabzour1, setValue, row.index]);
@@ -278,7 +281,7 @@ export const JabzoorCell = ({
             value={field.value as string}
             disabled={isFormDisabled}
           >
-            <SelectTrigger className="min-w-[120px]">
+            <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
               {jabzour1 ? (
                 <img
                   src={
@@ -313,7 +316,7 @@ export const JabzoorCell = ({
         )}
       />
       <Plus className="min-w-5 h-6 mt-2" />
-      {jabzour1 === "ZIP" ? (
+      {jabzour1 === "JAB_SHAAB" ? (
         <Controller
           name={`styleOptions.${row.index}.jabzoor.jabzour2`}
           control={control}
@@ -323,7 +326,7 @@ export const JabzoorCell = ({
               value={field.value as string}
               disabled={isFormDisabled}
             >
-              <SelectTrigger className="min-w-[120px]">
+              <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
                 {jabzour2 ? (
                   <img
                     src={
@@ -341,7 +344,7 @@ export const JabzoorCell = ({
               </SelectTrigger>
               <SelectContent>
                 {jabzourTypes
-                  .filter((j) => j.value !== "ZIP")
+                  .filter((j) => j.value !== "JAB_SHAAB")
                   .map((jabzourType) => (
                     <SelectItem
                       key={jabzourType.value}
@@ -373,7 +376,7 @@ export const JabzoorCell = ({
             value={field.value as string}
             disabled={isFormDisabled}
           >
-            <SelectTrigger className="min-w-[60px]">
+            <SelectTrigger className="bg-background border-border/60 min-w-[60px]">
               <SelectValue placeholder="Select Thickness" />
             </SelectTrigger>
             <SelectContent>
@@ -403,8 +406,54 @@ export const SidePocketCell = ({
     isFormDisabled?: boolean;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
+  const sidePocketType = useWatch({
+    name: `styleOptions.${row.index}.sidePocket.side_pocket_type`,
+  });
+
   return (
-    <div className="min-w-[220px] flex flex-row space-x-4 justify-center items-center">
+    <div className="min-w-[360px] flex flex-row space-x-2 items-center">
+      <Controller
+        name={`styleOptions.${row.index}.sidePocket.side_pocket_type`}
+        control={control}
+        render={({ field }) => (
+          <Select
+            onValueChange={field.onChange}
+            value={field.value as string}
+            disabled={isFormDisabled}
+          >
+            <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
+              {sidePocketType ? (
+                <img
+                  src={
+                    sidePocketTypes.find((j) => j.value === sidePocketType)
+                      ?.image || undefined
+                  }
+                  alt={
+                    sidePocketTypes.find((j) => j.value === sidePocketType)?.alt
+                  }
+                  className="min-w-7 h-7 object-contain"
+                />
+              ) : (
+                <SelectValue placeholder="Select Type" />
+              )}
+            </SelectTrigger>
+            <SelectContent>
+              {sidePocketTypes.map((spt) => (
+                <SelectItem key={spt.value} value={spt.value}>
+                  <div className="flex items-center space-x-2">
+                    <img
+                      src={spt.image || undefined}
+                      alt={spt.alt}
+                      className="min-w-12 h-12 object-contain"
+                    />
+                    <span>{spt.displayText}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      />
       <Controller
         name={`styleOptions.${row.index}.sidePocket.phone`}
         control={control}
@@ -475,7 +524,7 @@ export const FrontPocketCell = ({
             value={field.value as string}
             disabled={isFormDisabled}
           >
-            <SelectTrigger className="min-w-[120px]">
+            <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
               {frontPocketType ? (
                 <img
                   src={
@@ -517,7 +566,7 @@ export const FrontPocketCell = ({
             value={field.value as string}
             disabled={isFormDisabled}
           >
-            <SelectTrigger className="min-w-[60px]">
+            <SelectTrigger className="bg-background border-border/60 min-w-[60px]">
               <SelectValue placeholder="Select Thickness" />
             </SelectTrigger>
             <SelectContent>
@@ -563,14 +612,28 @@ export const CuffsCell = ({
   row,
   table,
 }: CellContext<StyleOptionsSchema, unknown>) => {
-  const { control } = useFormContext();
+  const { control, setValue } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
-  const cuffsType = useWatch({
-    name: `styleOptions.${row.index}.cuffs.cuffs_type`,
+  const [cuffsType, cuffsThickness] = useWatch({
+    name: [
+      `styleOptions.${row.index}.cuffs.cuffs_type`,
+      `styleOptions.${row.index}.cuffs.cuffs_thickness`,
+    ],
   });
+
+  // Auto-set thickness to "NO HASHWA" when "NO CUFF" is selected
+  React.useEffect(() => {
+    if (cuffsType === "CUF_NO_CUFF" && cuffsThickness !== "NO HASHWA") {
+      setValue(`styleOptions.${row.index}.cuffs.cuffs_thickness`, "NO HASHWA");
+    }
+    // When changing FROM "NO CUFF" to another type, reset thickness to "SINGLE"
+    if (cuffsType !== "CUF_NO_CUFF" && cuffsThickness === "NO HASHWA") {
+      setValue(`styleOptions.${row.index}.cuffs.cuffs_thickness`, "SINGLE");
+    }
+  }, [cuffsType, cuffsThickness, setValue, row.index]);
 
   return (
     <div className="min-w-[300px] flex flex-row space-x-2">
@@ -583,7 +646,7 @@ export const CuffsCell = ({
             value={field.value as string}
             disabled={isFormDisabled}
           >
-            <SelectTrigger className="min-w-[120px]">
+            <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
               {cuffsType ? (
                 cuffTypes.find((c) => c.value === cuffsType)?.image ? (
                   <img
@@ -636,7 +699,7 @@ export const CuffsCell = ({
             value={field.value as string}
             disabled={isFormDisabled}
           >
-            <SelectTrigger className="min-w-[60px]">
+            <SelectTrigger className="bg-background border-border/60 min-w-[60px]">
               <SelectValue placeholder="Select Thickness" />
             </SelectTrigger>
             <SelectContent>
@@ -654,5 +717,47 @@ export const CuffsCell = ({
         )}
       />
     </div>
+  );
+};
+
+export const ExtraAmountCell = ({
+  row,
+  table,
+}: CellContext<StyleOptionsSchema, unknown>) => {
+  const { control, setValue } = useFormContext();
+  const meta = table.options.meta as {
+    styles?: Style[];
+  };
+  const styles = meta?.styles || [];
+
+  // Watch all the style option fields to recalculate when they change
+  const styleOptions = useWatch({
+    control,
+    name: `styleOptions.${row.index}` as any,
+  }) as StyleOptionsSchema;
+
+  // Calculate the total price based on selected styles
+  const totalPrice = React.useMemo(() => {
+    if (!styleOptions || !styles.length) return 0;
+    return calculateStylePrice(styleOptions, styles);
+  }, [styleOptions, styles]);
+
+  // Update the extraAmount field whenever the total changes
+  React.useEffect(() => {
+    setValue(`styleOptions.${row.index}.extraAmount`, totalPrice);
+  }, [totalPrice, setValue, row.index]);
+
+  return (
+    <Controller
+      name={`styleOptions.${row.index}.extraAmount`}
+      control={control}
+      render={() => (
+        <div className="min-w-[100px] flex items-center justify-center">
+          <span className="text-sm font-semibold text-foreground">
+            {totalPrice > 0 ? `${totalPrice} KD` : "-"}
+          </span>
+        </div>
+      )}
+    />
   );
 };

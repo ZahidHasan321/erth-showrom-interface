@@ -56,9 +56,9 @@ export function Combobox({
           disabled={disabled}
           aria-expanded={open}
           className={cn(
-            "w-full justify-between overflow-hidden",
-            selectedOption ? "bg-white" : "bg-transparent border-foreground/20",
-            className // Add the className prop here
+            "w-full justify-between overflow-hidden bg-background border-border/60",
+            disabled && "opacity-50 cursor-not-allowed",
+            className
           )}
         >
           {selectedOption

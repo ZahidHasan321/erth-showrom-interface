@@ -63,8 +63,8 @@ export const MeasurementIdCell = ({
               disabled={isFormDisabled}
             >
               <SelectTrigger className={cn(
-                "w-[150px] min-w-[150px]",
-                error && "border-red-500"
+                "w-[150px] min-w-[150px] bg-background border-border/60",
+                error && "border-destructive"
               )}>
                 <SelectValue placeholder="Select ID" />
               </SelectTrigger>
@@ -79,7 +79,7 @@ export const MeasurementIdCell = ({
               </SelectContent>
             </Select>
             {error && (
-              <span className="text-xs text-red-500">{error.message}</span>
+              <span className="text-xs text-destructive">{error.message}</span>
             )}
           </div>
         )}
@@ -147,7 +147,10 @@ export const FabricSourceCell = ({
               value={field.value}
               disabled={isFormDisabled}
             >
-              <SelectTrigger className={cn(error && "border-red-500")}>
+              <SelectTrigger className={cn(
+                "bg-background border-border/60",
+                error && "border-destructive"
+              )}>
                 <SelectValue placeholder="Select source" />
               </SelectTrigger>
               <SelectContent>
@@ -156,7 +159,49 @@ export const FabricSourceCell = ({
               </SelectContent>
             </Select>
             {error && (
-              <span className="text-xs text-red-500">{error.message}</span>
+              <span className="text-xs text-destructive">{error.message}</span>
+            )}
+          </div>
+        )}
+      />
+    </div>
+  );
+};
+
+export const ShopNameCell = ({
+  row,
+  table,
+}: CellContext<FabricSelectionSchema, unknown>) => {
+  const { control } = useFormContext();
+  const meta = table.options.meta as {
+    isFormDisabled?: boolean;
+  };
+  const isFormDisabled = meta?.isFormDisabled || false;
+
+  const fabricSource = useWatch({
+    name: `fabricSelections.${row.index}.fabricSource`,
+  });
+
+  const isDisabled = fabricSource !== "Out";
+
+  return (
+    <div className="min-w-[150px]">
+      <Controller
+        name={`fabricSelections.${row.index}.shopName`}
+        control={control}
+        render={({ field, fieldState: { error } }) => (
+          <div className="flex flex-col gap-1">
+            <Input
+              className={cn(
+                "min-w-[150px] bg-background border-border/60",
+                error && "border-destructive"
+              )}
+              placeholder="Enter shop name"
+              {...field}
+              disabled={isDisabled || isFormDisabled}
+            />
+            {error && (
+              <span className="text-xs text-destructive">{error.message}</span>
             )}
           </div>
         )}
@@ -188,6 +233,8 @@ export const IfInsideCell = ({
   const { data: fabricsResponse } = useQuery({
     queryKey: ["fabrics"],
     queryFn: getFabrics,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
 
   const fabrics = fabricsResponse?.data || [];
@@ -231,8 +278,8 @@ export const IfInsideCell = ({
         <div className="flex justify-between w-full">
           <span>{`${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color}`}</span>
           <div className="flex gap-1">
-            <span className="text-gray-500">{`Price: ${fabric.fields.PricePerMeter}`}</span>
-            <span className="text-gray-500">{`Stock: ${fabric.fields.RealStock}`}</span>
+            <span className="text-muted-foreground">{`Price: ${fabric.fields.PricePerMeter}`}</span>
+            <span className="text-muted-foreground">{`Stock: ${fabric.fields.RealStock}`}</span>
           </div>
         </div>
       ),
@@ -245,7 +292,7 @@ export const IfInsideCell = ({
         <Input
           placeholder="Search fabric..."
           disabled
-          className="cursor-not-allowed text-red-500"
+          className="cursor-not-allowed text-destructive bg-muted border-border/60"
         />
       ) : (
         <Controller
@@ -263,10 +310,13 @@ export const IfInsideCell = ({
                 onSearch={setSearchQuery}
                 placeholder="Search fabric..."
                 disabled={isFormDisabled}
-                className={cn(error && "border-red-500")}
+                className={cn(
+                  "bg-background border-border/60",
+                  error && "border-destructive"
+                )}
               />
               {error && (
-                <span className="text-xs text-red-500">{error.message}</span>
+                <span className="text-xs text-destructive">{error.message}</span>
               )}
             </div>
           )}
@@ -300,12 +350,16 @@ export const ColorCell = ({
         render={({ field, fieldState: { error } }) => (
           <div className="flex flex-col gap-1">
             <Input
-              className={cn("min-w-[120px]", error && "border-red-500")}
+              className={cn(
+                "min-w-[120px]",
+                isReadOnly ? "bg-muted border-border/60" : "bg-background border-border/60",
+                error && "border-destructive"
+              )}
               {...field}
               readOnly={isReadOnly || isFormDisabled}
             />
             {error && (
-              <span className="text-xs text-red-500">{error.message}</span>
+              <span className="text-xs text-destructive">{error.message}</span>
             )}
           </div>
         )}
@@ -326,6 +380,8 @@ export const FabricLengthCell = ({
   const { data: fabricsResponse } = useQuery({
     queryKey: ["fabrics"],
     queryFn: getFabrics,
+    staleTime: Infinity,
+    gcTime: Infinity,
   });
   const fabrics = fabricsResponse?.data || [];
 
@@ -391,11 +447,14 @@ export const FabricLengthCell = ({
               {...field}
               type="number"
               step="0.01"
-              className={cn("min-w-[120px]", error && "border-red-500")}
+              className={cn(
+                "min-w-[120px] bg-background border-border/60",
+                error && "border-destructive"
+              )}
               readOnly={isFormDisabled}
             />
             {error && (
-              <span className="text-xs text-red-500">{error.message}</span>
+              <span className="text-xs text-destructive">{error.message}</span>
             )}
           </div>
         )}
@@ -408,22 +467,50 @@ export const ExpressCell = ({
   row,
   table,
 }: CellContext<FabricSelectionSchema, unknown>) => {
-  const { control } = useFormContext();
+  const { control, setError, clearErrors } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
+
+  const [express, homeDelivery] = useWatch({
+    name: [
+      `fabricSelections.${row.index}.express`,
+      `fabricSelections.${row.index}.homeDelivery`,
+    ],
+  });
+
+  // Validate express requires home delivery
+  React.useEffect(() => {
+    if (express && !homeDelivery) {
+      setError(`fabricSelections.${row.index}.express`, {
+        type: "manual",
+        message: "Requires home delivery",
+      });
+    } else {
+      clearErrors(`fabricSelections.${row.index}.express`);
+    }
+  }, [express, homeDelivery, row.index, setError, clearErrors]);
+
   return (
-    <div className="w-full flex justify-center items-center min-w-20">
+    <div className="w-full flex flex-col justify-center items-center min-w-28">
       <Controller
         name={`fabricSelections.${row.index}.express`}
         control={control}
-        render={({ field }) => (
-          <Checkbox
-            checked={field.value as boolean}
-            onCheckedChange={field.onChange}
-            disabled={isFormDisabled}
-          />
+        render={({ field, fieldState: { error } }) => (
+          <div className="flex flex-col gap-1 items-center">
+            <Checkbox
+              checked={field.value as boolean}
+              onCheckedChange={field.onChange}
+              disabled={isFormDisabled}
+              className={cn(error && "border-destructive")}
+            />
+            {error && (
+              <span className="text-xs text-destructive whitespace-nowrap">
+                {error.message}
+              </span>
+            )}
+          </div>
         )}
       />
     </div>
@@ -434,11 +521,30 @@ export const DeliveryDateCell = ({
   row,
   table,
 }: CellContext<FabricSelectionSchema, unknown>) => {
-  const { control, setValue, getValues } = useFormContext();
+  const { control, setValue, getValues, setError, clearErrors } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
+
+  const [homeDelivery, deliveryDate] = useWatch({
+    name: [
+      `fabricSelections.${row.index}.homeDelivery`,
+      `fabricSelections.${row.index}.deliveryDate`,
+    ],
+  });
+
+  // Validate delivery date is required when home delivery is selected
+  React.useEffect(() => {
+    if (homeDelivery && !deliveryDate) {
+      setError(`fabricSelections.${row.index}.deliveryDate`, {
+        type: "manual",
+        message: "Required for home delivery",
+      });
+    } else {
+      clearErrors(`fabricSelections.${row.index}.deliveryDate`);
+    }
+  }, [homeDelivery, deliveryDate, row.index, setError, clearErrors]);
 
   const handleDateChange = (date: Date | null) => {
     // Update current row
@@ -464,10 +570,13 @@ export const DeliveryDateCell = ({
               value={field.value}
               onChange={handleDateChange}
               disabled={isFormDisabled}
-              className={cn(error && "border-red-500")}
+              className={cn(
+                "bg-background border-border/60",
+                error && "border-destructive"
+              )}
             />
             {error && (
-              <span className="text-xs text-red-500">{error.message}</span>
+              <span className="text-xs text-destructive whitespace-nowrap">{error.message}</span>
             )}
           </div>
         )}
@@ -483,6 +592,8 @@ export const FabricAmountCell = ({
   const { data: fabricsResponse } = useQuery({
     queryKey: ["fabrics"],
     queryFn: getFabrics,
+    staleTime: Infinity
+    
   });
   const fabrics = fabricsResponse?.data || [];
 
@@ -522,7 +633,7 @@ export const FabricAmountCell = ({
             type="number"
             {...field}
             readOnly
-            className="w-40 min-w-40"
+            className="w-40 min-w-40 bg-muted border-border/60"
           />
         )}
       />
@@ -547,8 +658,48 @@ export const NoteCell = ({
         render={({ field }) => (
           <Textarea
             {...field}
-            className="min-w-[190px] min-h-10 max-h-[190px]"
+            className="min-w-[190px] min-h-10 max-h-[190px] bg-background border-border/60"
             readOnly={isFormDisabled}
+          />
+        )}
+      />
+    </div>
+  );
+};
+
+export const HomeDeliveryCell = ({
+  row,
+  table,
+}: CellContext<FabricSelectionSchema, unknown>) => {
+  const { control, setValue, getValues } = useFormContext();
+  const meta = table.options.meta as {
+    isFormDisabled?: boolean;
+  };
+  const isFormDisabled = meta?.isFormDisabled || false;
+
+  const handleHomeDeliveryChange = (checked: boolean) => {
+    setValue(`fabricSelections.${row.index}.homeDelivery`, checked);
+
+    // If unchecking home delivery, also uncheck express
+    if (!checked) {
+      const express = getValues(`fabricSelections.${row.index}.express`);
+      if (express) {
+        setValue(`fabricSelections.${row.index}.express`, false);
+        toast.info(`Express delivery unchecked for row ${row.index + 1} (requires home delivery)`);
+      }
+    }
+  };
+
+  return (
+    <div className="w-full flex justify-center items-center min-w-20">
+      <Controller
+        name={`fabricSelections.${row.index}.homeDelivery`}
+        control={control}
+        render={({ field }) => (
+          <Checkbox
+            checked={field.value as boolean}
+            onCheckedChange={handleHomeDeliveryChange}
+            disabled={isFormDisabled}
           />
         )}
       />
