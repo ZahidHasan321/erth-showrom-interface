@@ -26,7 +26,8 @@ export function mapApiOrderToFormOrder(apiOrder: Order): OrderSchema {
       shelf: apiOrder.fields.ShelfCharge ?? 0,
     },
     advance: apiOrder.fields.Advance ?? undefined,
-    balance: apiOrder.fields.Balance ?? undefined,
+    paid: apiOrder.fields.Paid ?? 0,
+    balance: apiOrder.fields.Balance ?? 0,
     numOfFabrics: apiOrder.fields.NumOfFabrics ?? 0,
   };
 }
@@ -57,6 +58,7 @@ export function mapFormOrderToApiOrder(
       DeliveryCharge: formOrder.charges?.delivery,
       ShelfCharge: formOrder.charges?.shelf,
       Advance: formOrder.advance,
+      Paid: formOrder.paid,
       Balance: formOrder.balance,
       NumOfFabrics: formOrder.numOfFabrics,
     },

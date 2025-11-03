@@ -86,7 +86,7 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
       className="bg-muted p-4 rounded-lg space-y-4">
       <h2 className="text-xl font-semibold">Search Customer</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+      <div className="flex justify-between gap-4 items-end">
         <FormItem>
           <FormLabel>Mobile Number</FormLabel>
           <FormControl>
@@ -95,7 +95,7 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
               value={searchMobile}
               onChange={(e) => setSearchMobile(e.target.value)}
               className="bg-white"
-              name="customerSearchMobile"    // important — stable name
+              name="customerSearchMobile"
               type="tel"
               autoCorrect="off"
               spellCheck={false}

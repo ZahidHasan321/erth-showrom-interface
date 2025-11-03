@@ -56,7 +56,7 @@ interface CustomerMeasurementsFormProps {
   isOrderClosed: Boolean
 }
 
-const unit = "cm";
+const unit = "mt";
 
 // ---------------------------------------
 // Custom hook for auto provision updates

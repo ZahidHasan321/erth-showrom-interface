@@ -21,6 +21,7 @@ export interface Order {
     DeliveryCharge?: number;
     ShelfCharge?: number;
     Advance?: number;
+    Paid?: number;
     Balance?: number;
     NumOfFabrics?: number;
   };

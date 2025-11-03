@@ -20,7 +20,7 @@ export function calculateStylePrice(
   // Create a lookup map for faster access: Code -> Rate
   const styleMap = new Map<string, number>();
   styles.forEach((style) => {
-    styleMap.set(style.fields.Code, style.fields.Rate || 0);
+    styleMap.set(style.fields.Code, style.fields.RatePerItem || 0);
   });
 
   // Style (kuwaiti or designer)

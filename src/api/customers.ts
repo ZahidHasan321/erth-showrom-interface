@@ -9,7 +9,7 @@ import {
   upsertRecords,
 } from './baseApi';
 
-const TABLE_NAME = 'CUSTOMER';
+const TABLE_NAME = 'CUSTOMERS';
 
 export const getCustomers = () => getRecords<Customer>(TABLE_NAME);
 

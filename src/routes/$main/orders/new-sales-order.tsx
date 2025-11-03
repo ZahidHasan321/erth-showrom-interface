@@ -1,5 +1,6 @@
 "use client";
 
+import { getEmployees } from "@/api/employees";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
 import {
   customerDemographicsDefaults,
@@ -25,6 +26,7 @@ import { useOrderMutations } from "@/hooks/useOrderMutations";
 import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import { useStepNavigation } from "@/hooks/useStepNavigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -66,6 +68,18 @@ function NewSalesOrder() {
   const order = useCurrentSalesOrderStore((s) => s.order);
   const setOrder = useCurrentSalesOrderStore((s) => s.setOrder);
   const resetSalesOrder = useCurrentSalesOrderStore((s) => s.resetSalesOrder);
+
+  // ============================================================================
+  // DATA FETCHING
+  // ============================================================================
+  const { data: employeesResponse } = useQuery({
+    queryKey: ["employees"],
+    queryFn: getEmployees,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+
+  const employees = employeesResponse?.data || [];
 
   // ============================================================================
   // FORMS SETUP
@@ -263,6 +277,49 @@ function NewSalesOrder() {
   }, [resetSalesOrder]);
 
   // ============================================================================
+  // INVOICE DATA PREPARATION
+  // ============================================================================
+  const invoiceData = React.useMemo(() => {
+    const demographics = demographicsForm.getValues();
+    const orderData = OrderForm.getValues();
+    const paymentData = paymentForm.getValues();
+    const shelvesData = ShelvesForm.getValues().products;
+
+    // Find employee name
+    const orderTakerEmployee = employees.find(
+      (emp) => emp.id === paymentData.orderTaker
+    );
+
+    return {
+      orderId: order.orderID,
+      orderDate: orderData.orderDate,
+      orderType: orderData.orderType,
+      orderStatus: orderData.orderStatus,
+      customerName: demographics.nickName,
+      customerPhone: demographics.mobileNumber,
+      customerAddress: demographics.address,
+      fabricSelections: [],
+      shelvedProducts: shelvesData,
+      charges: orderData.charges,
+      discountType: orderData.discountType,
+      discountValue: orderData.discountValue,
+      discountPercentage: orderData.discountPercentage,
+      advance: orderData.advance,
+      paymentType: paymentData.paymentType,
+      otherPaymentType: paymentData.otherPaymentType,
+      paymentRefNo: paymentData.paymentRefNo,
+      orderTaker: orderTakerEmployee?.fields.Name,
+    };
+  }, [
+    demographicsForm,
+    OrderForm,
+    paymentForm,
+    ShelvesForm,
+    order.orderID,
+    employees,
+  ]);
+
+  // ============================================================================
   // RENDER: LOADING STATE
   // ============================================================================
   if (!orderId && !askedToCreateOrder) {
@@ -394,6 +451,7 @@ function NewSalesOrder() {
           <PaymentTypeForm
             form={paymentForm}
             isOrderClosed={isOrderClosed}
+            invoiceData={invoiceData}
             onConfirm={() => {
               openDialog(
                 "Confirm new sales order",

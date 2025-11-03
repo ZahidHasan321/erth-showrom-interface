@@ -29,8 +29,9 @@ export const orderSchema = z.object({
     shelf: z.number(),
   }),
   advance: z.number().optional(),
-  balance: z.number().optional(),
-  numOfFabrics: z.number().optional(),
+  paid: z.number(),
+  balance: z.number(),
+  numOfFabrics: z.number(),
 });
 
 export const orderDefaults: OrderSchema = {
@@ -48,6 +49,7 @@ export const orderDefaults: OrderSchema = {
     shelf: 0,
   },
   advance: 0,
+  paid: 0,
   balance: 0,
   numOfFabrics: 0,
 };

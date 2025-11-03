@@ -63,6 +63,7 @@ export function OrderTypeAndPaymentForm({
     discountType = "flat",
     discountPercentage = 0,
     orderType = "normal",
+    paid = 0,
   ] = useWatch({
     control: form.control,
     name: [
@@ -72,6 +73,7 @@ export function OrderTypeAndPaymentForm({
       "discountType",
       "discountPercentage",
       "orderType",
+      "paid",
     ],
   });
 
@@ -146,7 +148,7 @@ export function OrderTypeAndPaymentForm({
   }, [discountPercentage, totalDue, discountType, form]);
 
   const finalAmount = totalDue - discountValue;
-  const balance = finalAmount - advance;
+  const balance = finalAmount - paid;
 
   // Check if address is provided
   const hasAddress = React.useMemo(() => {
@@ -223,45 +225,45 @@ export function OrderTypeAndPaymentForm({
                   {orderTypeOptions.map((option) => {
                     const isDisabled = isOrderClosed || (hasAnyHomeDelivery && option.value === "pickUp");
                     return (
-                    <label
-                      key={option.value}
-                      htmlFor={option.value}
-                      className={cn(
-                        "flex flex-col items-center justify-center rounded-lg p-6 border-2 transition-all relative",
-                        !isDisabled && "cursor-pointer hover:border-primary hover:shadow-md",
-                        isDisabled && "opacity-50 cursor-not-allowed",
-                        field.value === option.value
-                          ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-lg"
-                          : "border-border bg-background"
-                      )}
-                    >
-                      {field.value === option.value && (
-                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <CheckIcon className="w-4 h-4 text-primary-foreground" />
-                        </div>
-                      )}
-                      <img
-                        src={option.img}
-                        alt={option.label}
+                      <label
+                        key={option.value}
+                        htmlFor={option.value}
                         className={cn(
-                          "h-16 object-contain transition-all",
-                          field.value === option.value && "scale-110"
+                          "flex flex-col items-center justify-center rounded-lg p-6 border-2 transition-all relative",
+                          !isDisabled && "cursor-pointer hover:border-primary hover:shadow-md",
+                          isDisabled && "opacity-50 cursor-not-allowed",
+                          field.value === option.value
+                            ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-lg"
+                            : "border-border bg-background"
                         )}
-                      />
-                      <FormLabel className={cn(
-                        "mt-3 text-base cursor-pointer transition-all",
-                        field.value === option.value
-                          ? "font-bold text-primary"
-                          : "font-medium text-foreground"
-                      )}>
-                        {option.label}
-                      </FormLabel>
-                      <RadioGroupItem
-                        id={option.value}
-                        value={option.value}
-                        className="sr-only"
-                      />
-                    </label>
+                      >
+                        {field.value === option.value && (
+                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                            <CheckIcon className="w-4 h-4 text-primary-foreground" />
+                          </div>
+                        )}
+                        <img
+                          src={option.img}
+                          alt={option.label}
+                          className={cn(
+                            "h-16 object-contain transition-all",
+                            field.value === option.value && "scale-110"
+                          )}
+                        />
+                        <FormLabel className={cn(
+                          "mt-3 text-base cursor-pointer transition-all",
+                          field.value === option.value
+                            ? "font-bold text-primary"
+                            : "font-medium text-foreground"
+                        )}>
+                          {option.label}
+                        </FormLabel>
+                        <RadioGroupItem
+                          id={option.value}
+                          value={option.value}
+                          className="sr-only"
+                        />
+                      </label>
                     );
                   })}
                 </RadioGroup>
@@ -313,7 +315,7 @@ export function OrderTypeAndPaymentForm({
           )}
         </AnimatePresence>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {/* === Select Discount === */}
           <motion.section
             layout
@@ -329,7 +331,7 @@ export function OrderTypeAndPaymentForm({
                 control={form.control}
                 name="discountType"
                 render={({ field }) => (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                     {discountOptions.map((opt) => {
                       const active = field.value === opt.value;
                       return (
@@ -621,12 +623,35 @@ export function OrderTypeAndPaymentForm({
               <span>Discount</span>
               <span className="text-secondary">{discountValue.toFixed(2)} KWD</span>
             </div>
-            <div className="flex justify-between text-base">
-              <span>Advance</span>
-              <span className="font-medium">
-                {(balance < 0 ? advance + balance : advance).toFixed(2)} KWD
-              </span>
-            </div>
+            <FormField
+              control={form.control}
+              name="paid"
+              render={({ field }) => (
+                <div className="flex flex-col gap-2 text-base">
+                  <div className="flex justify-between">
+                    <span className="text-base font-semibold">Paid</span>
+                    <div className="relative flex items-center">
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        className="w-32 text-left bg-background border-border/60 pr-10"
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value === "" ? undefined : e.target.valueAsNumber
+                          )
+                        }
+                        disabled={isOrderClosed}
+                      />
+                      <span className="absolute right-2 text-muted-foreground pointer-events-none">KWD</span>
+                    </div>                  </div>
+                  <div className="text-sm text-muted-foreground text-right">
+                    Suggested advance: {advance.toFixed(2)} KWD
+                  </div>
+                </div>
+              )}
+            />
             <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
               <span>Balance</span>
               <span className="text-primary">{(balance < 0 ? 0 : balance).toFixed(2)} KWD</span>

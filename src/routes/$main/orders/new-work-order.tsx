@@ -2,6 +2,7 @@
 
 import { getFabrics } from "@/api/fabrics";
 import { getStyles } from "@/api/styles";
+import { getEmployees } from "@/api/employees";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
 import {
   customerDemographicsDefaults,
@@ -87,7 +88,15 @@ function NewWorkOrder() {
     gcTime: Infinity,
   });
 
+  const { data: employeesResponse } = useQuery({
+    queryKey: ["employees"],
+    queryFn: getEmployees,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+
   const styles = stylesResponse?.data || [];
+  const employees = employeesResponse?.data || [];
 
   // Store selectors
   const currentStep = useCurrentWorkOrderStore((s) => s.currentStep);
@@ -251,52 +260,11 @@ function NewWorkOrder() {
    * Uses the Stitch field from styles table for each selected style code
    */
   const calculateStitchingPrice = (styleOptions: StyleOptionsSchema[]) => {
-    // Create a lookup map: Code -> Stitch value
-    const styleStitchMap = new Map<string, number>();
-    styles.forEach((style) => {
-      const stitchValue = typeof style.fields.Stitch === "string"
-        ? parseFloat(style.fields.Stitch)
-        : style.fields.Stitch;
-      styleStitchMap.set(style.fields.Code, stitchValue || 0);
-    });
 
     let totalStitching = 0;
+    const stitchingPrice = 9;
 
-    styleOptions.forEach((styleOption) => {
-      // Add stitching for all selected style codes
-      if (styleOption.style) {
-        const code = styleOption.style === "kuwaiti" ? "STY_KUWAITI" : "STY_DESIGNER";
-        totalStitching += styleStitchMap.get(code) || 0;
-      }
-
-      if (styleOption.lines) {
-        totalStitching += styleStitchMap.get("STY_LINE") || 0;
-      }
-
-      if (styleOption.collar?.collarType) {
-        totalStitching += styleStitchMap.get(styleOption.collar.collarType) || 0;
-      }
-
-      if (styleOption.collar?.collarButton) {
-        totalStitching += styleStitchMap.get(styleOption.collar.collarButton) || 0;
-      }
-
-      if (styleOption.jabzoor?.jabzour1) {
-        totalStitching += styleStitchMap.get(styleOption.jabzoor.jabzour1) || 0;
-      }
-
-      if (styleOption.sidePocket?.side_pocket_type) {
-        totalStitching += styleStitchMap.get(styleOption.sidePocket.side_pocket_type) || 0;
-      }
-
-      if (styleOption.frontPocket?.front_pocket_type) {
-        totalStitching += styleStitchMap.get(styleOption.frontPocket.front_pocket_type) || 0;
-      }
-
-      if (styleOption.cuffs?.cuffs_type) {
-        totalStitching += styleStitchMap.get(styleOption.cuffs.cuffs_type) || 0;
-      }
-    });
+      totalStitching += (stitchingPrice * styleOptions.length);
 
     return totalStitching;
   };
@@ -531,6 +499,57 @@ function NewWorkOrder() {
   }, []);
 
   // ============================================================================
+  // INVOICE DATA PREPARATION
+  // ============================================================================
+  const invoiceData = React.useMemo(() => {
+    const demographics = demographicsForm.getValues();
+    const orderData = OrderForm.getValues();
+    const paymentData = paymentForm.getValues();
+    const fabricsData = fabricSelectionForm.getValues().fabricSelections;
+    const styleOptionsData = fabricSelectionForm.getValues().styleOptions;
+    const shelvesData = ShelvesForm.getValues().products;
+
+    // Find employee name
+    const orderTakerEmployee = employees.find(
+      (emp) => emp.id === paymentData.orderTaker
+    );
+
+    return {
+      orderId: order.orderID,
+      orderDate: orderData.orderDate,
+      orderType: orderData.orderType,
+      orderStatus: orderData.orderStatus,
+      customerName: demographics.nickName,
+      customerPhone: demographics.mobileNumber,
+      customerAddress: demographics.address,
+      fabricSelections: fabricsData,
+      styleOptions: styleOptionsData,
+      shelvedProducts: shelvesData,
+      fabrics: fabricsResponse?.data || [],
+      styles: stylesResponse?.data || [],
+      charges: orderData.charges,
+      discountType: orderData.discountType,
+      discountValue: orderData.discountValue,
+      discountPercentage: orderData.discountPercentage,
+      advance: orderData.advance,
+      paymentType: paymentData.paymentType,
+      otherPaymentType: paymentData.otherPaymentType,
+      paymentRefNo: paymentData.paymentRefNo,
+      orderTaker: orderTakerEmployee?.fields.Name,
+    };
+  }, [
+    demographicsForm,
+    OrderForm,
+    paymentForm,
+    fabricSelectionForm,
+    ShelvesForm,
+    order.orderID,
+    employees,
+    fabricsResponse,
+    stylesResponse,
+  ]);
+
+  // ============================================================================
   // RENDER: NO ORDER STATE
   // ============================================================================
   if (!orderId) {
@@ -703,6 +722,7 @@ function NewWorkOrder() {
             <PaymentTypeForm
               form={paymentForm}
               isOrderClosed={isOrderClosed}
+              invoiceData={invoiceData}
               onConfirm={() => {
                 openDialog(
                   "Confirm new work order",

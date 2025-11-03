@@ -38,7 +38,7 @@ export function GroupedMeasurementFields({
   wrapperClassName,
 }: GroupedMeasurementFieldsProps) {
   return (
-    <div className={cn("bg-card border border-border rounded-xl p-6 shadow-sm", wrapperClassName)}>
+    <div key={title} className={cn("bg-card border border-border rounded-xl p-6 shadow-sm", wrapperClassName)}>
       <h4 className="text-lg font-semibold mb-4 text-foreground">{title}</h4>
       <div className="flex flex-col gap-y-4">
         {fields.map((fieldOrFieldGroup, index) => {

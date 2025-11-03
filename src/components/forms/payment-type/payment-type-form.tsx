@@ -19,6 +19,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getEmployees } from "@/api/employees";
 import { CheckIcon, Check, Printer, X, Receipt } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import * as React from "react";
+import { OrderInvoice, type InvoiceData } from "@/components/invoice";
 
 import KNetLogo from "@/assets/payment-assets/knet.png";
 import CashIcon from "@/assets/payment-assets/cash.png";
@@ -30,6 +33,7 @@ interface PaymentTypeFormProps {
   onConfirm: (values: PaymentTypeSchema) => void;
   onCancel: () => void;
   isOrderClosed?: boolean;
+  invoiceData?: InvoiceData;
 }
 
 export function PaymentTypeForm({
@@ -37,8 +41,10 @@ export function PaymentTypeForm({
   onConfirm,
   onCancel,
   isOrderClosed,
+  invoiceData,
 }: PaymentTypeFormProps) {
   const paymentType = useWatch({ control: form.control, name: "paymentType" });
+  const invoiceRef = React.useRef<HTMLDivElement>(null);
 
   // Fetch employees data
   const { data: employeesResponse } = useQuery({
@@ -49,6 +55,12 @@ export function PaymentTypeForm({
   });
 
   const employees = employeesResponse?.data || [];
+
+  // Print handler
+  const handlePrint = useReactToPrint({
+    contentRef: invoiceRef,
+    documentTitle: `Invoice-${invoiceData?.orderId || "Draft"}`,
+  });
 
   const paymentOptions = [
     { value: "k-net", label: "K-Net", img: KNetLogo },
@@ -279,7 +291,7 @@ export function PaymentTypeForm({
                   Confirm Order
                 </Button>
               )}
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" onClick={handlePrint}>
                 <Printer className="w-4 h-4 mr-2" />
                 Print Invoice
               </Button>
@@ -291,6 +303,11 @@ export function PaymentTypeForm({
               )}
             </motion.div>
           </motion.div>
+        </div>
+
+        {/* Hidden Invoice Component for Printing */}
+        <div className="hidden print:block">
+          {invoiceData && <OrderInvoice ref={invoiceRef} data={invoiceData} />}
         </div>
       </form>
     </Form>

@@ -2,7 +2,7 @@ import type { ApiResponse } from '../types/api';
 import type { Measurement } from '../types/measurement';
 import { createRecord, getRecords, searchAllRecords, updateRecord } from './baseApi';
 
-const TABLE_NAME = 'MEASUREMENT'; // New table name for measurements
+const TABLE_NAME = 'MEASUREMENTS'; // New table name for measurements
 
 export const getMeasurements = () => getRecords<Measurement>(TABLE_NAME);
 

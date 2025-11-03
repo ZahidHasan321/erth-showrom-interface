@@ -2,8 +2,8 @@ export interface StyleFields {
   Code: string;
   Name: string;
   Type: string;
-  Stitch: string;
-  Rate: number;
+  // Stitch: string;
+  // Rate: number;
   RatePerItem: number;
 }
 

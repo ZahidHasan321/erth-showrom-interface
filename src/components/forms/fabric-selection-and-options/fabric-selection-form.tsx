@@ -104,8 +104,31 @@ export function FabricSelectionForm({
     const errors: string[] = [];
     const fabricSelections = form.getValues("fabricSelections");
 
+    // Count valid (non-empty) fabric selections
+    const validSelections = fabricSelections.filter((selection) => {
+      return selection.fabricSource === "In" || selection.fabricSource === "Out";
+    });
+
+    // REQUIRE at least one fabric selection
+    if (validSelections.length === 0) {
+      errors.push("At least one fabric must be selected to save");
+      return errors;
+    }
+
     fabricSelections.forEach((selection, index) => {
-      // Check if required fields are filled
+      // Skip validation for completely empty rows (not started)
+      const isRowEmpty = !selection.fabricSource &&
+                         !selection.measurementId &&
+                         !selection.fabricLength &&
+                         !selection.fabricId &&
+                         !selection.shopName &&
+                         !selection.color;
+
+      if (isRowEmpty) {
+        return; // Skip this row
+      }
+
+      // If row has been started (has any field filled), validate all required fields
       if (!selection.fabricSource) {
         errors.push(`Row ${index + 1}: Fabric source is required`);
       }
@@ -165,9 +188,17 @@ export function FabricSelectionForm({
         throw new Error("No order ID available");
       }
 
-      const promises = data.fabricSelections.map(
-        async (fabricSelection, index) => {
-          const styleOption = data.styleOptions[index];
+      // Filter out empty rows before saving
+      const validFabricSelections = data.fabricSelections.filter((selection) => {
+        // A row is valid if it has at least a fabric source
+        return selection.fabricSource === "In" || selection.fabricSource === "Out";
+      });
+
+      const promises = validFabricSelections.map(
+        async (fabricSelection) => {
+          // Get the original index to match with styleOptions
+          const originalIndex = data.fabricSelections.indexOf(fabricSelection);
+          const styleOption = data.styleOptions[originalIndex];
 
           const fabricWithOrderId = {
             ...fabricSelection,
@@ -195,14 +226,22 @@ export function FabricSelectionForm({
       console.log("API Response on Save:", responses);
       toast.success(`${responses.length} garment(s) saved successfully!`);
 
-      // Update form with response IDs
+      // Update form with response IDs only for valid selections
       const updatedFabricSelections = form
         .getValues("fabricSelections")
-        .map((fabric, index) => ({
-          ...fabric,
-          id: responses[index]?.data?.id || fabric.id,
-          orderId: [orderRecordId!],
-        }));
+        .map((fabric) => {
+          // Find matching response based on fabricSource being filled
+          const responseIndex = responses.findIndex((_, i) => {
+            const validSelections = form.getValues("fabricSelections").filter(s => s.fabricSource === "In" || s.fabricSource === "Out");
+            return validSelections.indexOf(fabric) === i;
+          });
+
+          return {
+            ...fabric,
+            id: responses[responseIndex]?.data?.id || fabric.id,
+            orderId: (fabric.fabricSource === "In" || fabric.fabricSource === "Out") ? [orderRecordId!] : fabric.orderId || [],
+          };
+        });
 
       // IMPORTANT: Update the form state with the new IDs
       // This ensures that subsequent edits will update the existing records
@@ -327,9 +366,12 @@ export function FabricSelectionForm({
       : [];
 
   const addFabricRow = (index: number, orderId?: string) => {
+    const latestMeasurement =
+      measurements.length > 0 ? measurements[measurements.length - 1] : null;
     appendFabricSelection({
       ...fabricSelectionDefaults,
       garmentId: orderId + "-" + (index + 1),
+      measurementId: latestMeasurement?.id ?? "",
     });
   };
 
