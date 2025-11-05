@@ -25,6 +25,7 @@ import { createSalesOrderStore } from "@/store/current-sales-order";
 import { useOrderMutations } from "@/hooks/useOrderMutations";
 import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import { useStepNavigation } from "@/hooks/useStepNavigation";
+import { useFatouraPolling } from "@/hooks/useFatouraPolling";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -94,8 +95,8 @@ function NewSalesOrder() {
     defaultValues: { products: [] },
   });
 
-  const OrderForm = useForm<z.infer<typeof orderSchema>>({
-    resolver: zodResolver(orderSchema),
+  const OrderForm = useForm<OrderSchema>({
+    resolver: zodResolver(orderSchema) as any,
     defaultValues: orderDefaults,
   });
 
@@ -134,6 +135,14 @@ function NewSalesOrder() {
     setCurrentStep,
     addSavedStep,
   });
+
+  // ============================================================================
+  // FATOURA POLLING
+  // ============================================================================
+  const { fatoura } = useFatouraPolling(
+    orderId,
+    orderStatus === "Completed"
+  );
 
   // ============================================================================
   // ORDER MUTATIONS
@@ -191,6 +200,10 @@ function NewSalesOrder() {
         onSuccessAction: "payment",
       });
     }
+  };
+
+  const handleOrderFormProceed = () => {
+    handleProceed(2);
   };
 
   // ============================================================================
@@ -292,6 +305,7 @@ function NewSalesOrder() {
 
     return {
       orderId: order.orderID,
+      fatoura: fatoura,
       orderDate: orderData.orderDate,
       orderType: orderData.orderType,
       orderStatus: orderData.orderStatus,
@@ -305,6 +319,7 @@ function NewSalesOrder() {
       discountValue: orderData.discountValue,
       discountPercentage: orderData.discountPercentage,
       advance: orderData.advance,
+      paid: orderData.paid,
       paymentType: paymentData.paymentType,
       otherPaymentType: paymentData.otherPaymentType,
       paymentRefNo: paymentData.paymentRefNo,
@@ -316,6 +331,7 @@ function NewSalesOrder() {
     paymentForm,
     ShelvesForm,
     order.orderID,
+    fatoura,
     employees,
   ]);
 
@@ -377,6 +393,7 @@ function NewSalesOrder() {
         />
         <OrderInfoCard
           orderID={order.orderID}
+          fatoura={fatoura}
           orderStatus={order.orderStatus ?? "Pending"}
           customerName={order.customerID?.length ? customerDemographics.nickName : undefined}
           orderType="Sales Order"
@@ -435,7 +452,7 @@ function NewSalesOrder() {
             form={OrderForm}
             optional={false}
             onSubmit={handleOrderFormSubmit}
-            onProceed={() => {}}
+            onProceed={handleOrderFormProceed}
             customerAddress={customerDemographics?.address}
           />
         </div>
@@ -452,6 +469,8 @@ function NewSalesOrder() {
             form={paymentForm}
             isOrderClosed={isOrderClosed}
             invoiceData={invoiceData}
+            orderRecordId={orderId}
+            orderStatus={orderStatus}
             onConfirm={() => {
               openDialog(
                 "Confirm new sales order",

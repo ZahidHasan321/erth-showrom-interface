@@ -87,18 +87,18 @@ export const styleOptionsDefaults: StyleOptionsSchema = {
   style: "kuwaiti",
   lines: "line1",
   collar: {
-    collarType: "COL_JAPANESE",
-    collarButton: "COL_ARAVI_ZARRAR",
+    collarType: "COL_DOWN_COLLAR",
+    collarButton: "COL_TABBAGI",
     smallTabaggi: false,
   },
   jabzoor: {
-    jabzour1: "JAB_BAIN_MURABBA",
+    jabzour1: "JAB_SHAAB",
     jabzour2: "JAB_BAIN_MURABBA",
     jabzour_thickness: "SINGLE",
   },
   sidePocket: {
     side_pocket_type: "SID_MUDAWWAR_SIDE_POCKET",
-    phone: false,
+    phone: true,
     wallet: false,
   },
   frontPocket: {
@@ -107,7 +107,7 @@ export const styleOptionsDefaults: StyleOptionsSchema = {
     pen_holder: false,
   },
   cuffs: {
-    cuffs_type: "CUF_DOUBLE_GUMSHA",
-    cuffs_thickness: "SINGLE",
+    cuffs_type: "CUF_NO_CUFF",
+    cuffs_thickness: "NO HASHWA",
   },
 };

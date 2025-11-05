@@ -130,8 +130,8 @@ export const FabricSourceCell = ({
 
   React.useEffect(() => {
     if (fabricSource === "Out") {
-      setValue(`fabricSelections.${row.index}.color`, "");
-      setValue(`fabricSelections.${row.index}.fabricId`, "");
+      setValue(`fabricSelections.${row.index}.color`, "", { shouldValidate: true });
+      setValue(`fabricSelections.${row.index}.fabricId`, "", { shouldValidate: true });
     }
   }, [fabricSource, row.index, setValue]);
 
@@ -245,7 +245,8 @@ export const IfInsideCell = ({
       if (selectedFabric) {
         setValue(
           `fabricSelections.${row.index}.color`,
-          selectedFabric.fields.Color
+          selectedFabric.fields.Color,
+          { shouldValidate: true, shouldDirty: true }
         );
       }
     }
@@ -616,7 +617,7 @@ export const FabricAmountCell = ({
       if (selectedFabric) {
         const pricePerMeter = selectedFabric.fields.PricePerMeter || 0;
         const amount = parseFloat(fabricLength as string) * pricePerMeter;
-        setValue(`fabricSelections.${row.index}.fabricAmount`, amount);
+        setValue(`fabricSelections.${row.index}.fabricAmount`, parseFloat(amount.toFixed(2)));
       }
     } else {
       setValue(`fabricSelections.${row.index}.fabricAmount`, 0);
@@ -630,8 +631,9 @@ export const FabricAmountCell = ({
         control={control}
         render={({ field }) => (
           <Input
-            type="number"
+            type="text"
             {...field}
+            value={typeof field.value === 'number' ? field.value.toFixed(2) : '0.00'}
             readOnly
             className="w-40 min-w-40 bg-muted border-border/60"
           />

@@ -53,6 +53,9 @@ interface FabricSelectionFormProps {
   isProceedDisabled?: boolean;
   onCampaignsChange: (campaigns: string[]) => void;
   isOrderClosed: boolean;
+  orderStatus?: "Pending" | "Completed" | "Cancelled";
+  fatoura?: number;
+  orderDate?: Date | string | null;
 }
 
 export function FabricSelectionForm({
@@ -65,6 +68,9 @@ export function FabricSelectionForm({
   onCampaignsChange,
   isProceedDisabled = false,
   isOrderClosed,
+  orderStatus,
+  fatoura,
+  orderDate,
 }: FabricSelectionFormProps) {
   const [numRowsToAdd, setNumRowsToAdd] = React.useState(0);
   const [selectedCampaigns, setSelectedCampaigns] = React.useState<string[]>(
@@ -608,6 +614,9 @@ export function FabricSelectionForm({
               )
             }
             isFormDisabled={isFormDisabled}
+            orderStatus={orderStatus}
+            fatoura={fatoura}
+            orderDate={orderDate}
           />
 
           <div className="space-y-2 pt-4">

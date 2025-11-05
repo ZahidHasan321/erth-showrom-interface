@@ -113,11 +113,29 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
           tabIndex={disabled ? -1 : 0}
           aria-disabled={disabled}
           style={disabled ? { pointerEvents: "none", opacity: 0.5 } : {}}
-          className="text-gray-600 hover:font-bold"
+          className={`
+            block w-full
+            ${match
+              ? "text-primary font-semibold"
+              : "text-muted-foreground hover:text-foreground"
+            }
+            transition-colors duration-200
+          `}
           // When on new-order page, open in a new tab:
           {...(isNewOrderPage ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         >
-          <SidebarMenuButton isActive={!!match} disabled={disabled}>
+          <SidebarMenuButton
+            isActive={!!match}
+            disabled={disabled}
+            className={`
+              w-full justify-start
+              ${match
+                ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
+                : "hover:bg-accent/50 hover:text-foreground"
+              }
+              transition-all duration-200
+            `}
+          >
             {title}
           </SidebarMenuButton>
         </Link>
@@ -131,14 +149,14 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
 
   return (
     <Sidebar {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="border-b border-border/60">
         <Link
           to="/$main"
           params={{ main: main ?? BRAND_NAMES.showroom }}
-          className="flex flex-row items-center gap-3 px-3 py-3 text-primary hover:opacity-80"
+          className="flex flex-row items-center gap-3 px-4 py-4 transition-all duration-200 hover:bg-accent/30 rounded-lg mx-2"
         >
           <div
-            className="text-sidebar-primary-foreground flex aspect-square items-center justify-center rounded-lg"
+            className="flex aspect-square items-center justify-center rounded-lg bg-primary/10 p-2"
             style={{ width: "3.5rem", height: "3.5rem" }}
           >
             <img
@@ -148,25 +166,29 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
             />
           </div>
           <div className="grid flex-1 text-left leading-tight">
-            <span className="truncate font-bold text-lg">{brandName}</span>
-            {/* ↑ font-bold and larger text */}
+            <span className="truncate font-bold text-xl text-foreground">{brandName}</span>
+            <span className="text-xs text-muted-foreground">Clothing</span>
           </div>
         </Link>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-2 py-4">
         {/* Top-level navigation items. */}
-        <SidebarGroup key="top">
+        <SidebarGroup key="top" className="mb-4">
           <SidebarGroupContent>
-            <SidebarLink key="Homepage" to={mainSegment || "/"} title="Homepage" exactMatch={true} />
+            <SidebarMenu>
+              <SidebarLink key="Homepage" to={mainSegment || "/"} title="Homepage" exactMatch={true} />
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         {/* We create a SidebarGroup for each parent. */}
         {data.navMain.map((item) => (
-          <SidebarGroup key={item.title}>
-            <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
+          <SidebarGroup key={item.title} className="mb-6">
+            <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">
+              {item.title}
+            </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="space-y-1">
                 {item.items.map((subItem) => (
                   <SidebarLink
                     key={subItem.title}

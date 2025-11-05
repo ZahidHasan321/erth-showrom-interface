@@ -4,6 +4,7 @@ import { fabricSourceValues } from "../constants";
 export const fabricSelectionSchema = z.object({
   id: z.string(),
   orderId: z.array(z.string()),
+  fatoura: z.number().optional(),
   garmentId: z.string(),
   brova: z.boolean(),
   fabricSource: z.enum(fabricSourceValues),

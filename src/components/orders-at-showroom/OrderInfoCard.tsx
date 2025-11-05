@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 
 type OrderInfoCardProps = {
   orderID?: string | number;
+  fatoura?: number;
   orderStatus?: string;
   customerName?: string;
   orderType: "Work Order" | "Sales Order";
@@ -17,6 +18,7 @@ type OrderInfoCardProps = {
 
 export function OrderInfoCard({
   orderID,
+  fatoura,
   orderStatus,
   customerName,
   orderType,
@@ -86,6 +88,16 @@ export function OrderInfoCard({
               {customerName || "No customer yet"}
             </span>
           </div>
+
+          {/* Fatoura Number */}
+          {fatoura && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground min-w-20">Invoice #:</span>
+              <span className="font-bold text-primary">
+                {fatoura}
+              </span>
+            </div>
+          )}
 
           {/* Delivery Type */}
           {deliveryType && (

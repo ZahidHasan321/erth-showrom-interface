@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue> {
   selectedProducts?: string[];
   removeRow: (rowIndex: number) => void;
   updateData: (rowIndex: number, columnId: string, value: unknown) => void;
+  isOrderClosed: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -37,6 +38,7 @@ export function DataTable<TData, TValue>({
   serverProducts,
   removeRow,
   updateData,
+  isOrderClosed
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -46,10 +48,12 @@ export function DataTable<TData, TValue>({
       serverProducts,
       removeRow,
       updateData,
+      isOrderClosed
     } as {
       serverProducts?: Shelves[];
       removeRow: (rowIndex: number) => void;
       updateData: (rowIndex: number, columnId: string, value: unknown) => void;
+      isOrderClosed: boolean
     },
   });
 

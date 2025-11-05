@@ -18,10 +18,11 @@ import { type PaymentTypeSchema } from "./schema";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { getEmployees } from "@/api/employees";
-import { CheckIcon, Check, Printer, X, Receipt } from "lucide-react";
+import { CheckIcon, Check, Printer, X, Receipt, Loader2 } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import * as React from "react";
 import { OrderInvoice, type InvoiceData } from "@/components/invoice";
+import { useFatouraPolling } from "@/hooks/useFatouraPolling";
 
 import KNetLogo from "@/assets/payment-assets/knet.png";
 import CashIcon from "@/assets/payment-assets/cash.png";
@@ -34,6 +35,8 @@ interface PaymentTypeFormProps {
   onCancel: () => void;
   isOrderClosed?: boolean;
   invoiceData?: InvoiceData;
+  orderRecordId?: string | null;
+  orderStatus?: "Pending" | "Completed" | "Cancelled";
 }
 
 export function PaymentTypeForm({
@@ -42,9 +45,17 @@ export function PaymentTypeForm({
   onCancel,
   isOrderClosed,
   invoiceData,
+  orderRecordId,
+  orderStatus,
 }: PaymentTypeFormProps) {
   const paymentType = useWatch({ control: form.control, name: "paymentType" });
   const invoiceRef = React.useRef<HTMLDivElement>(null);
+
+  // Poll for fatoura number when order is completed
+  const { fatoura, isLoadingFatoura, hasFatoura } = useFatouraPolling(
+    orderRecordId,
+    orderStatus === "Completed"
+  );
 
   // Fetch employees data
   const { data: employeesResponse } = useQuery({
@@ -291,9 +302,23 @@ export function PaymentTypeForm({
                   Confirm Order
                 </Button>
               )}
-              <Button type="button" variant="outline" onClick={handlePrint}>
-                <Printer className="w-4 h-4 mr-2" />
-                Print Invoice
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handlePrint}
+                disabled={!isOrderClosed || !hasFatoura}
+              >
+                {isLoadingFatoura ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Loading Invoice...
+                  </>
+                ) : (
+                  <>
+                    <Printer className="w-4 h-4 mr-2" />
+                    Print Invoice
+                  </>
+                )}
               </Button>
               {!isOrderClosed && (
                 <Button type="button" variant="destructive" onClick={onCancel}>
@@ -307,8 +332,31 @@ export function PaymentTypeForm({
 
         {/* Hidden Invoice Component for Printing */}
         <div className="hidden print:block">
-          {invoiceData && <OrderInvoice ref={invoiceRef} data={invoiceData} />}
+          {invoiceData && hasFatoura && (
+            <OrderInvoice ref={invoiceRef} data={{ ...invoiceData, fatoura }} />
+          )}
         </div>
+
+        {/* Loading State Overlay */}
+        {isOrderClosed && isLoadingFatoura && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center"
+          >
+            <div className="bg-card p-8 rounded-xl border border-border shadow-lg flex flex-col items-center gap-4">
+              <Loader2 className="w-12 h-12 text-primary animate-spin" />
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-semibold text-foreground">
+                  Generating Invoice Number
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Please wait while we generate your invoice number...
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </form>
     </Form>
   );

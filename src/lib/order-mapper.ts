@@ -5,6 +5,7 @@ export function mapApiOrderToFormOrder(apiOrder: Order): OrderSchema {
   return {
     // Fields from API
     orderID: apiOrder.fields.OrderID,
+    fatoura: apiOrder.fields.Fatoura,
     customerID: apiOrder.fields.CustomerID,
     orderDate: apiOrder.fields.OrderDate,
     orderStatus: apiOrder.fields.OrderStatus,

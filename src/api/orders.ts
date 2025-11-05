@@ -1,6 +1,6 @@
 import type { ApiResponse } from '../types/api';
 import type { Order } from '../types/order';
-import { createRecord, getRecords, searchAllRecords, searchRecords, updateRecord } from './baseApi';
+import { createRecord, getRecords, getRecordById, searchAllRecords, updateRecord } from './baseApi';
 
 const TABLE_NAME = 'ORDERS';
 
@@ -11,7 +11,7 @@ export const searchOrders = (query: Record<string, string>): Promise<ApiResponse
 };
 
 export const getOrderById = (id: string): Promise<ApiResponse<Order>> => {
-  return searchRecords<Order>(TABLE_NAME, { id: id });
+  return getRecordById<Order>(TABLE_NAME, id);
 };
 export const createOrder = (order: Partial<Order>): Promise<ApiResponse<Order>> => {
   return createRecord<Order>(TABLE_NAME, order);

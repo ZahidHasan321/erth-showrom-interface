@@ -1,125 +1,146 @@
-import * as React from "react";
-import type { FabricSelectionSchema } from "./fabric-selection-schema";
+import React from 'react';
 
-interface FabricPrintSummaryProps {
-  fabricData: FabricSelectionSchema;
-  customerName?: string;
-  orderNumber?: string;
+interface FabricLabelProps {
+  fabricData: {
+    orderId: number;
+    garmentId: string;
+    fabricSource: string;
+    fabricLength: string;
+    measurementId: string;
+    brova: boolean;
+    express: boolean;
+    deliveryDate: Date | null;
+  };
+  orderDate?: Date | string | null;
 }
 
-export const FabricPrintSummary = React.forwardRef<
-  HTMLDivElement,
-  FabricPrintSummaryProps
->(({ fabricData, customerName, orderNumber }, ref) => {
-  return (
-    <div ref={ref} className="p-8 bg-white text-black">
-      {/* Header */}
-      <div className="text-center mb-8 border-b-2 border-black pb-4">
-        <h1 className="text-3xl font-bold mb-2">Fabric Order Summary</h1>
-        {orderNumber && (
-          <p className="text-lg">Order #: {orderNumber}</p>
-        )}
-        {customerName && (
-          <p className="text-lg">Customer: {customerName}</p>
-        )}
-        <p className="text-sm text-gray-600 mt-2">
-          Date: {new Date().toLocaleDateString()}
-        </p>
-      </div>
+export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
+  ({ fabricData, orderDate }, ref) => {
+    const formatDate = (date: Date | string | null | undefined) => {
+      if (!date) return "N/A";
+      const d = new Date(date);
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
+    };
 
-      {/* Main Content */}
-      <div className="space-y-6">
-        {/* Garment Information */}
-        <section>
-          <h2 className="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">
-            Garment Information
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="font-medium">Garment ID:</span>
-              <span className="ml-2">{fabricData.garmentId || "N/A"}</span>
+    return (
+      <div
+        ref={ref}
+        className="bg-white text-black"
+        style={{
+          width: '450px',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '18px',
+          padding: '0',
+          margin: '0 auto'
+        }}
+      >
+        <div>
+          {/* Header */}
+          <div style={{
+            textAlign: 'center',
+            padding: '8px 0',
+            borderBottom: '2px solid black',
+            fontSize: '24px',
+            fontWeight: 'bold'
+          }}>
+            Fabric Information
+          </div>
+
+          {/* Order ID */}
+          <div style={{
+            textAlign: 'center',
+            padding: '10px 4px',
+            borderBottom: '2px solid black',
+            fontSize: '22px',
+            fontWeight: 'bold'
+          }}>
+            Order ID: {fabricData.orderId}
+          </div>
+
+          {/* Garment Details Row */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            borderBottom: '2px solid black'
+          }}>
+            <div style={{
+              textAlign: 'center',
+              padding: '8px 4px',
+              borderRight: '1px solid #ccc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Garment ID</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.garmentId}</div>
             </div>
-            <div>
-              <span className="font-medium">Measurement ID:</span>
-              <span className="ml-2">{fabricData.measurementId || "N/A"}</span>
+            <div style={{
+              textAlign: 'center',
+              padding: '8px 4px',
+              borderRight: '1px solid #ccc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Source</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.fabricSource}</div>
             </div>
-            <div>
-              <span className="font-medium">Brova:</span>
-              <span className="ml-2">{fabricData.brova ? "Yes" : "No"}</span>
-            </div>
-            <div>
-              <span className="font-medium">Express:</span>
-              <span className="ml-2">{fabricData.express ? "Yes ⚡" : "No"}</span>
+            <div style={{
+              textAlign: 'center',
+              padding: '8px 4px'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Length</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.fabricLength}m</div>
             </div>
           </div>
-        </section>
 
-        {/* Fabric Details */}
-        <section>
-          <h2 className="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">
-            Fabric Details
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="font-medium">Source:</span>
-              <span className="ml-2 font-semibold">
-                {fabricData.fabricSource === "In" ? "Internal" : "External"}
-              </span>
+          {/* Order Date */}
+          <div style={{
+            textAlign: 'center',
+            padding: '8px 4px',
+            borderBottom: '2px solid black',
+            fontSize: '18px',
+            fontWeight: 'bold'
+          }}>
+            Order Date: {formatDate(orderDate)}
+          </div>
+
+          {/* Measurement Details Row */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            borderBottom: '2px solid black'
+          }}>
+            <div style={{
+              textAlign: 'center',
+              padding: '8px 4px',
+              borderRight: '1px solid #ccc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Measurement ID</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.measurementId}</div>
             </div>
-            <div>
-              <span className="font-medium">Color:</span>
-              <span className="ml-2">{fabricData.color || "N/A"}</span>
+            <div style={{
+              textAlign: 'center',
+              padding: '8px 4px',
+              borderRight: '1px solid #ccc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Brova</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.brova ? 'Yes' : 'No'}</div>
             </div>
-            <div>
-              <span className="font-medium">Fabric Length:</span>
-              <span className="ml-2">{fabricData.fabricLength || "N/A"} meters</span>
-            </div>
-            <div>
-              <span className="font-medium">Fabric Amount:</span>
-              <span className="ml-2 font-semibold">
-                {fabricData.fabricAmount
-                  ? `${fabricData.fabricAmount.toFixed(2)} SAR`
-                  : "N/A"}
-              </span>
+            <div style={{
+              textAlign: 'center',
+              padding: '8px 4px'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Express Delivery</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.express ? 'Yes' : 'No'}</div>
             </div>
           </div>
-        </section>
 
-        {/* Delivery Information */}
-        <section>
-          <h2 className="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">
-            Delivery Information
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="font-medium">Delivery Date:</span>
-              <span className="ml-2">
-                {fabricData.deliveryDate
-                  ? new Date(fabricData.deliveryDate).toLocaleDateString()
-                  : "Not set"}
-              </span>
-            </div>
+          {/* Delivery Date */}
+          <div style={{
+            textAlign: 'center',
+            padding: '8px 4px',
+            fontSize: '18px',
+            fontWeight: 'bold'
+          }}>
+            Delivery Date: {formatDate(fabricData.deliveryDate)}
           </div>
-        </section>
-
-        {/* Notes */}
-        {fabricData.note && (
-          <section>
-            <h2 className="text-xl font-semibold mb-3 border-b border-gray-300 pb-1">
-              Notes
-            </h2>
-            <p className="whitespace-pre-wrap">{fabricData.note}</p>
-          </section>
-        )}
+        </div>
       </div>
-
-      {/* Footer */}
-      <div className="mt-12 pt-6 border-t border-gray-300 text-center text-sm text-gray-600">
-        <p>Thank you for your order!</p>
-        <p className="mt-1">
-          For any queries, please contact us at your convenience.
-        </p>
-      </div>
-    </div>
-  );
-});
+    );
+  }
+);

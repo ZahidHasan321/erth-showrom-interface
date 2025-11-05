@@ -7,6 +7,7 @@ export function mapApiGarmentToFormGarment(apiGarment: Garment): { fabricSelecti
   const fabricSelection: FabricSelectionSchema = {
     id: apiGarment.id,
     orderId: fields.OrderId || [],
+    fatoura: fields.Fatoura,
     garmentId: fields.GarmentId || "",
     brova: fields.Brova ?? false,
     fabricSource: fields.FabricSource,
@@ -69,6 +70,7 @@ export function mapFormGarmentToApiGarment(
     fields: {
       // from fabricSelection
       OrderId: fabricSelection.orderId,
+      Fatoura: fabricSelection.fatoura,
       GarmentId: fabricSelection.garmentId,
       Brova: fabricSelection.brova,
       FabricSource: fabricSelection.fabricSource,

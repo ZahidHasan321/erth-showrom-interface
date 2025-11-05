@@ -44,6 +44,7 @@ import { createWorkOrderStore } from "@/store/current-work-order";
 import { useOrderMutations } from "@/hooks/useOrderMutations";
 import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import { useStepNavigation } from "@/hooks/useStepNavigation";
+import { useFatouraPolling } from "@/hooks/useFatouraPolling";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -51,6 +52,7 @@ import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { calculateStylePrice } from "@/lib/utils/style-utils";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
@@ -146,8 +148,8 @@ function NewWorkOrder() {
     defaultValues: { products: [] },
   });
 
-  const OrderForm = useForm<z.infer<typeof orderSchema>>({
-    resolver: zodResolver(orderSchema),
+  const OrderForm = useForm<OrderSchema>({
+    resolver: zodResolver(orderSchema) as any,
     defaultValues: orderDefaults,
   });
 
@@ -182,6 +184,14 @@ function NewWorkOrder() {
     setCurrentStep,
     addSavedStep,
   });
+
+  // ============================================================================
+  // FATOURA POLLING
+  // ============================================================================
+  const { fatoura } = useFatouraPolling(
+    orderId,
+    orderStatus === "Completed"
+  );
 
   // ============================================================================
   // ORDER MUTATIONS
@@ -273,49 +283,12 @@ function NewWorkOrder() {
    * Calculate style price from styles data
    * Uses the RatePerItem field from styles table for each selected style code
    */
-  const calculateStylePrice = (styleOptions: StyleOptionsSchema[]) => {
-    // Create a lookup map: Code -> RatePerItem value
-    const styleRateMap = new Map<string, number>();
-    styles.forEach((style) => {
-      styleRateMap.set(style.fields.Code, style.fields.RatePerItem || 0);
-    });
+  const calculateStylesPrices = (styleOptions: StyleOptionsSchema[]) => {
 
     let totalStyle = 0;
 
     styleOptions.forEach((styleOption) => {
-      // Add RatePerItem for all selected style codes
-      if (styleOption.style) {
-        const code = styleOption.style === "kuwaiti" ? "STY_KUWAITI" : "STY_DESIGNER";
-        totalStyle += styleRateMap.get(code) || 0;
-      }
-
-      if (styleOption.lines) {
-        totalStyle += styleRateMap.get("STY_LINE") || 0;
-      }
-
-      if (styleOption.collar?.collarType) {
-        totalStyle += styleRateMap.get(styleOption.collar.collarType) || 0;
-      }
-
-      if (styleOption.collar?.collarButton) {
-        totalStyle += styleRateMap.get(styleOption.collar.collarButton) || 0;
-      }
-
-      if (styleOption.jabzoor?.jabzour1) {
-        totalStyle += styleRateMap.get(styleOption.jabzoor.jabzour1) || 0;
-      }
-
-      if (styleOption.sidePocket?.side_pocket_type) {
-        totalStyle += styleRateMap.get(styleOption.sidePocket.side_pocket_type) || 0;
-      }
-
-      if (styleOption.frontPocket?.front_pocket_type) {
-        totalStyle += styleRateMap.get(styleOption.frontPocket.front_pocket_type) || 0;
-      }
-
-      if (styleOption.cuffs?.cuffs_type) {
-        totalStyle += styleRateMap.get(styleOption.cuffs.cuffs_type) || 0;
-      }
+      totalStyle += (calculateStylePrice(styleOption, styles) - 9);
     });
 
     return totalStyle;
@@ -344,7 +317,7 @@ function NewWorkOrder() {
 
     // Calculate prices using styles data
     const stitchingPrice = calculateStitchingPrice(data.styleOptions);
-    const stylePrice = calculateStylePrice(data.styleOptions);
+    const stylePrice = calculateStylesPrices(data.styleOptions);
     const fabricPrice = calculateFabricPrice(data.fabricSelections);
 
     // Update order form with calculated prices
@@ -532,6 +505,7 @@ function NewWorkOrder() {
       discountValue: orderData.discountValue,
       discountPercentage: orderData.discountPercentage,
       advance: orderData.advance,
+      paid: orderData.paid,
       paymentType: paymentData.paymentType,
       otherPaymentType: paymentData.otherPaymentType,
       paymentRefNo: paymentData.paymentRefNo,
@@ -542,6 +516,7 @@ function NewWorkOrder() {
     OrderForm,
     paymentForm,
     fabricSelectionForm,
+    order,
     ShelvesForm,
     order.orderID,
     employees,
@@ -596,6 +571,7 @@ function NewWorkOrder() {
         />
         <OrderInfoCard
           orderID={order.orderID}
+          fatoura={fatoura}
           orderStatus={order.orderStatus ?? "Pending"}
           customerName={order.customerID?.length ? customerDemographics.nickName : undefined}
           orderType="Work Order"
@@ -670,6 +646,9 @@ function NewWorkOrder() {
                 }
               }}
               isProceedDisabled={fabricSelections.length === 0}
+              orderStatus={orderStatus}
+              fatoura={fatoura}
+              orderDate={order.orderDate}
             />
           </ErrorBoundary>
         </div>
@@ -723,6 +702,8 @@ function NewWorkOrder() {
               form={paymentForm}
               isOrderClosed={isOrderClosed}
               invoiceData={invoiceData}
+              orderRecordId={orderId}
+              orderStatus={orderStatus}
               onConfirm={() => {
                 openDialog(
                   "Confirm new work order",

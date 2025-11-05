@@ -3,6 +3,7 @@ export interface Order {
   createdTime?: string;
   fields: {
     OrderID?: string;
+    Fatoura?: number;
     CustomerID?: string[];
     OrderDate?: string;
     OrderStatus: "Pending" | "Completed" | "Cancelled";

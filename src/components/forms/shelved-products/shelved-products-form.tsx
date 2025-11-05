@@ -169,6 +169,7 @@ export function ShelvedProductsForm({ form, onProceed, isOrderClosed }: ShelvedP
           removeRow={removeRow}
           serverProducts={serverProducts?.data}
           selectedProducts={getSelectedProducts()}
+          isOrderClosed={isOrderClosed}
         />
 
         <div className="flex justify-between items-center pt-4 border-t border-border">

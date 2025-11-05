@@ -3,6 +3,7 @@ import { z } from "zod";
 export const orderSchema = z.object({
   // Fields from Order['fields']
   orderID: z.string().optional(),
+  fatoura: z.coerce.number().optional(),
   customerID: z.array(z.string()).optional(),
   orderDate: z.string().optional(),
   orderStatus: z.enum(["Pending", "Completed", "Cancelled"]),

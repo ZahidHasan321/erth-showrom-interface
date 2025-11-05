@@ -1,5 +1,6 @@
 'use client'
 
+import * as React from 'react'
 import { type ColumnDef } from '@tanstack/react-table'
 import { type ShelvedProduct } from './schema'
 import { Button } from '@/components/ui/button'
@@ -110,9 +111,15 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
     header: 'Quantity',
     minSize: 150,
     cell: ({ row, table }) => {
-      const { updateData } = table.options.meta as any
+      const { updateData, isOrderClosed } = table.options.meta as any
       const quantity = row.original.quantity
       const maxStock = row.original.Stock || 0
+      const [inputValue, setInputValue] = React.useState(String(quantity))
+
+      // Sync local state when quantity changes externally (e.g., via buttons)
+      React.useEffect(() => {
+        setInputValue(String(quantity))
+      }, [quantity])
 
       const handleIncrement = (e: React.MouseEvent) => {
         e.preventDefault()
@@ -132,24 +139,48 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
       }
 
       const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = parseInt(e.target.value)
-        
-        if (isNaN(value) || value < 1) {
+        const value = e.target.value
+        setInputValue(value)
+
+        // Allow empty input
+        if (value === '') {
+          return
+        }
+
+        const numValue = parseInt(value)
+
+        // Only update if it's a valid number
+        if (isNaN(numValue)) {
+          return
+        }
+
+        // Clamp value between 1 and maxStock
+        if (numValue < 1) {
           updateData(row.index, 'quantity', 1)
           return
         }
-        
-        if (maxStock === 0) {
-          updateData(row.index, 'quantity', 1)
-          return
-        }
-        
-        if (value > maxStock) {
+
+        if (maxStock > 0 && numValue > maxStock) {
           updateData(row.index, 'quantity', maxStock)
           return
         }
-        
-        updateData(row.index, 'quantity', value)
+
+        updateData(row.index, 'quantity', numValue)
+      }
+
+      const handleBlur = () => {
+        const numValue = parseInt(inputValue)
+
+        // On blur, ensure we have a valid value
+        if (isNaN(numValue) || inputValue === '' || numValue < 1) {
+          updateData(row.index, 'quantity', 1)
+          setInputValue('1')
+        }
+      }
+
+      const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+        // Select all text on focus for easy replacement
+        e.target.select()
       }
 
       const hasError = maxStock === 0 || quantity > maxStock
@@ -157,28 +188,31 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
       return (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <Button 
+            <Button
               type="button"
-              size="icon" 
-              onClick={handleDecrement} 
-              disabled={quantity <= 1}
+              size="icon"
+              onClick={handleDecrement}
+              disabled={quantity <= 1 || isOrderClosed}
               variant="outline"
             >
               -
             </Button>
             <Input
               type="number"
-              value={quantity}
+              value={inputValue}
               onChange={handleChange}
+              onBlur={handleBlur}
+              onFocus={handleFocus}
               className={`w-16 text-center ${hasError ? 'border-red-500' : ''}`}
               max={maxStock}
               min={1}
+              disabled={isOrderClosed}
             />
-            <Button 
+            <Button
               type="button"
-              size="icon" 
-              onClick={handleIncrement} 
-              disabled={quantity >= maxStock || maxStock === 0}
+              size="icon"
+              onClick={handleIncrement}
+              disabled={quantity >= maxStock || maxStock === 0 || isOrderClosed}
               variant="outline"
             >
               +

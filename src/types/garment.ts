@@ -4,6 +4,7 @@ export interface Garment {
   fields: {
     // fabric selection fields
     OrderId?: string[];
+    Fatoura?: number;
     GarmentId?: string;
     Brova: boolean;
     FabricSource: "" | "In" | "Out";

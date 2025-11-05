@@ -86,5 +86,9 @@ export function calculateStylePrice(
   // Cuffs Thickness is not a separate style code
   // No additional price for thickness
 
-  return total;
+  const stitchingPrice = 9;
+
+  if(styleOptions.style === "designer") return 15;
+  
+  return total + stitchingPrice;
 }

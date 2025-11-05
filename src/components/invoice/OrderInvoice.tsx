@@ -8,13 +8,11 @@ import type { Fabric } from "@/types/fabric";
 import type { Style } from "@/types/style";
 
 export interface InvoiceData {
-  // Order Info
   orderId?: string;
+  fatoura?: number;
   orderDate?: string;
   orderType?: "pickUp" | "homeDelivery";
   orderStatus?: string;
-
-  // Customer Info
   customerName?: string;
   customerPhone?: string;
   customerAddress?: {
@@ -24,24 +22,17 @@ export interface InvoiceData {
     street?: string;
     houseNumber?: string;
   };
-
-  // Items
   fabricSelections?: FabricSelectionSchema[];
   styleOptions?: StyleOptionsSchema[];
   shelvedProducts?: ShelvesFormValues["products"];
-
-  // Reference data for mapping IDs to names
   fabrics?: Fabric[];
   styles?: Style[];
-
-  // Charges
   charges?: OrderSchema["charges"];
   discountType?: string;
   discountValue?: number;
   discountPercentage?: number;
   advance?: number;
-
-  // Payment
+  paid: number;
   paymentType?: string;
   otherPaymentType?: string;
   paymentRefNo?: string;
@@ -55,50 +46,37 @@ export interface OrderInvoiceProps {
 export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
   ({ data }, ref) => {
     const {
-      orderId,
+      fatoura,
       orderDate,
       orderType,
-      orderStatus,
       customerName,
       customerPhone,
-      customerAddress,
       fabricSelections = [],
       styleOptions = [],
       shelvedProducts = [],
       fabrics = [],
-      styles = [],
       charges,
       discountType,
       discountValue = 0,
       discountPercentage = 0,
-      advance = 0,
+      paid,
       paymentType,
       otherPaymentType,
       paymentRefNo,
-      orderTaker,
     } = data;
 
-    // Helper functions to get names from IDs
-    const getFabricName = (fabricId?: string) => {
-      if (!fabricId) return null;
-      const fabric = fabrics.find((f) => f.id === fabricId);
-      return fabric?.fields.Name;
+    // Helper function to get fabric name from fabricId
+    const getFabricName = (fabricId: string) => {
+      const fabric = fabrics.find(f => f.id === fabricId);
+      return fabric?.fields?.Name || fabric?.fields?.Code || "Unknown Fabric";
     };
 
-    const getStyleName = (garmentId?: string) => {
-      if (!garmentId) return null;
-      const style = styles.find((s) => s.id === garmentId);
-      return style?.fields.Name;
-    };
-
-    // Calculate totals
     const totalDue = charges
       ? Object.values(charges).reduce((acc, val) => acc + (val || 0), 0)
       : 0;
     const finalAmount = totalDue - discountValue;
-    const balance = finalAmount - advance;
+    const balance = finalAmount - paid;
 
-    // Format date
     const formattedDate = orderDate
       ? new Date(orderDate).toLocaleDateString("en-US", {
           year: "numeric",
@@ -107,20 +85,6 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
         })
       : "";
 
-    // Format address
-    const addressString = customerAddress
-      ? [
-          customerAddress.houseNumber,
-          customerAddress.street,
-          customerAddress.block,
-          customerAddress.area,
-          customerAddress.city,
-        ]
-          .filter(Boolean)
-          .join(", ")
-      : "";
-
-    // Format payment type
     const getPaymentTypeLabel = () => {
       if (paymentType === "others") return otherPaymentType || "Others";
       if (paymentType === "k-net") return "K-Net";
@@ -131,73 +95,71 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
     };
 
     return (
-      <div ref={ref} className="bg-white text-black p-8 max-w-4xl mx-auto">
+      <div
+        ref={ref}
+        className="bg-white text-black p-6 max-w-4xl mx-auto text-sm print:bg-white print:text-black"
+        style={{ direction: 'rtl' }}
+      >
         {/* Header */}
-        <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-gray-300">
-          <div>
-            <img src={ErthLogo} alt="ERTH Showroom" className="h-16 mb-2" />
-            <h1 className="text-2xl font-bold text-gray-800">ERTH Showroom</h1>
-            <p className="text-sm text-gray-600">Custom Tailoring & Garments</p>
+        <div className="mb-4 pb-3" style={{ borderBottom: '1px solid #374151' }}>
+          <div className="text-center mb-3">
+            <img src={ErthLogo} alt="ERTH Clothing" className="h-16 mx-auto mb-2" />
+            <h1 className="text-2xl font-bold text-gray-800">ERTH Clothing</h1>
           </div>
-          <div className="text-right">
-            <h2 className="text-3xl font-bold text-gray-800 mb-1">INVOICE</h2>
-            {orderId && (
-              <p className="text-sm text-gray-600">
-                Order ID: <span className="font-semibold">{orderId}</span>
-              </p>
-            )}
-            {formattedDate && (
-              <p className="text-sm text-gray-600">Date: {formattedDate}</p>
-            )}
-            {orderStatus && (
-              <p className="text-sm">
-                Status:{" "}
-                <span
-                  className={`font-semibold ${
-                    orderStatus === "Completed"
-                      ? "text-green-600"
-                      : orderStatus === "Cancelled"
-                        ? "text-red-600"
-                        : "text-yellow-600"
-                  }`}
-                >
-                  {orderStatus}
-                </span>
-              </p>
-            )}
+          <div className="flex justify-between items-start">
+            <div className="text-right">
+              {fatoura && (
+                <p className="text-xs text-gray-600">
+                  <span className="font-semibold">Invoice # | رقم الفاتورة: {fatoura}</span>
+                </p>
+              )}
+              {formattedDate && (
+                <p className="text-xs text-gray-600">Date | التاريخ: {formattedDate}</p>
+              )}
+            </div>
+            <div className="text-left">
+              <h2 className="text-xl font-bold text-gray-800">Purchase Invoice | فاتورة شراء</h2>
+            </div>
           </div>
         </div>
 
         {/* Customer Information */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-300 pb-2">
-            Customer Information
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold text-gray-800 mb-2 pb-1" style={{ borderBottom: '1px solid #374151' }}>
+            Customer Information | معلومات العميل
           </h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-3 text-xs">
             {customerName && (
-              <div>
-                <p className="text-sm text-gray-600">Name</p>
-                <p className="font-semibold">{customerName}</p>
+              <div className="py-1 px-2 text-right" style={{ borderLeft: '1px solid #d1d5db' }}>
+                <span className="text-gray-600">Name | الاسم: </span>
+                <span className="font-semibold">{customerName}</span>
               </div>
             )}
             {customerPhone && (
-              <div>
-                <p className="text-sm text-gray-600">Phone</p>
-                <p className="font-semibold">{customerPhone}</p>
-              </div>
-            )}
-            {addressString && (
-              <div className="col-span-2">
-                <p className="text-sm text-gray-600">Address</p>
-                <p className="font-semibold">{addressString}</p>
+              <div className="py-1 px-2 text-right" style={{ borderLeft: '1px solid #d1d5db' }}>
+                <span className="text-gray-600">Phone | رقم الهاتف: </span>
+                <span className="font-semibold">{customerPhone}</span>
               </div>
             )}
             {orderType && (
-              <div>
-                <p className="text-sm text-gray-600">Delivery Type</p>
-                <p className="font-semibold">
-                  {orderType === "homeDelivery" ? "Home Delivery" : "Pick Up"}
-                </p>
+              <div className="py-1 px-2 text-right flex items-center gap-3">
+                <span className="text-gray-600">Delivery | التوصيل:</span>
+                <div className="flex items-center gap-1">
+                  <span className="inline-block w-4 h-4 border-2 border-gray-600 items-center justify-center" style={{
+                    backgroundColor: orderType === "pickUp" ? "#374151" : "transparent"
+                  }}>
+                    {orderType === "pickUp" && <span className="text-white text-xs font-bold">✓</span>}
+                  </span>
+                  <span className="text-xs">Pick Up | استلام</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="inline-block w-4 h-4 border-2 border-gray-600 items-center justify-center" style={{
+                    backgroundColor: orderType === "homeDelivery" ? "#374151" : "transparent"
+                  }}>
+                    {orderType === "homeDelivery" && <span className="text-white text-xs font-bold">✓</span>}
+                  </span>
+                  <span className="text-xs">Home | منزلي</span>
+                </div>
               </div>
             )}
           </div>
@@ -205,78 +167,186 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
 
         {/* Order Items */}
         {(fabricSelections.length > 0 || shelvedProducts.length > 0) && (
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-300 pb-2">
-              Order Items
+          <div className="mb-3">
+            <h3 className="text-sm font-semibold text-gray-800 mb-2 pb-1" style={{ borderBottom: '1px solid #374151' }}>
+              Order Items | بنود الطلب
             </h3>
 
-            {/* Fabric Selections */}
-            {fabricSelections.length > 0 && (
-              <div className="mb-4">
-                <h4 className="font-semibold text-gray-700 mb-2">
-                  Fabric Selections
+            {/* Fabric Selections - Inside Source */}
+            {fabricSelections.filter(f => f.fabricSource === "In").length > 0 && (
+              <div className="mb-2">
+                <h4 className="text-xs font-semibold text-gray-700 mb-1">
+                  Fabrics (Inside) | القماش (من الداخل)
                 </h4>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-300">
-                      <th className="text-left py-2">#</th>
-                      <th className="text-left py-2">Fabric</th>
-                      <th className="text-left py-2">Color</th>
-                      <th className="text-left py-2">Length</th>
-                      <th className="text-left py-2">Style</th>
-                      <th className="text-right py-2">Delivery</th>
+                <table className="w-full text-xs" style={{ border: '1px solid #374151', borderCollapse: 'collapse' }}>
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Price (KWD) | سعر القماش
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Length (m) | الطول (متر)
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Unit Price | سعر/متر
+                      </th>
+                      <th className="py-1 px-2 text-center" style={{ border: '1px solid #374151' }}>
+                        Qty | العدد
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Fabric | القماش
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        #
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {fabricSelections.map((fabric, idx) => {
-                      const fabricName = getFabricName(fabric.fabricId);
-                      const styleName = getStyleName(fabric.garmentId);
-                      const styleOption = styleOptions[idx];
-                      const hasNote = fabric.note && fabric.note.trim() !== "";
+                    {(() => {
+                      const insideFabrics = fabricSelections.filter(f => f.fabricSource === "In");
+                      const grouped = insideFabrics.reduce((acc, fabric) => {
+                        const fabricName = getFabricName(fabric.fabricId || "");
+                        const unitPrice = fabric.fabricAmount / parseFloat(fabric.fabricLength);
+                        
+                        if (!acc[fabricName]) {
+                          acc[fabricName] = {
+                            name: fabricName,
+                            quantity: 0,
+                            unitPrice: unitPrice,
+                            totalLength: 0,
+                            totalPrice: 0,
+                          };
+                        }
+                        
+                        acc[fabricName].quantity += 1;
+                        acc[fabricName].totalLength += parseFloat(fabric.fabricLength);
+                        acc[fabricName].totalPrice += fabric.fabricAmount;
+                        
+                        return acc;
+                      }, {} as Record<string, { name: string; quantity: number; unitPrice: number; totalLength: number; totalPrice: number }>);
+
+                      const groupedArray = Object.values(grouped);
+                      const totalFabricCharges = groupedArray.reduce((sum, item) => sum + item.totalPrice, 0);
 
                       return (
-                        <React.Fragment key={fabric.id}>
-                          <tr className="border-b border-gray-200">
-                            <td className="py-2">{idx + 1}</td>
-                            <td className="py-2">
-                              {fabric.fabricSource === "In"
-                                ? fabricName || "N/A"
-                                : fabric.shopName || "Outside Fabric"}
-                            </td>
-                            <td className="py-2">{fabric.color || "N/A"}</td>
-                            <td className="py-2">
-                              {fabric.fabricLength ? `${fabric.fabricLength}m` : "N/A"}
-                            </td>
-                            <td className="py-2">{styleName || "N/A"}</td>
-                            <td className="py-2 text-right">
-                              {fabric.express
-                                ? "Express"
-                                : fabric.homeDelivery
-                                  ? "Home"
-                                  : "Standard"}
+                        <>
+                          {groupedArray.map((item, idx) => (
+                            <tr key={idx} className="even:bg-gray-50">
+                              <td className="py-1 px-2 text-right font-semibold" style={{ border: '1px solid #374151' }}>{item.totalPrice.toFixed(2)}</td>
+                              <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>{item.totalLength.toFixed(1)}</td>
+                              <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>{item.unitPrice.toFixed(2)}</td>
+                              <td className="py-1 px-2 text-center" style={{ border: '1px solid #374151' }}>{item.quantity}</td>
+                              <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>{item.name}</td>
+                              <td className="py-1 px-2 text-center" style={{ border: '1px solid #374151' }}>{idx + 1}</td>
+                            </tr>
+                          ))}
+                          <tr style={{ backgroundColor: '#e0f2fe', fontWeight: 'bold' }}>
+                            <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151', color: '#0c4a6e' }}>{totalFabricCharges.toFixed(2)}</td>
+                            <td colSpan={5} className="py-1 px-2 text-right" style={{ border: '1px solid #374151', color: '#0c4a6e' }}>
+                              Total Fabrics | إجمالي الأقمشة
                             </td>
                           </tr>
-                          {(hasNote || styleOption) && (
-                            <tr className="border-b border-gray-200 bg-gray-50">
-                              <td></td>
-                              <td colSpan={5} className="py-2 text-xs text-gray-600">
-                                {hasNote && (
-                                  <div>
-                                    <strong>Note:</strong> {fabric.note}
-                                  </div>
-                                )}
-                                {styleOption?.collar && (
-                                  <div>
-                                    <strong>Collar:</strong> {styleOption.collar.collarType} -{" "}
-                                    {styleOption.collar.collarButton}
-                                  </div>
-                                )}
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
+                        </>
                       );
-                    })}
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Style Options */}
+            {fabricSelections.length > 0 && (
+              <div className="mb-2">
+                <h4 className="text-xs font-semibold text-gray-700 mb-1">
+                  Style Options | الخيارات
+                </h4>
+                <table className="w-full text-xs" style={{ border: '1px solid #374151', borderCollapse: 'collapse' }}>
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Total | الإجمالي
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Options | الخيارات
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Stitching | الخياطة
+                      </th>
+                      <th className="py-1 px-2 text-center" style={{ border: '1px solid #374151' }}>
+                        Qty | العدد
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Item | الصنف
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        #
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const grouped = styleOptions.reduce((acc, option) => {
+                        const extraAmount = option?.extraAmount || 0;
+                        const style = option?.style || "kuwaiti";
+                        
+                        let itemName = "";
+                        let stitchingCharge = 9;
+                        let optionsCharge = 0;
+                        
+                        if (style === "kuwaiti") {
+                          if (extraAmount === 9) {
+                            itemName = "Default";
+                            optionsCharge = 0;
+                          } else {
+                            itemName = "Dishdasha";
+                            optionsCharge = extraAmount - 9;
+                          }
+                        } else if (style === "designer") {
+                          itemName = "Designer";
+                          stitchingCharge = 9;
+                          optionsCharge = 6;
+                        }
+                        
+                        if (!acc[itemName]) {
+                          acc[itemName] = {
+                            name: itemName,
+                            quantity: 0,
+                            stitchingCharge: stitchingCharge,
+                            optionsCharge: optionsCharge,
+                            total: 0,
+                          };
+                        }
+                        
+                        acc[itemName].quantity += 1;
+                        acc[itemName].total += stitchingCharge + optionsCharge;
+                        
+                        return acc;
+                      }, {} as Record<string, { name: string; quantity: number; stitchingCharge: number; optionsCharge: number; total: number }>);
+
+                      const groupedArray = Object.values(grouped);
+                      const totalCharges = groupedArray.reduce((sum, item) => sum + item.total, 0);
+
+                      return (
+                        <>
+                          {groupedArray.map((item, idx) => (
+                            <tr key={idx} className="even:bg-gray-50">
+                              <td className="py-1 px-2 text-right font-semibold" style={{ border: '1px solid #374151' }}>{item.total}</td>
+                              <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>{item.optionsCharge}</td>
+                              <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>{item.stitchingCharge}</td>
+                              <td className="py-1 px-2 text-center" style={{ border: '1px solid #374151' }}>{item.quantity}</td>
+                              <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>{item.name}</td>
+                              <td className="py-1 px-2 text-center" style={{ border: '1px solid #374151' }}>{idx + 1}</td>
+                            </tr>
+                          ))}
+                          <tr style={{ backgroundColor: '#ddd6fe', fontWeight: 'bold' }}>
+                            <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151', color: '#4c1d95' }}>{totalCharges}</td>
+                            <td colSpan={5} className="py-1 px-2 text-right" style={{ border: '1px solid #374151', color: '#4c1d95' }}>
+                              Total | الإجمالي
+                            </td>
+                          </tr>
+                        </>
+                      );
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -285,29 +355,58 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
             {/* Shelved Products */}
             {shelvedProducts.length > 0 && (
               <div>
-                <h4 className="font-semibold text-gray-700 mb-2">
-                  Shelved Products
+                <h4 className="text-xs font-semibold text-gray-700 mb-1">
+                  Sales Products | منتجات المبيعات
                 </h4>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-300">
-                      <th className="text-left py-2">#</th>
-                      <th className="text-left py-2">Product</th>
-                      <th className="text-left py-2">Size</th>
-                      <th className="text-right py-2">Price</th>
+                <table className="w-full text-xs" style={{ border: '1px solid #374151', borderCollapse: 'collapse' }}>
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Total | الإجمالي
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Unit Price | سعر الوحدة
+                      </th>
+                      <th className="py-1 px-2 text-center" style={{ border: '1px solid #374151' }}>
+                        Qty | العدد
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        Item | الصنف
+                      </th>
+                      <th className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                        #
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {shelvedProducts.map((product, idx) => (
-                      <tr key={product.id} className="border-b border-gray-200">
-                        <td className="py-2">{idx + 1}</td>
-                        <td className="py-2">{product.productType || product.brand || "N/A"}</td>
-                        <td className="py-2">{product.serialNumber || "N/A"}</td>
-                        <td className="py-2 text-right">
-                          {product.unitPrice ? `${product.unitPrice} KWD` : "N/A"}
-                        </td>
-                      </tr>
-                    ))}
+                    {shelvedProducts.map((product, idx) => {
+                      const finalPrice = (product.unitPrice || 0) * (product.quantity || 1);
+                      return (
+                        <tr key={product.id} className="even:bg-gray-50">
+                          <td className="py-1 px-2 text-right font-semibold" style={{ border: '1px solid #374151' }}>
+                            {finalPrice.toFixed(2)}
+                          </td>
+                          <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                            {(product.unitPrice || 0).toFixed(2)}
+                          </td>
+                          <td className="py-1 px-2 text-center" style={{ border: '1px solid #374151' }}>
+                            {product.quantity || 1}
+                          </td>
+                          <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151' }}>
+                            {product.productType || "N/A"}
+                          </td>
+                          <td className="py-1 px-2 text-center" style={{ border: '1px solid #374151' }}>{idx + 1}</td>
+                        </tr>
+                      );
+                    })}
+                    <tr style={{ backgroundColor: '#fce7f3', fontWeight: 'bold' }}>
+                      <td className="py-1 px-2 text-right" style={{ border: '1px solid #374151', color: '#831843' }}>
+                        {shelvedProducts.reduce((sum, p) => sum + ((p.unitPrice || 0) * (p.quantity || 1)), 0).toFixed(2)}
+                      </td>
+                      <td colSpan={4} className="py-1 px-2 text-right" style={{ border: '1px solid #374151', color: '#831843' }}>
+                        Total | الإجمالي
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -315,106 +414,89 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
           </div>
         )}
 
-        {/* Charges Summary */}
-        {charges && (
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-300 pb-2">
-              Charges Summary
-            </h3>
-            <div className="space-y-2 text-sm">
-              {charges.fabric > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Fabric Charges</span>
-                  <span className="font-semibold">{charges.fabric.toFixed(2)} KWD</span>
-                </div>
-              )}
-              {charges.stitching > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Stitching Charges</span>
-                  <span className="font-semibold">{charges.stitching.toFixed(2)} KWD</span>
-                </div>
-              )}
-              {charges.style > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Style Charges</span>
-                  <span className="font-semibold">{charges.style.toFixed(2)} KWD</span>
-                </div>
-              )}
-              {charges.delivery > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Delivery Charges</span>
-                  <span className="font-semibold">{charges.delivery.toFixed(2)} KWD</span>
-                </div>
-              )}
-              {charges.shelf > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Shelved Products</span>
-                  <span className="font-semibold">{charges.shelf.toFixed(2)} KWD</span>
-                </div>
-              )}
-              <div className="flex justify-between pt-2 border-t border-gray-300 font-semibold">
-                <span>Total Due</span>
-                <span>{totalDue.toFixed(2)} KWD</span>
+        {/* Total Charges */}
+        <div className="mb-3">
+          <h3 className="text-sm font-semibold text-gray-800 mb-2 pb-1" style={{ borderBottom: '1px solid #374151' }}>
+            Total Charges | إجمالي الرسوم
+          </h3>
+          <div className="bg-gray-50 p-3" style={{ border: '1px solid #374151' }}>
+            <div className="space-y-1 text-xs mb-2">
+              <div className="flex justify-between py-1" style={{ borderBottom: '1px solid #374151' }}>
+                <span className="font-semibold">{totalDue.toFixed(2)} KWD</span>
+                <span className="font-semibold">Total | الإجمالي</span>
               </div>
+
               {discountValue > 0 && (
-                <div className="flex justify-between text-red-600">
-                  <span>
-                    Discount
-                    {discountType === "flat" && discountPercentage > 0
-                      ? ` (${discountPercentage}%)`
-                      : discountType
-                        ? ` (${discountType})`
-                        : ""}
-                  </span>
-                  <span className="font-semibold">- {discountValue.toFixed(2)} KWD</span>
-                </div>
+                <>
+                  <div className="flex justify-between py-1">
+                    <span className="font-semibold">- {discountValue.toFixed(2)} KWD</span>
+                    <span className="text-gray-700">
+                      Discount | الخصم
+                      {discountType === "flat" && discountPercentage > 0
+                        ? ` (${discountPercentage}%)`
+                        : discountType
+                          ? ` (${discountType})`
+                          : ""}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="font-semibold">
+                      {(totalDue - discountValue).toFixed(2)} KWD
+                    </span>
+                    <span className="text-gray-700">After Discount | بعد الخصم</span>
+                  </div>
+                </>
               )}
-              <div className="flex justify-between text-green-600">
-                <span>Advance Paid</span>
+              <div className="flex justify-between py-1">
                 <span className="font-semibold">
-                  {(balance < 0 ? advance + balance : advance).toFixed(2)} KWD
+                  {paid.toFixed(2)} KWD
                 </span>
+                <span className="text-gray-700">Paid | المدفوع</span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-gray-300 text-lg font-bold">
-                <span>Balance</span>
-                <span>{(balance < 0 ? 0 : balance).toFixed(2)} KWD</span>
+              <div className="flex justify-between pt-2" style={{ borderTop: '1px solid #374151' }}>
+                <span className="font-bold">
+                  {(balance < 0 ? 0 : balance).toFixed(2)} KWD
+                </span>
+                <span className="font-bold">Balance | المتبقي</span>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* Payment Information */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-300 pb-2">
-            Payment Information
-          </h3>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {paymentType && (
-              <div>
-                <p className="text-gray-600">Payment Method</p>
-                <p className="font-semibold">{getPaymentTypeLabel()}</p>
-              </div>
-            )}
-            {paymentRefNo && (
-              <div>
-                <p className="text-gray-600">Reference Number</p>
-                <p className="font-semibold">{paymentRefNo}</p>
-              </div>
-            )}
-            {orderTaker && (
-              <div>
-                <p className="text-gray-600">Order Taken By</p>
-                <p className="font-semibold">{orderTaker}</p>
-              </div>
-            )}
+            {/* Payment Details */}
+            <div className="mt-2 pt-2 grid grid-cols-2 gap-2 text-xs" style={{ borderTop: '1px solid #374151' }}>
+              {paymentType && (
+                <div className="py-1 px-2 text-right" style={{ borderLeft: '1px solid #d1d5db' }}>
+                  <span className="text-gray-600">Payment Method | دفع عن طريق: </span>
+                  <span className="font-semibold">{getPaymentTypeLabel()}</span>
+                </div>
+              )}
+              {paymentRefNo && (
+                <div className="py-1 px-2 text-right">
+                  <span className="text-gray-600">Ref # | رقم المرجع: </span>
+                  <span className="font-semibold">{paymentRefNo}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="text-center text-sm text-gray-500 pt-6 border-t border-gray-300">
-          <p>Thank you for your business!</p>
-          <p className="mt-1">
-            For any queries, please contact us at the showroom.
+        {/* Terms & Conditions */}
+        <div className="mt-4 pt-3" style={{ borderTop: '1px solid #374151' }}>
+          <h4 className="text-xs font-semibold text-gray-800 mb-2 text-center">
+            الملاحظات والشروط
+          </h4>
+          <div className="text-right text-gray-700 text-[10px] leading-relaxed">
+            <ul className="space-y-1">
+              <li>• سيتم التواصل معك لتحديد موعد البروفة.</li>
+              <li>• التأخير عن البروفة يؤخر موعد التسليم.</li>
+              <li>• أي تعديل بعد اعتماد البروفة يُحسب برسوم.</li>
+              <li>• يجب سداد 50% من مبلغ الفاتورة على الأقل.</li>
+              <li>• لا يتم التسليم إلا بعد سداد المبلغ كاملاً.</li>
+              <li>• تأخير الاستلام النهائي لأكثر من شهر من جاهزية الطلب لا يلزم الشركة بتغيير المقاسات.</li>
+              <li>• خدمة الاستعجال متوفرة برسوم إضافية عند الطلب.</li>
+            </ul>
+          </div>
+          <p className="text-center text-xs text-gray-600 mt-3 font-semibold">
+            شكراً لاختياركم ERTH Clothing
           </p>
         </div>
       </div>

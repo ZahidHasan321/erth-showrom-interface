@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import * as FabricCells from "./fabric-selection-cells";
 import * as React from "react";
 import { useReactToPrint } from "react-to-print";
-import { FabricPrintSummary } from "./fabric-print-component";
+import { FabricLabel } from "./fabric-print-component";
 
 export const columns: ColumnDef<FabricSelectionSchema>[] = [
   // IDs
@@ -94,26 +94,73 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     id: "print",
     header: "Print",
     minSize: 80,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const printRef = React.useRef<HTMLDivElement>(null);
+      const meta = table.options.meta as {
+        orderStatus?: "Pending" | "Completed" | "Cancelled";
+        fatoura?: number;
+        orderDate?: Date | string | null;
+        measurementOptions?: { id: string; MeasurementID: string }[];
+      };
+
+      const isOrderCompleted = meta?.orderStatus === "Completed";
+      const fatoura = meta?.fatoura;
+      const orderDate = meta?.orderDate;
+      const measurementOptions = meta?.measurementOptions || [];
+
+      // Look up the MeasurementID display value
+      const measurementDisplay = measurementOptions.find(
+        m => m.id === row.original.measurementId
+      )?.MeasurementID || row.original.measurementId;
 
       const handlePrint = useReactToPrint({
-        contentRef: printRef,  // Pass ref directly (not a function)
+        contentRef: printRef,
         documentTitle: `Fabric-Order-${row.original.garmentId}`,
+        pageStyle: `
+          @page {
+            size: 5in 4in;
+            margin: 0;
+          }
+          @media print {
+            html, body {
+              margin: 0;
+              padding: 0;
+              width: 5in;
+              height: 4in;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+          }
+        `,
       });
+
+      const fabricData = {
+        orderId: isOrderCompleted && fatoura ? fatoura : 0,
+        garmentId: row.original.garmentId || "",
+        fabricSource: row.original.fabricSource || "",
+        fabricLength: row.original.fabricLength || "",
+        measurementId: measurementDisplay,
+        brova: row.original.brova || false,
+        express: row.original.express || false,
+        deliveryDate: row.original.deliveryDate || null,
+      };
 
       return (
         <>
           {/* Hidden print component */}
           <div style={{ display: "none" }}>
-            <FabricPrintSummary
-              ref={printRef}
-              fabricData={row.original}
-              orderNumber={row.original.garmentId}
-            />
+            <FabricLabel ref={printRef} fabricData={fabricData} orderDate={orderDate} />
           </div>
 
-          <Button variant="outline" onClick={handlePrint} size="sm">
+          <Button
+            variant="outline"
+            onClick={handlePrint}
+            size="sm"
+            disabled={!isOrderCompleted}
+          >
             <Printer className="h-4 w-4 mr-1" />
             Print
           </Button>
