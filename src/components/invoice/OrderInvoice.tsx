@@ -11,7 +11,7 @@ export interface InvoiceData {
   orderId?: string;
   fatoura?: number;
   orderDate?: string;
-  orderType?: "pickUp" | "homeDelivery";
+  homeDelivery?: boolean;
   orderStatus?: string;
   customerName?: string;
   customerPhone?: string;
@@ -46,9 +46,10 @@ export interface OrderInvoiceProps {
 export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
   ({ data }, ref) => {
     const {
+      orderId,
       fatoura,
       orderDate,
-      orderType,
+      homeDelivery,
       customerName,
       customerPhone,
       fabricSelections = [],
@@ -108,9 +109,9 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
           </div>
           <div className="flex justify-between items-start">
             <div className="text-right">
-              {fatoura && (
+              {(fatoura || orderId) && (
                 <p className="text-xs text-gray-600">
-                  <span className="font-semibold">Invoice # | رقم الفاتورة: {fatoura}</span>
+                  <span className="font-semibold">Invoice # | رقم الفاتورة: {fatoura || orderId}</span>
                 </p>
               )}
               {formattedDate && (
@@ -141,22 +142,22 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
                 <span className="font-semibold">{customerPhone}</span>
               </div>
             )}
-            {orderType && (
+            {homeDelivery !== undefined && (
               <div className="py-1 px-2 text-right flex items-center gap-3">
                 <span className="text-gray-600">Delivery | التوصيل:</span>
                 <div className="flex items-center gap-1">
                   <span className="inline-block w-4 h-4 border-2 border-gray-600 items-center justify-center" style={{
-                    backgroundColor: orderType === "pickUp" ? "#374151" : "transparent"
+                    backgroundColor: !homeDelivery ? "#374151" : "transparent"
                   }}>
-                    {orderType === "pickUp" && <span className="text-white text-xs font-bold">✓</span>}
+                    {!homeDelivery && <span className="text-white text-xs font-bold">✓</span>}
                   </span>
                   <span className="text-xs">Pick Up | استلام</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="inline-block w-4 h-4 border-2 border-gray-600 items-center justify-center" style={{
-                    backgroundColor: orderType === "homeDelivery" ? "#374151" : "transparent"
+                    backgroundColor: homeDelivery ? "#374151" : "transparent"
                   }}>
-                    {orderType === "homeDelivery" && <span className="text-white text-xs font-bold">✓</span>}
+                    {homeDelivery && <span className="text-white text-xs font-bold">✓</span>}
                   </span>
                   <span className="text-xs">Home | منزلي</span>
                 </div>

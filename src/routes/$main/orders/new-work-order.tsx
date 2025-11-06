@@ -1,8 +1,8 @@
 "use client";
 
+import { getEmployees } from "@/api/employees";
 import { getFabrics } from "@/api/fabrics";
 import { getStyles } from "@/api/styles";
-import { getEmployees } from "@/api/employees";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
 import {
   customerDemographicsDefaults,
@@ -30,21 +30,22 @@ import {
   shelvesFormSchema,
   type ShelvesFormValues,
 } from "@/components/forms/shelved-products/schema";
+import { ErrorBoundary } from "@/components/global/error-boundary";
+import { OrderCreationPrompt } from "@/components/orders-at-showroom/OrderCreationPrompt";
+import { OrderInfoCard } from "@/components/orders-at-showroom/OrderInfoCard";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
-import { ErrorBoundary } from "@/components/global/error-boundary";
-import { OrderInfoCard } from "@/components/orders-at-showroom/OrderInfoCard";
-import { OrderCreationPrompt } from "@/components/orders-at-showroom/OrderCreationPrompt";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
+import { useFatouraPolling } from "@/hooks/useFatouraPolling";
+import { useOrderMutations } from "@/hooks/useOrderMutations";
+import { useStepNavigation } from "@/hooks/useStepNavigation";
+import { calculateStylePrice } from "@/lib/utils/style-utils";
 import {
   orderDefaults,
   orderSchema,
   type OrderSchema,
 } from "@/schemas/work-order-schema";
 import { createWorkOrderStore } from "@/store/current-work-order";
-import { useOrderMutations } from "@/hooks/useOrderMutations";
-import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
-import { useStepNavigation } from "@/hooks/useStepNavigation";
-import { useFatouraPolling } from "@/hooks/useFatouraPolling";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -52,7 +53,6 @@ import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { calculateStylePrice } from "@/lib/utils/style-utils";
 
 export const Route = createFileRoute("/$main/orders/new-work-order")({
   component: NewWorkOrder,
@@ -202,6 +202,7 @@ function NewWorkOrder() {
     updateShelf: updateShelfMutation,
     updateFabricStock: updateFabricStockMutation,
   } = useOrderMutations({
+    orderType: "work",
     onOrderCreated: (id, formattedOrder) => {
       setOrderId(id);
       setOrder(formattedOrder);
@@ -367,7 +368,7 @@ function NewWorkOrder() {
       (key) => typeof address[key] === "string" && address[key]!.trim() !== ""
     );
 
-    if (OrderForm.getValues().orderType === "homeDelivery" && !isAddressDefined) {
+    if (OrderForm.getValues().homeDelivery && !isAddressDefined) {
       toast.error("Need address for home delivery");
       return false;
     }
@@ -409,6 +410,7 @@ function NewWorkOrder() {
       });
     }
 
+    toast.success("Work order completed successfully! ✅");
     handleProceed(5);
   };
 
@@ -455,7 +457,7 @@ function NewWorkOrder() {
         "Create New Work Order",
         "Do you want to create a new work order?",
         () => {
-          createOrderMutation.mutate();
+          createOrderMutation.mutate(undefined);
           closeDialog();
         }
       );
@@ -470,6 +472,74 @@ function NewWorkOrder() {
       resetWorkOrder();
     };
   }, []);
+
+  // ============================================================================
+  // NAVIGATION GUARDS
+  // ============================================================================
+  const [allowNavigation, setAllowNavigation] = React.useState(false);
+
+  // Prevent browser tab closing/refresh when order is in progress
+  React.useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Allow navigation if order is completed or cancelled, or if no order exists yet
+      if (orderStatus === "Completed" || orderStatus === "Cancelled" || !orderId || allowNavigation) {
+        return;
+      }
+
+      // Show confirmation dialog
+      e.preventDefault();
+      e.returnValue = "You have an order in progress. Are you sure you want to leave?";
+      return e.returnValue;
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [orderStatus, orderId, allowNavigation]);
+
+  // Prevent in-app navigation using link interception
+  React.useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      // Don't block if order is completed/cancelled or no order exists
+      if (orderStatus === "Completed" || orderStatus === "Cancelled" || !orderId || allowNavigation) {
+        return;
+      }
+
+      // Check if click target is a link
+      const target = e.target as HTMLElement;
+      const link = target.closest('a[href]');
+
+      if (link && link instanceof HTMLAnchorElement) {
+        const href = link.getAttribute('href');
+
+        // Only intercept internal navigation (not external links)
+        if (href && href.startsWith('/')) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const confirmLeave = window.confirm(
+            "You have an order in progress. Leaving this page will not save your changes. Are you sure you want to leave?"
+          );
+
+          if (confirmLeave) {
+            setAllowNavigation(true);
+            // Allow a moment for state to update, then navigate
+            setTimeout(() => {
+              window.location.href = href;
+            }, 0);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('click', handleClick, true);
+
+    return () => {
+      document.removeEventListener('click', handleClick, true);
+    };
+  }, [orderStatus, orderId, allowNavigation]);
 
   // ============================================================================
   // INVOICE DATA PREPARATION
@@ -490,7 +560,7 @@ function NewWorkOrder() {
     return {
       orderId: order.orderID,
       orderDate: orderData.orderDate,
-      orderType: orderData.orderType,
+      homeDelivery: orderData.homeDelivery,
       orderStatus: orderData.orderStatus,
       customerName: demographics.nickName,
       customerPhone: demographics.mobileNumber,
@@ -537,7 +607,7 @@ function NewWorkOrder() {
             "Create New Work Order",
             "Do you want to create a new work order? This will initialize a new order entry.",
             () => {
-              createOrderMutation.mutate();
+              createOrderMutation.mutate(undefined);
               closeDialog();
             }
           );
@@ -575,7 +645,7 @@ function NewWorkOrder() {
           orderStatus={order.orderStatus ?? "Pending"}
           customerName={order.customerID?.length ? customerDemographics.nickName : undefined}
           orderType="Work Order"
-          deliveryType={order.orderType}
+          homeDelivery={order.homeDelivery}
           paymentType={order.paymentType}
           numOfFabrics={order.numOfFabrics}
           totalAmount={order.charges ? Object.values(order.charges).reduce((a, b) => a + b, 0) : 0}

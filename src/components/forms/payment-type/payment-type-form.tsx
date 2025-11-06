@@ -37,6 +37,7 @@ interface PaymentTypeFormProps {
   invoiceData?: InvoiceData;
   orderRecordId?: string | null;
   orderStatus?: "Pending" | "Completed" | "Cancelled";
+  useFatoura?: boolean;
 }
 
 export function PaymentTypeForm({
@@ -47,14 +48,15 @@ export function PaymentTypeForm({
   invoiceData,
   orderRecordId,
   orderStatus,
+  useFatoura = true,
 }: PaymentTypeFormProps) {
   const paymentType = useWatch({ control: form.control, name: "paymentType" });
   const invoiceRef = React.useRef<HTMLDivElement>(null);
 
-  // Poll for fatoura number when order is completed
+  // Poll for fatoura number when order is completed (only for work orders)
   const { fatoura, isLoadingFatoura, hasFatoura } = useFatouraPolling(
     orderRecordId,
-    orderStatus === "Completed"
+    orderStatus === "Completed" && useFatoura
   );
 
   // Fetch employees data
@@ -306,9 +308,9 @@ export function PaymentTypeForm({
                 type="button"
                 variant="outline"
                 onClick={handlePrint}
-                disabled={!isOrderClosed || !hasFatoura}
+                disabled={!isOrderClosed || (useFatoura && !hasFatoura)}
               >
-                {isLoadingFatoura ? (
+                {useFatoura && isLoadingFatoura ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Loading Invoice...
@@ -332,13 +334,13 @@ export function PaymentTypeForm({
 
         {/* Hidden Invoice Component for Printing */}
         <div className="hidden print:block">
-          {invoiceData && hasFatoura && (
-            <OrderInvoice ref={invoiceRef} data={{ ...invoiceData, fatoura }} />
+          {invoiceData && (useFatoura ? hasFatoura : isOrderClosed) && (
+            <OrderInvoice ref={invoiceRef} data={{ ...invoiceData, fatoura: useFatoura ? fatoura : undefined }} />
           )}
         </div>
 
         {/* Loading State Overlay */}
-        {isOrderClosed && isLoadingFatoura && (
+        {useFatoura && isOrderClosed && isLoadingFatoura && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

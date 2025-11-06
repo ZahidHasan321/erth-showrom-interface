@@ -156,6 +156,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
           </div>
 
           <Button
+            type="button"
             variant="outline"
             onClick={handlePrint}
             size="sm"
@@ -182,6 +183,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
       };
       return (
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           onClick={handleDelete}

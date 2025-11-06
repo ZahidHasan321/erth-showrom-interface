@@ -468,49 +468,33 @@ export const ExpressCell = ({
   row,
   table,
 }: CellContext<FabricSelectionSchema, unknown>) => {
-  const { control, setError, clearErrors } = useFormContext();
+  const { control, setValue } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
 
-  const [express, homeDelivery] = useWatch({
-    name: [
-      `fabricSelections.${row.index}.express`,
-      `fabricSelections.${row.index}.homeDelivery`,
-    ],
-  });
+  const handleExpressChange = (checked: boolean) => {
+    setValue(`fabricSelections.${row.index}.express`, checked);
 
-  // Validate express requires home delivery
-  React.useEffect(() => {
-    if (express && !homeDelivery) {
-      setError(`fabricSelections.${row.index}.express`, {
-        type: "manual",
-        message: "Requires home delivery",
-      });
-    } else {
-      clearErrors(`fabricSelections.${row.index}.express`);
+    // Automatically check home delivery when express is checked
+    if (checked) {
+      setValue(`fabricSelections.${row.index}.homeDelivery`, true);
     }
-  }, [express, homeDelivery, row.index, setError, clearErrors]);
+  };
 
   return (
     <div className="w-full flex flex-col justify-center items-center min-w-28">
       <Controller
         name={`fabricSelections.${row.index}.express`}
         control={control}
-        render={({ field, fieldState: { error } }) => (
+        render={({ field }) => (
           <div className="flex flex-col gap-1 items-center">
             <Checkbox
               checked={field.value as boolean}
-              onCheckedChange={field.onChange}
+              onCheckedChange={handleExpressChange}
               disabled={isFormDisabled}
-              className={cn(error && "border-destructive")}
             />
-            {error && (
-              <span className="text-xs text-destructive whitespace-nowrap">
-                {error.message}
-              </span>
-            )}
           </div>
         )}
       />
@@ -687,7 +671,6 @@ export const HomeDeliveryCell = ({
       const express = getValues(`fabricSelections.${row.index}.express`);
       if (express) {
         setValue(`fabricSelections.${row.index}.express`, false);
-        toast.info(`Express delivery unchecked for row ${row.index + 1} (requires home delivery)`);
       }
     }
   };

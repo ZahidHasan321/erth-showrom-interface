@@ -18,14 +18,11 @@ import {
 } from "@/components/forms/shelved-products/schema";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { HorizontalStepper } from "@/components/ui/horizontal-stepper";
-import { OrderInfoCard } from "@/components/orders-at-showroom/OrderInfoCard";
-import { OrderCreationPrompt } from "@/components/orders-at-showroom/OrderCreationPrompt";
 import { orderDefaults, orderSchema, type OrderSchema } from "@/schemas/work-order-schema";
 import { createSalesOrderStore } from "@/store/current-sales-order";
 import { useOrderMutations } from "@/hooks/useOrderMutations";
 import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import { useStepNavigation } from "@/hooks/useStepNavigation";
-import { useFatouraPolling } from "@/hooks/useFatouraPolling";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -54,7 +51,6 @@ function NewSalesOrder() {
   // ============================================================================
   // STATE & STORE
   // ============================================================================
-  const [askedToCreateOrder, setAskedToCreateOrder] = React.useState(false);
 
   // Store selectors
   const currentStep = useCurrentSalesOrderStore((s) => s.currentStep);
@@ -137,31 +133,23 @@ function NewSalesOrder() {
   });
 
   // ============================================================================
-  // FATOURA POLLING
-  // ============================================================================
-  const { fatoura } = useFatouraPolling(
-    orderId,
-    orderStatus === "Completed"
-  );
-
-  // ============================================================================
   // ORDER MUTATIONS
   // ============================================================================
   const {
     createOrder: createOrderMutation,
-    updateOrder: updateOrderMutation,
     updateShelf: updateShelfMutation,
   } = useOrderMutations({
+    orderType: "sales",
     onOrderCreated: (id, formattedOrder) => {
       setOrderId(id);
       setOrder(formattedOrder);
+      // Update stocks after order is created
+      updateShelfMutation.mutate(ShelvesForm.getValues());
+      toast.success("Sales order completed successfully! ✅");
+      handleProceed(3);
     },
     onOrderUpdated: (action) => {
-      if (action === "customer") {
-        setOrder(OrderForm.getValues());
-        setCustomerDemographics(demographicsForm.getValues());
-        handleProceed(0);
-      } else if (action === "updated") {
+      if (action === "updated") {
         handleProceed(3);
       }
     },
@@ -172,13 +160,14 @@ function NewSalesOrder() {
   // ============================================================================
   const handleDemographicsProceed = () => {
     const recordID = demographicsForm.getValues("customerRecordId");
-    if (orderId && recordID) {
-      updateOrderMutation.mutate({
-        fields: { customerID: [recordID] },
-        orderId: orderId,
-        onSuccessAction: "customer",
-      });
+    if (!recordID) {
+      toast.error("Please save customer information first");
+      return;
     }
+    // Update OrderForm with customerID for later use
+    OrderForm.setValue("customerID", [recordID]);
+    setCustomerDemographics(demographicsForm.getValues());
+    handleProceed(0);
   };
 
   // ============================================================================
@@ -193,13 +182,6 @@ function NewSalesOrder() {
   // ============================================================================
   const handleOrderFormSubmit = (data: Partial<OrderSchema>) => {
     setOrder(data);
-    if (orderId) {
-      updateOrderMutation.mutate({
-        fields: data,
-        orderId: orderId,
-        onSuccessAction: "payment",
-      });
-    }
   };
 
   const handleOrderFormProceed = () => {
@@ -220,7 +202,7 @@ function NewSalesOrder() {
       (value) => value !== undefined && value.trim() !== ""
     );
 
-    if (OrderForm.getValues().orderType === "homeDelivery" && !isAddressDefined) {
+    if (OrderForm.getValues().homeDelivery && !isAddressDefined) {
       toast.error("Need address for home delivery");
       return false;
     }
@@ -230,8 +212,6 @@ function NewSalesOrder() {
 
   const handleOrderConfirmation = () => {
     if (!validateOrderCompletion()) return;
-
-    console.log("🧾 Full Sales Order Store:", useCurrentSalesOrderStore.getState());
 
     const formOrder: Partial<OrderSchema> = {
       ...OrderForm.getValues(),
@@ -243,18 +223,8 @@ function NewSalesOrder() {
     OrderForm.setValue("orderStatus", "Completed");
     setOrder(formOrder);
 
-    if (orderId) {
-      updateOrderMutation.mutate({
-        fields: formOrder,
-        orderId: orderId,
-        onSuccessAction: "updated",
-      });
-    }
-
-    // Update stocks
-    updateShelfMutation.mutate(ShelvesForm.getValues());
-
-    handleProceed(3);
+    // Create the order with all the data
+    createOrderMutation.mutate(formOrder);
   };
 
   // ============================================================================
@@ -265,22 +235,6 @@ function NewSalesOrder() {
     OrderForm.setValue("charges.shelf", totalShelveAmount);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalShelveAmount]);
-
-  // Prompt for order creation on mount
-  React.useEffect(() => {
-    if (!orderId && !askedToCreateOrder) {
-      setAskedToCreateOrder(true);
-      openDialog(
-        "Create New Sales Order",
-        "Do you want to create a new sales order?",
-        () => {
-          createOrderMutation.mutate();
-          closeDialog();
-        }
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId, askedToCreateOrder]);
 
   // Cleanup on unmount
   React.useEffect(() => {
@@ -305,9 +259,8 @@ function NewSalesOrder() {
 
     return {
       orderId: order.orderID,
-      fatoura: fatoura,
       orderDate: orderData.orderDate,
-      orderType: orderData.orderType,
+      homeDelivery: orderData.homeDelivery,
       orderStatus: orderData.orderStatus,
       customerName: demographics.nickName,
       customerPhone: demographics.mobileNumber,
@@ -331,44 +284,8 @@ function NewSalesOrder() {
     paymentForm,
     ShelvesForm,
     order.orderID,
-    fatoura,
     employees,
   ]);
-
-  // ============================================================================
-  // RENDER: LOADING STATE
-  // ============================================================================
-  if (!orderId && !askedToCreateOrder) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Preparing new sales order...</p>
-      </div>
-    );
-  }
-
-  // ============================================================================
-  // RENDER: NO ORDER STATE
-  // ============================================================================
-  if (!orderId) {
-    return (
-      <OrderCreationPrompt
-        orderType="Sales Order"
-        isPending={createOrderMutation.isPending}
-        onCreateOrder={() => {
-          openDialog(
-            "Create New Sales Order",
-            "This will initialize a new order entry.",
-            () => {
-              createOrderMutation.mutate();
-              closeDialog();
-            }
-          );
-        }}
-        dialogState={dialog}
-        onCloseDialog={closeDialog}
-      />
-    );
-  }
 
   // ============================================================================
   // RENDER: MAIN ORDER FLOW
@@ -390,18 +307,6 @@ function NewSalesOrder() {
           completedSteps={savedSteps}
           currentStep={currentStep}
           onStepChange={handleStepChange}
-        />
-        <OrderInfoCard
-          orderID={order.orderID}
-          fatoura={fatoura}
-          orderStatus={order.orderStatus ?? "Pending"}
-          customerName={order.customerID?.length ? customerDemographics.nickName : undefined}
-          orderType="Sales Order"
-          deliveryType={order.orderType}
-          paymentType={order.paymentType}
-          totalAmount={order.charges ? Object.values(order.charges).reduce((a, b) => a + b, 0) : 0}
-          advance={order.advance}
-          balance={order.balance}
         />
       </div>
 
@@ -471,6 +376,7 @@ function NewSalesOrder() {
             invoiceData={invoiceData}
             orderRecordId={orderId}
             orderStatus={orderStatus}
+            useFatoura={false}
             onConfirm={() => {
               openDialog(
                 "Confirm new sales order",

@@ -62,7 +62,7 @@ export function OrderTypeAndPaymentForm({
     advance = 0,
     discountType = "flat",
     discountPercentage = 0,
-    orderType = "normal",
+    homeDelivery = false,
     paid = 0,
   ] = useWatch({
     control: form.control,
@@ -72,7 +72,7 @@ export function OrderTypeAndPaymentForm({
       "advance",
       "discountType",
       "discountPercentage",
-      "orderType",
+      "homeDelivery",
       "paid",
     ],
   });
@@ -95,12 +95,12 @@ export function OrderTypeAndPaymentForm({
     return fabricSelections.some((fabric) => fabric.express);
   }, [fabricSelections]);
 
-  // Auto-select home delivery if any fabric has it
+  // Auto-select home delivery if any fabric has it or has express (since express requires home delivery)
   React.useEffect(() => {
-    if (hasAnyHomeDelivery && orderType !== "homeDelivery") {
-      form.setValue("orderType", "homeDelivery");
+    if ((hasAnyHomeDelivery || hasAnyExpressDelivery) && !homeDelivery) {
+      form.setValue("homeDelivery", true);
     }
-  }, [hasAnyHomeDelivery, orderType, form]);
+  }, [hasAnyHomeDelivery, hasAnyExpressDelivery, homeDelivery, form]);
 
   // Calculate and set advance
   React.useEffect(() => {
@@ -118,8 +118,8 @@ export function OrderTypeAndPaymentForm({
   React.useEffect(() => {
     let deliveryCharge = 0;
 
-    // If any fabric has home delivery OR orderType is homeDelivery
-    if (hasAnyHomeDelivery || orderType === "homeDelivery") {
+    // If any fabric has home delivery OR homeDelivery is true
+    if (hasAnyHomeDelivery || homeDelivery) {
       deliveryCharge = 5; // Base home delivery charge
 
       // Add express charge if any fabric has express
@@ -129,7 +129,7 @@ export function OrderTypeAndPaymentForm({
     }
 
     form.setValue("charges.delivery", deliveryCharge);
-  }, [orderType, hasAnyHomeDelivery, hasAnyExpressDelivery, form]);
+  }, [homeDelivery, hasAnyHomeDelivery, hasAnyExpressDelivery, form]);
 
   const totalDue = Object.values(charges || {}).reduce(
     (acc, val) => acc + (val || 0),
@@ -162,7 +162,7 @@ export function OrderTypeAndPaymentForm({
     );
   }, [customerAddress]);
 
-  const showAddressWarning = orderType === "homeDelivery" && !hasAddress;
+  const showAddressWarning = homeDelivery && !hasAddress;
 
   const handleProceed = () => {
     if (showAddressWarning) {
@@ -175,9 +175,9 @@ export function OrderTypeAndPaymentForm({
     })();
   };
 
-  const orderTypeOptions = [
-    { value: "pickUp", label: "Pick Up", img: PickUpIcon },
-    { value: "homeDelivery", label: "Home Delivery", img: HomeDeliveryIcon },
+  const deliveryOptions = [
+    { value: false, label: "Pick Up", img: PickUpIcon },
+    { value: true, label: "Home Delivery", img: HomeDeliveryIcon },
   ];
 
   return (
@@ -203,41 +203,43 @@ export function OrderTypeAndPaymentForm({
             transition={smoothTransition}
             className="bg-card rounded-xl border border-border shadow-sm p-6"
           >
-            {hasAnyHomeDelivery && (
+            {(hasAnyHomeDelivery || hasAnyExpressDelivery) && (
               <Alert className="mb-4 border-primary/50 bg-primary/5">
                 <AlertCircle className="h-4 w-4 text-primary" />
                 <AlertTitle className="text-primary font-semibold">Home Delivery Required</AlertTitle>
                 <AlertDescription>
-                  One or more fabrics have home delivery selected. The order type is automatically set to Home Delivery.
+                  One or more fabrics have home delivery or express delivery selected. Home delivery is automatically enabled.
                 </AlertDescription>
               </Alert>
             )}
             <FormField
               control={form.control}
-              name="orderType"
+              name="homeDelivery"
               render={({ field }) => (
                 <RadioGroup
-                  onValueChange={field.onChange}
-                  value={field.value}
+                  onValueChange={(value) => field.onChange(value === "true")}
+                  value={field.value ? "true" : "false"}
                   className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                  disabled={isOrderClosed || hasAnyHomeDelivery}
+                  disabled={isOrderClosed || hasAnyHomeDelivery || hasAnyExpressDelivery}
                 >
-                  {orderTypeOptions.map((option) => {
-                    const isDisabled = isOrderClosed || (hasAnyHomeDelivery && option.value === "pickUp");
+                  {deliveryOptions.map((option) => {
+                    const isDisabled = isOrderClosed || ((hasAnyHomeDelivery || hasAnyExpressDelivery) && !option.value);
+                    const optionValueStr = option.value ? "true" : "false";
+                    const isSelected = field.value === option.value;
                     return (
                       <label
-                        key={option.value}
-                        htmlFor={option.value}
+                        key={optionValueStr}
+                        htmlFor={optionValueStr}
                         className={cn(
                           "flex flex-col items-center justify-center rounded-lg p-6 border-2 transition-all relative",
                           !isDisabled && "cursor-pointer hover:border-primary hover:shadow-md",
                           isDisabled && "opacity-50 cursor-not-allowed",
-                          field.value === option.value
+                          isSelected
                             ? "border-primary bg-primary/5 ring-2 ring-primary/20 shadow-lg"
                             : "border-border bg-background"
                         )}
                       >
-                        {field.value === option.value && (
+                        {isSelected && (
                           <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
                             <CheckIcon className="w-4 h-4 text-primary-foreground" />
                           </div>
@@ -247,20 +249,20 @@ export function OrderTypeAndPaymentForm({
                           alt={option.label}
                           className={cn(
                             "h-16 object-contain transition-all",
-                            field.value === option.value && "scale-110"
+                            isSelected && "scale-110"
                           )}
                         />
                         <FormLabel className={cn(
                           "mt-3 text-base cursor-pointer transition-all",
-                          field.value === option.value
+                          isSelected
                             ? "font-bold text-primary"
                             : "font-medium text-foreground"
                         )}>
                           {option.label}
                         </FormLabel>
                         <RadioGroupItem
-                          id={option.value}
-                          value={option.value}
+                          id={optionValueStr}
+                          value={optionValueStr}
                           className="sr-only"
                         />
                       </label>

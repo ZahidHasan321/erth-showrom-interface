@@ -12,7 +12,8 @@ export interface Order {
     PaymentType?: "k-net" | "cash" | "link-payment" | "installments" | "others";
     PaymentRefNo?: string;
     OrderTaker?: string[];
-    OrderType?: "pickUp" | "homeDelivery";
+    HomeDelivery?: boolean;
+    OrderType?: "work" | "sales";
     DiscountType?: "flat" | "referral" | "loyalty" | "byValue";
     ReferralCode?: string;
     DiscountValue?: number;

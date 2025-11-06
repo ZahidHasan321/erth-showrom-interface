@@ -191,7 +191,7 @@ export function FabricSelectionForm({
       styleOptions: StyleOptionsSchema[];
     }) => {
       if (!orderRecordId) {
-        throw new Error("No order ID available");
+        throw new Error("Please create an order first before saving fabric selections");
       }
 
       // Filter out empty rows before saving
@@ -264,7 +264,8 @@ export function FabricSelectionForm({
     },
     onError: (error) => {
       console.error("Failed to save garments:", error);
-      toast.error("Failed to save garments. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Failed to save garments. Please try again.";
+      toast.error(errorMessage);
     },
   });
 
@@ -447,6 +448,17 @@ export function FabricSelectionForm({
           </div>
         </div>
 
+        {/* Order Required Warning */}
+        {!orderRecordId && !isOrderClosed && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Order Required</AlertTitle>
+            <AlertDescription>
+              Please complete the Demographics step and create an order before saving fabric selections.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="p-6 border border-border rounded-xl bg-card w-full overflow-hidden shadow-sm space-y-6">
           {/* Validation Errors Alert */}
           {validationErrors.length > 0 && (
@@ -468,6 +480,7 @@ export function FabricSelectionForm({
                   ))}
                 </ul>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   className="mt-3"
@@ -506,6 +519,7 @@ export function FabricSelectionForm({
                   disabled={isFormDisabled}
                 />
                 <Button
+                  type="button"
                   onClick={() => {
                     if (numRowsToAdd > 0) {
                       syncRows(numRowsToAdd, fabricSelectionFields, {
@@ -660,6 +674,7 @@ export function FabricSelectionForm({
             <>
               {isEditing && isSaved && (
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={() => {
                     setIsEditing(false);
@@ -672,10 +687,11 @@ export function FabricSelectionForm({
               )}
               <Button
                 type="submit"
-                disabled={isSaving}
+                disabled={isSaving || !orderRecordId}
+                title={!orderRecordId ? "Please create an order first (Demographics step)" : ""}
               >
                 <Save className="w-4 h-4 mr-2" />
-                {isSaving ? "Saving..." : "Save Selections"}
+                {isSaving ? "Saving..." : !orderRecordId ? "Order Required" : "Save Selections"}
               </Button>
             </>
           ) : (
@@ -694,6 +710,7 @@ export function FabricSelectionForm({
                 Edit Selections
               </Button>
               <Button
+                type="button"
                 onClick={onProceed}
                 disabled={isProceedDisabled}
               >

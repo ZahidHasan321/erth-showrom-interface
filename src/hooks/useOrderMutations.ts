@@ -18,13 +18,25 @@ type UseOrderMutationsOptions = {
   onOrderCreated?: (orderId: string, order: OrderSchema) => void;
   onOrderUpdated?: (action: string | null | undefined) => void;
   onOrderError?: () => void;
+  orderType?: "work" | "sales";
 };
 
 export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
   const queryClient = useQueryClient();
 
   const createOrderMutation = useMutation({
-    mutationFn: () => createOrder({ fields: { OrderStatus: "Pending" } }),
+    mutationFn: (additionalFields?: Partial<OrderSchema>) => {
+      const fields: any = { OrderStatus: "Pending" };
+      if (options.orderType) {
+        fields.OrderType = options.orderType;
+      }
+      // Merge additional fields if provided
+      if (additionalFields) {
+        const mappedFields = mapFormOrderToApiOrder(additionalFields);
+        Object.assign(fields, mappedFields.fields);
+      }
+      return createOrder({ fields });
+    },
     onSuccess: (response) => {
       if (response.data) {
         const order = response.data;
@@ -48,8 +60,6 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
       const action = variables.onSuccessAction;
       if (action === "customer") {
         toast.success("Customer updated ✅");
-      } else if (action === "updated") {
-        toast.success("Order updated successfully✅");
       } else if (action === "cancelled") {
         toast.success("Order cancelled");
       }
@@ -129,7 +139,6 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
     onSuccess: (results) => {
       const successCount = results.filter((r) => r !== null).length;
       if (successCount > 0) {
-        toast.success(`${successCount} fabric stock(s) updated ✅`);
         queryClient.invalidateQueries({ queryKey: ["fabrics"] });
       }
     },

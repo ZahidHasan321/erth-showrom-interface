@@ -8,7 +8,7 @@ type OrderInfoCardProps = {
   orderStatus?: string;
   customerName?: string;
   orderType: "Work Order" | "Sales Order";
-  deliveryType?: "pickUp" | "homeDelivery";
+  homeDelivery?: boolean;
   paymentType?: string;
   numOfFabrics?: number;
   totalAmount?: number;
@@ -22,7 +22,7 @@ export function OrderInfoCard({
   orderStatus,
   customerName,
   orderType,
-  deliveryType,
+  homeDelivery,
   paymentType,
   numOfFabrics,
   totalAmount,
@@ -100,12 +100,12 @@ export function OrderInfoCard({
           )}
 
           {/* Delivery Type */}
-          {deliveryType && (
+          {homeDelivery !== undefined && (
             <div className="flex items-center gap-2">
               <Package className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-sm text-muted-foreground min-w-[76px]">Delivery:</span>
               <span className="text-sm font-medium text-foreground">
-                {deliveryType === "homeDelivery" ? "Home Delivery" : "Pick Up"}
+                {homeDelivery ? "Home Delivery" : "Pick Up"}
               </span>
             </div>
           )}

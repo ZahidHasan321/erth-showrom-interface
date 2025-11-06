@@ -10,8 +10,8 @@ export const orderSchema = z.object({
   // orderTotal: z.number().optional(),
   notes: z.string().optional(),
   campaigns: z.array(z.string()).optional(),
-
-  orderType: z.enum(["pickUp", "homeDelivery"]),
+  homeDelivery: z.boolean(),
+  orderType: z.enum(["work", "sales"]),
   paymentType: z
     .enum(["k-net", "cash", "link-payment", "installments", "others"])
     .optional(),
@@ -40,7 +40,8 @@ export const orderDefaults: OrderSchema = {
   orderDate: new Date().toISOString(),
   // orderTotal: 0,
   paymentType: "cash",
-  orderType: "pickUp",
+  orderType: "work",
+  homeDelivery: false,
   discountValue: 0,
   charges: {
     fabric: 0,

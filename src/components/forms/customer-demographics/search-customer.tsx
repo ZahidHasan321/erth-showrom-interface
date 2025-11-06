@@ -42,7 +42,6 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
         } else if (data.count && data.count > 1) {
           setCustomerOptions(data.data);
           setShowDialog(true);
-          toast.info("Multiple customers found. Please select one.");
         } else {
           toast.error("Customer not found.");
         }
