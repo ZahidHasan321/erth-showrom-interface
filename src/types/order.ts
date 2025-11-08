@@ -1,9 +1,12 @@
+import { FatouraStage } from './stages';
+
 export interface Order {
   id: string;
   createdTime?: string;
   fields: {
     OrderID?: string;
     Fatoura?: number;
+    FatouraStages: FatouraStage;
     CustomerID?: string[];
     OrderDate?: string;
     OrderStatus: "Pending" | "Completed" | "Cancelled";

@@ -1,3 +1,5 @@
+import { PieceStage } from './stages';
+
 export interface Garment {
   id: string;
   createdTime: string;
@@ -6,6 +8,7 @@ export interface Garment {
     OrderId?: string[];
     Fatoura?: number;
     GarmentId?: string;
+    PieceStage: PieceStage;
     Brova: boolean;
     FabricSource: "" | "In" | "Out";
     FabricId?: string[];

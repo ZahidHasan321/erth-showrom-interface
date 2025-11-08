@@ -1,11 +1,26 @@
 import { z } from "zod";
 import { fabricSourceValues } from "../constants";
+import { PieceStage } from "@/types/stages";
 
 export const fabricSelectionSchema = z.object({
   id: z.string(),
   orderId: z.array(z.string()),
   fatoura: z.number().optional(),
   garmentId: z.string(),
+  pieceStage: z.enum([
+    PieceStage.WAITING_CUT,
+    PieceStage.CUTT,
+    PieceStage.POST_CUT,
+    PieceStage.TASK1_PREP,
+    PieceStage.TASK2_JABZOUR_FRONT_POCKET,
+    PieceStage.TASK3_COLLAR,
+    PieceStage.TASK4_SLEEVES_SIDES_HEMMING,
+    PieceStage.TASK5_INTERMEDIATE_OUT_MEASURE,
+    PieceStage.TASK6_SIDE_POCKET_HEMMING,
+    PieceStage.FINISHING,
+    PieceStage.IRONING,
+    PieceStage.QC_OK,
+  ]),
   brova: z.boolean(),
   fabricSource: z.enum(fabricSourceValues),
   fabricId: z.string().optional(),
@@ -73,6 +88,7 @@ export const fabricSelectionDefaults: FabricSelectionSchema = {
   id: "",
   orderId: [],
   garmentId: "",
+  pieceStage: PieceStage.WAITING_CUT,
   brova: false,
   fabricSource: "",
   fabricId: "",

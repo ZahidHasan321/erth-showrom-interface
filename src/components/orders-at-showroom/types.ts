@@ -1,37 +1,38 @@
-export type Reminder = {
-  date: string;
-  note: string;
-};
+import type { Garment } from "@/types/garment";
+import type { Order } from "@/types/order";
+import type { Customer } from "@/types/customer";
 
-export type CallReminder = {
-  id: string;
-  date: string;
-  connected: boolean;
-  note: string;
-};
+/**
+ * Garment row for orders at showroom table.
+ * Each row represents a single garment with its associated order and customer info.
+ */
+export type GarmentRow = {
+  // Garment info
+  garmentId: string;
+  garmentRecordId: string;
+  pieceStage: string;
 
-export type Escalation = {
-  status: "None" | "Escalated";
-  date?: string;
-};
-
-export type OrderRow = {
-  id: string;
+  // Order info
   orderId: string;
+  orderRecordId: string;
+  fatouraStage: string;
+
+  // Customer info
   customerId: string;
-  customerNickName: string;
-  orderType: string;
+  customerName: string;
+  customerNickName?: string;
   mobileNumber: string;
-  remainingPayment: number;
+
+  // Garment type (Brova or Final)
+  orderType: "Brova" | "Final";
+
+  // Delivery info
   promisedDeliveryDate: string;
   receivedAtShowroom?: string;
   delayInDays: number;
-  quantity: number;
-  r1?: Reminder;
-  r2?: Reminder;
-  r3?: Reminder;
-  callReminders: CallReminder[];
-  escalation?: Escalation;
-};
 
-export type RemainderFilterOption = "No" | "R1" | "R2" | "R3" | "Call";
+  // Full records for reference
+  garment: Garment;
+  order: Order;
+  customer: Customer | null;
+};

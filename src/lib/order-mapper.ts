@@ -1,11 +1,13 @@
 import type { Order } from "@/types/order";
 import type { OrderSchema } from "@/schemas/work-order-schema";
+import { FatouraStage } from "@/types/stages";
 
 export function mapApiOrderToFormOrder(apiOrder: Order): OrderSchema {
   return {
     // Fields from API
     orderID: apiOrder.fields.OrderID,
     fatoura: apiOrder.fields.Fatoura,
+    fatouraStages: apiOrder.fields.FatouraStages as FatouraStage || FatouraStage.FATOURA_RECEIVED,
     customerID: apiOrder.fields.CustomerID,
     orderDate: apiOrder.fields.OrderDate,
     orderStatus: apiOrder.fields.OrderStatus,
@@ -44,6 +46,7 @@ export function mapFormOrderToApiOrder(
       CustomerID: formOrder.customerID,
       OrderDate: formOrder.orderDate,
       OrderStatus: formOrder.orderStatus,
+      FatouraStages: formOrder.fatouraStages,
       // OrderTotal: formOrder.orderTotal,
       HomeDelivery: formOrder.homeDelivery,
       Notes: formOrder.notes,

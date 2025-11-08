@@ -1,6 +1,7 @@
 import type { Garment } from "@/types/garment";
 import type { FabricSelectionSchema } from "@/components/forms/fabric-selection-and-options/fabric-selection/fabric-selection-schema";
 import type { StyleOptionsSchema } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
+import { PieceStage } from "@/types/stages";
 
 export function mapApiGarmentToFormGarment(apiGarment: Garment): { fabricSelection: FabricSelectionSchema, styleOptions: StyleOptionsSchema } {
   const fields = apiGarment.fields;
@@ -9,11 +10,13 @@ export function mapApiGarmentToFormGarment(apiGarment: Garment): { fabricSelecti
     orderId: fields.OrderId || [],
     fatoura: fields.Fatoura,
     garmentId: fields.GarmentId || "",
+    pieceStage: fields.PieceStage as PieceStage || PieceStage.WAITING_CUT,
     brova: fields.Brova ?? false,
     fabricSource: fields.FabricSource,
     fabricId: fields.FabricId?.at(0) || "",
     shopName: fields.ShopName || "",
     fabricLength: fields.FabricLength || "",
+    ifInside: "",
     color: fields.Color || "",
     measurementId: fields.MeasurementId.at(0) || "",
     express: fields.Express ?? false,
@@ -72,6 +75,7 @@ export function mapFormGarmentToApiGarment(
       OrderId: fabricSelection.orderId,
       Fatoura: fabricSelection.fatoura,
       GarmentId: fabricSelection.garmentId,
+      PieceStage: fabricSelection.pieceStage,
       Brova: fabricSelection.brova,
       FabricSource: fabricSelection.fabricSource,
       FabricId: fabricSelection.fabricId ? [fabricSelection.fabricId] : [],

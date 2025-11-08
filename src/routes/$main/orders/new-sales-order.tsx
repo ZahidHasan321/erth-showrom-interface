@@ -145,7 +145,7 @@ function NewSalesOrder() {
       setOrder(formattedOrder);
       // Update stocks after order is created
       updateShelfMutation.mutate(ShelvesForm.getValues());
-      toast.success("Sales order completed successfully! ✅");
+      // toast.success("Sales order completed successfully! ✅");
       handleProceed(3);
     },
     onOrderUpdated: (action) => {

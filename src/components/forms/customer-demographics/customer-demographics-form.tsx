@@ -60,6 +60,8 @@ interface CustomerDemographicsFormProps {
   onClear?: () => void;
   onSave?: (data: Partial<CustomerDemographicsSchema>) => void;
   isOrderClosed?: boolean;
+  header?: string;
+  subheader?: string;
 }
 
 export function CustomerDemographicsForm({
@@ -70,6 +72,8 @@ export function CustomerDemographicsForm({
   onClear,
   onSave,
   isOrderClosed,
+  header = "Demographics",
+  subheader = "Customer information and contact details",
 }: CustomerDemographicsFormProps) {
   const [isEditing, setIsEditing] = useState(true);
   const [confirmationDialog, setConfirmationDialog] = useState({
@@ -290,9 +294,9 @@ export function CustomerDemographicsForm({
         <div className="flex justify-between items-start mb-2">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-foreground bg-linear-to-r from-primary to-secondary bg-clip-text">
-              Demographics
+              {header}
             </h1>
-            <p className="text-sm text-muted-foreground">Customer information and contact details</p>
+            <p className="text-sm text-muted-foreground">{subheader}</p>
           </div>
         </div>
 
