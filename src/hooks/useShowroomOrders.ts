@@ -50,12 +50,12 @@ function transformToGarmentRows(ordersData: OrderDetails[]): GarmentRow[] {
         // Garment info
         garmentId: String(garment.fields.GarmentId || garment.id),
         garmentRecordId: garment.id,
-        pieceStage: PieceStageLabels[garment.fields.PieceStage] || "Unknown",
+        pieceStage: garment.fields.PieceStages ? (PieceStageLabels[garment.fields.PieceStages] || "Unknown") : "Unknown",
 
         // Order info
         orderId: String(order.fields.OrderID || order.id),
         orderRecordId: order.id,
-        fatouraStage: FatouraStageLabels[order.fields.FatouraStages] || "Unknown",
+        fatouraStage: order.fields.FatouraStages ? (FatouraStageLabels[order.fields.FatouraStages] || "Unknown") : "Unknown",
 
         // Customer info
         customerId: customer?.id || "N/A",

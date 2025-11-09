@@ -45,6 +45,12 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
       return createOrder({ fields });
     },
     onSuccess: (response) => {
+      if (response.status === "error") {
+        toast.error(`Failed to create order: ${response.message || "Unknown error"}`);
+        options.onOrderError?.();
+        return;
+      }
+
       if (response.data) {
         const order = response.data;
         const formattedOrder = mapApiOrderToFormOrder(order);
@@ -63,7 +69,12 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
       const orderMapped = mapFormOrderToApiOrder(fields);
       return updateOrder(orderMapped["fields"], orderId);
     },
-    onSuccess: (_response, variables) => {
+    onSuccess: (response, variables) => {
+      if (response.status === "error") {
+        toast.error(`Failed to update order: ${response.message || "Unknown error"}`);
+        return;
+      }
+
       const action = variables.onSuccessAction;
       if (action === "customer") {
         toast.success("Customer updated ✅");
@@ -85,7 +96,16 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
       });
       return Promise.all(promises);
     },
-    onSuccess: () => {
+    onSuccess: (responses) => {
+      // Check for any errors in shelf updates
+      const errorResponses = responses.filter(r => r !== null && r.status === "error");
+
+      if (errorResponses.length > 0) {
+        const errorMessages = errorResponses.map(r => r !== null ? (r.message || "Unknown error") : "Unknown error").join(", ");
+        toast.error(`Failed to update shelf stock: ${errorMessages}`);
+        return;
+      }
+
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },
     onError: () => {
@@ -144,6 +164,15 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
       return Promise.all(promises);
     },
     onSuccess: (results) => {
+      // Check for any errors in fabric stock updates
+      const errorResponses = results.filter(r => r !== null && r.status === "error");
+
+      if (errorResponses.length > 0) {
+        const errorMessages = errorResponses.map(r => r !== null ? (r.message || "Unknown error") : "Unknown error").join(", ");
+        toast.error(`Failed to update fabric stock: ${errorMessages}`);
+        return;
+      }
+
       const successCount = results.filter((r) => r !== null).length;
       if (successCount > 0) {
         queryClient.invalidateQueries({ queryKey: ["fabrics"] });

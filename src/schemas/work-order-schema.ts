@@ -3,7 +3,7 @@ import { FatouraStage } from "../types/stages";
 
 export const orderSchema = z.object({
   // Fields from Order['fields']
-  orderID: z.string().optional(),
+  orderID: z.union([z.string(), z.number()]).optional().transform(val => val?.toString()),
   fatoura: z.coerce.number().optional(),
   fatouraStages: z.enum([
     FatouraStage.FATOURA_RECEIVED,
@@ -16,7 +16,7 @@ export const orderSchema = z.object({
     FatouraStage.FINAL_BROVA_AT_SHOP,
     FatouraStage.ALTERATION,
     FatouraStage.CANCELLED,
-  ]),
+  ]).optional(),
   customerID: z.array(z.string()).optional(),
   orderDate: z.string().optional(),
   orderStatus: z.enum(["Pending", "Completed", "Cancelled"]),
@@ -49,6 +49,7 @@ export const orderSchema = z.object({
 });
 
 export const orderDefaults: OrderSchema = {
+  orderID: undefined,
   orderStatus: "Pending",
   orderDate: new Date().toISOString(),
   fatouraStages: FatouraStage.FATOURA_RECEIVED,

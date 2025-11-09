@@ -57,19 +57,6 @@ export const fabricSelectionSchema = z.object({
   )
   .refine(
     (data) => {
-      // Express delivery requires home delivery
-      if (data.express) {
-        return data.homeDelivery;
-      }
-      return true;
-    },
-    {
-      message: "Express delivery requires home delivery to be selected",
-      path: ["express"],
-    }
-  )
-  .refine(
-    (data) => {
       // Home delivery requires a delivery date
       if (data.homeDelivery) {
         return data.deliveryDate !== null;

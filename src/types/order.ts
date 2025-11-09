@@ -6,7 +6,7 @@ export interface Order {
   fields: {
     OrderID?: string;
     Fatoura?: number;
-    FatouraStages: FatouraStage;
+    FatouraStages?: FatouraStage;
     CustomerID?: string[];
     OrderDate?: string;
     OrderStatus: "Pending" | "Completed" | "Cancelled";

@@ -198,6 +198,19 @@ function NewSalesOrder() {
       return false;
     }
 
+    // Validate the order schema
+    const orderData = OrderForm.getValues();
+    const parseResult = orderSchema.safeParse(orderData);
+
+    if (!parseResult.success) {
+      const errors = parseResult.error?.issues
+        ? parseResult.error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join("; ")
+        : "Unknown validation error";
+      toast.error(`Order validation failed: ${errors}`);
+      console.error("Order validation errors:", parseResult.error);
+      return false;
+    }
+
     const isAddressDefined = Object.values(demographicsForm.getValues().address).every(
       (value) => value !== undefined && value.trim() !== ""
     );
@@ -266,7 +279,7 @@ function NewSalesOrder() {
       orderDate: orderData.orderDate,
       homeDelivery: orderData.homeDelivery,
       orderStatus: orderData.orderStatus,
-      customerName: demographics.nickName,
+      customerName: demographics.name,
       customerPhone: demographics.mobileNumber,
       customerAddress: demographics.address,
       fabricSelections: [],

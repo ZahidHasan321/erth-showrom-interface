@@ -51,7 +51,6 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
       orderDate,
       homeDelivery,
       customerName,
-      customerPhone,
       fabricSelections = [],
       styleOptions = [],
       shelvedProducts = [],
@@ -109,9 +108,14 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
           </div>
           <div className="flex justify-between items-start">
             <div className="text-right">
-              {(fatoura || orderId) && (
+              {fatoura && (
                 <p className="text-xs text-gray-600">
-                  <span className="font-semibold">Invoice # | رقم الفاتورة: {fatoura || orderId}</span>
+                  <span className="font-semibold">Invoice ID | رقم الفاتورة: {fatoura}</span>
+                </p>
+              )}
+              {orderId && (
+                <p className="text-xs text-gray-600">
+                  <span className="font-semibold">Order ID | رقم الطلب: {orderId}</span>
                 </p>
               )}
               {formattedDate && (
@@ -129,17 +133,11 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
           <h3 className="text-sm font-semibold text-gray-800 mb-2 pb-1" style={{ borderBottom: '1px solid #374151' }}>
             Customer Information | معلومات العميل
           </h3>
-          <div className="grid grid-cols-3 gap-3 text-xs">
+          <div className="grid grid-cols-2 gap-3 text-xs">
             {customerName && (
               <div className="py-1 px-2 text-right" style={{ borderLeft: '1px solid #d1d5db' }}>
                 <span className="text-gray-600">Name | الاسم: </span>
                 <span className="font-semibold">{customerName}</span>
-              </div>
-            )}
-            {customerPhone && (
-              <div className="py-1 px-2 text-right" style={{ borderLeft: '1px solid #d1d5db' }}>
-                <span className="text-gray-600">Phone | رقم الهاتف: </span>
-                <span className="font-semibold">{customerPhone}</span>
               </div>
             )}
             {homeDelivery !== undefined && (

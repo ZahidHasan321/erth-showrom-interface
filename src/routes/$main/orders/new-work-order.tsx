@@ -263,8 +263,10 @@ function NewWorkOrder() {
       if (response.status === "success" && response.data) {
         const orderData = response.data;
 
-        // Set the order ID in store
-        setOrderId(order.id);
+        // Set the order record ID (Airtable record ID) in store
+        if (orderData.order) {
+          setOrderId(orderData.order.id);
+        }
 
         // Populate customer demographics
         if (orderData.customer) {
@@ -358,6 +360,9 @@ function NewWorkOrder() {
             paid: orderFields.Paid,
             balance: orderFields.Balance,
             numOfFabrics: orderFields.NumOfFabrics,
+            paymentType: orderFields.PaymentType,
+            discountType: orderFields.DiscountType,
+            discountValue: orderFields.DiscountValue,
           });
         }
 
@@ -511,6 +516,8 @@ function NewWorkOrder() {
   // ============================================================================
   const handleOrderFormSubmit = (data: Partial<OrderSchema>) => {
     setOrder(data);
+    // Mark step 4 (Order & Payment) as saved when form is submitted
+    addSavedStep(4);
   };
 
   const handleOrderFormProceed = () => {
@@ -523,6 +530,19 @@ function NewWorkOrder() {
   const validateOrderCompletion = () => {
     if (savedSteps.length !== steps.length - 1) {
       toast.error("Complete all the steps to confirm order!!");
+      return false;
+    }
+
+    // Validate the order schema
+    const orderData = OrderForm.getValues();
+    const parseResult = orderSchema.safeParse(orderData);
+
+    if (!parseResult.success) {
+      const errors = parseResult.error?.issues
+        ? parseResult.error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join("; ")
+        : "Unknown validation error";
+      toast.error(`Order validation failed: ${errors}`);
+      console.error("Order validation errors:", parseResult.error);
       return false;
     }
 
@@ -548,10 +568,7 @@ function NewWorkOrder() {
     return true;
   };
 
-  const handleOrderConfirmation = () => {
-    if (!validateOrderCompletion()) return;
-
-
+  const confirmOrderCompletion = () => {
     const formOrder: Partial<OrderSchema> = {
       ...OrderForm.getValues(),
       ...paymentForm.getValues(),
@@ -584,6 +601,26 @@ function NewWorkOrder() {
 
     toast.success("Work order completed successfully! ✅");
     handleProceed(5);
+  };
+
+  const handleOrderConfirmation = () => {
+    if (!validateOrderCompletion()) return;
+
+    const paid = OrderForm.getValues().paid ?? 0;
+
+    // Show confirmation dialog if no payment has been made
+    if (paid === 0) {
+      openDialog(
+        "Zero Payment Confirmation",
+        "No payment has been received for this order. Are you sure you want to confirm the order with zero payment?",
+        () => {
+          confirmOrderCompletion();
+          closeDialog();
+        }
+      );
+    } else {
+      confirmOrderCompletion();
+    }
   };
 
   const handleOrderCancellation = () => {
@@ -734,7 +771,7 @@ function NewWorkOrder() {
       orderDate: orderData.orderDate,
       homeDelivery: orderData.homeDelivery,
       orderStatus: orderData.orderStatus,
-      customerName: demographics.nickName,
+      customerName: demographics.name,
       customerPhone: demographics.mobileNumber,
       customerAddress: demographics.address,
       fabricSelections: fabricsData,
@@ -815,7 +852,7 @@ function NewWorkOrder() {
           orderID={order.orderID}
           fatoura={fatoura}
           orderStatus={order.orderStatus ?? "Pending"}
-          customerName={order.customerID?.length ? customerDemographics.nickName : undefined}
+          customerName={customerDemographics.nickName || undefined}
           orderType="Work Order"
           homeDelivery={order.homeDelivery}
           paymentType={order.paymentType}

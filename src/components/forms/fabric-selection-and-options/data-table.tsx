@@ -34,6 +34,7 @@ interface DataTableProps<TData, TValue> {
   orderStatus?: "Pending" | "Completed" | "Cancelled";
   fatoura?: number;
   orderDate?: Date | string | null;
+  orderID?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -46,6 +47,8 @@ export function DataTable<TData, TValue>({
   styles,
   orderStatus,
   fatoura,
+  orderDate,
+  orderID,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -59,6 +62,8 @@ export function DataTable<TData, TValue>({
       styles,
       orderStatus,
       fatoura,
+      orderDate,
+      orderID,
     } as {
       measurementOptions?: { id: string; MeasurementID: string }[];
       removeRow: (rowIndex: number) => void;
@@ -67,6 +72,8 @@ export function DataTable<TData, TValue>({
       styles?: any[];
       orderStatus?: "Pending" | "Completed" | "Cancelled";
       fatoura?: number;
+      orderDate?: Date | string | null;
+      orderID?: string;
     },
   });
 

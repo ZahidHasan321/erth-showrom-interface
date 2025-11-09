@@ -8,7 +8,7 @@ export interface Garment {
     OrderId?: string[];
     Fatoura?: number;
     GarmentId?: string;
-    PieceStage: PieceStage;
+    PieceStages?: PieceStage;
     Brova: boolean;
     FabricSource: "" | "In" | "Out";
     FabricId?: string[];

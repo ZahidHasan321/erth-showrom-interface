@@ -472,20 +472,11 @@ export const ExpressCell = ({
   row,
   table,
 }: CellContext<FabricSelectionSchema, unknown>) => {
-  const { control, setValue } = useFormContext();
+  const { control } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
-
-  const handleExpressChange = (checked: boolean) => {
-    setValue(`fabricSelections.${row.index}.express`, checked);
-
-    // Automatically check home delivery when express is checked
-    if (checked) {
-      setValue(`fabricSelections.${row.index}.homeDelivery`, true);
-    }
-  };
 
   return (
     <div className="w-full flex flex-col justify-center items-center min-w-28">
@@ -496,7 +487,7 @@ export const ExpressCell = ({
           <div className="flex flex-col gap-1 items-center">
             <Checkbox
               checked={field.value as boolean}
-              onCheckedChange={handleExpressChange}
+              onCheckedChange={field.onChange}
               disabled={isFormDisabled}
             />
           </div>
@@ -661,23 +652,11 @@ export const HomeDeliveryCell = ({
   row,
   table,
 }: CellContext<FabricSelectionSchema, unknown>) => {
-  const { control, setValue, getValues } = useFormContext();
+  const { control } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
-
-  const handleHomeDeliveryChange = (checked: boolean) => {
-    setValue(`fabricSelections.${row.index}.homeDelivery`, checked);
-
-    // If unchecking home delivery, also uncheck express
-    if (!checked) {
-      const express = getValues(`fabricSelections.${row.index}.express`);
-      if (express) {
-        setValue(`fabricSelections.${row.index}.express`, false);
-      }
-    }
-  };
 
   return (
     <div className="w-full flex justify-center items-center min-w-20">
@@ -687,7 +666,7 @@ export const HomeDeliveryCell = ({
         render={({ field }) => (
           <Checkbox
             checked={field.value as boolean}
-            onCheckedChange={handleHomeDeliveryChange}
+            onCheckedChange={field.onChange}
             disabled={isFormDisabled}
           />
         )}

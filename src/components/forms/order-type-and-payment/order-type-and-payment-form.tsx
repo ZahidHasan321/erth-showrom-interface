@@ -11,6 +11,7 @@ import { Form, FormField, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { cn } from "@/lib/utils";
 
 import HomeDeliveryIcon from "@/assets/home_delivery.png";
@@ -56,6 +57,8 @@ export function OrderTypeAndPaymentForm({
   customerAddress,
   fabricSelections = [],
 }: OrderTypeAndPaymentFormProps) {
+  const [showZeroPaymentDialog, setShowZeroPaymentDialog] = React.useState(false);
+
   const [
     charges,
     discountValue = 0,
@@ -95,12 +98,12 @@ export function OrderTypeAndPaymentForm({
     return fabricSelections.some((fabric) => fabric.express);
   }, [fabricSelections]);
 
-  // Auto-select home delivery if any fabric has it or has express (since express requires home delivery)
+  // Auto-select home delivery if any fabric has it selected
   React.useEffect(() => {
-    if ((hasAnyHomeDelivery || hasAnyExpressDelivery) && !homeDelivery) {
+    if (hasAnyHomeDelivery && !homeDelivery) {
       form.setValue("homeDelivery", true);
     }
-  }, [hasAnyHomeDelivery, hasAnyExpressDelivery, homeDelivery, form]);
+  }, [hasAnyHomeDelivery, homeDelivery, form]);
 
   // Calculate and set advance
   React.useEffect(() => {
@@ -164,15 +167,25 @@ export function OrderTypeAndPaymentForm({
 
   const showAddressWarning = homeDelivery && !hasAddress;
 
+  const proceedToNextStep = () => {
+    const values = form.getValues();
+    onSubmit(values);
+    onProceed?.();
+  };
+
   const handleProceed = () => {
     if (showAddressWarning) {
       // Don't proceed if home delivery is selected but address is missing
       return;
     }
-    form.handleSubmit((values) => {
-      onSubmit(values);
-      onProceed?.();
-    })();
+
+    // Check if paid amount is 0, undefined, or empty
+    const paidAmount = form.getValues().paid;
+    if (!paidAmount || paidAmount === 0) {
+      setShowZeroPaymentDialog(true);
+    } else {
+      proceedToNextStep();
+    }
   };
 
   const deliveryOptions = [
@@ -203,12 +216,12 @@ export function OrderTypeAndPaymentForm({
             transition={smoothTransition}
             className="bg-card rounded-xl border border-border shadow-sm p-6"
           >
-            {(hasAnyHomeDelivery || hasAnyExpressDelivery) && (
+            {hasAnyHomeDelivery && (
               <Alert className="mb-4 border-primary/50 bg-primary/5">
                 <AlertCircle className="h-4 w-4 text-primary" />
                 <AlertTitle className="text-primary font-semibold">Home Delivery Required</AlertTitle>
                 <AlertDescription>
-                  One or more fabrics have home delivery or express delivery selected. Home delivery is automatically enabled.
+                  One or more fabrics have home delivery selected. Home delivery is automatically enabled.
                 </AlertDescription>
               </Alert>
             )}
@@ -220,10 +233,10 @@ export function OrderTypeAndPaymentForm({
                   onValueChange={(value) => field.onChange(value === "true")}
                   value={field.value ? "true" : "false"}
                   className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-                  disabled={isOrderClosed || hasAnyHomeDelivery || hasAnyExpressDelivery}
+                  disabled={isOrderClosed || hasAnyHomeDelivery}
                 >
                   {deliveryOptions.map((option) => {
-                    const isDisabled = isOrderClosed || ((hasAnyHomeDelivery || hasAnyExpressDelivery) && !option.value);
+                    const isDisabled = isOrderClosed || (hasAnyHomeDelivery && !option.value);
                     const optionValueStr = option.value ? "true" : "false";
                     const isSelected = field.value === option.value;
                     return (
@@ -674,6 +687,20 @@ export function OrderTypeAndPaymentForm({
           </div>
         )}
       </form>
+
+      {/* Zero Payment Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={showZeroPaymentDialog}
+        onClose={() => setShowZeroPaymentDialog(false)}
+        onConfirm={() => {
+          setShowZeroPaymentDialog(false);
+          proceedToNextStep();
+        }}
+        title="No Payment Received"
+        description="The paid amount is currently zero. Are you sure you want to continue without any payment?"
+        confirmText="Continue Anyway"
+        cancelText="Go Back"
+      />
     </Form>
   );
 }

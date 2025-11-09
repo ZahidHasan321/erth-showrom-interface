@@ -42,7 +42,8 @@ export function mapFormOrderToApiOrder(
 ): { id?: string; fields: Partial<Order["fields"]> } {
   const apiOrder: { id?: string; fields: Partial<Order["fields"]> } = {
     fields: {
-      OrderID: formOrder.orderID,
+      // OrderID is a computed field in Airtable, don't send it
+      // OrderID: formOrder.orderID,
       CustomerID: formOrder.customerID,
       OrderDate: formOrder.orderDate,
       OrderStatus: formOrder.orderStatus,

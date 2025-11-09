@@ -7,6 +7,7 @@ import * as FabricCells from "./fabric-selection-cells";
 import * as React from "react";
 import { useReactToPrint } from "react-to-print";
 import { FabricLabel } from "./fabric-print-component";
+import { useFormContext } from "react-hook-form";
 
 export const columns: ColumnDef<FabricSelectionSchema>[] = [
   // IDs
@@ -96,26 +97,29 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
     minSize: 80,
     cell: ({ row, table }) => {
       const printRef = React.useRef<HTMLDivElement>(null);
+      const { getValues } = useFormContext();
+
       const meta = table.options.meta as {
         orderStatus?: "Pending" | "Completed" | "Cancelled";
         fatoura?: number;
-        orderDate?: Date | string | null;
+        orderID?: string;
         measurementOptions?: { id: string; MeasurementID: string }[];
       };
 
-      const isOrderCompleted = meta?.orderStatus === "Completed";
-      const fatoura = meta?.fatoura;
-      const orderDate = meta?.orderDate;
+      const orderID = meta?.orderID;
       const measurementOptions = meta?.measurementOptions || [];
+
+      // Get current form values for this row instead of row.original
+      const currentRowData = getValues(`fabricSelections.${row.index}`) as FabricSelectionSchema;
 
       // Look up the MeasurementID display value
       const measurementDisplay = measurementOptions.find(
-        m => m.id === row.original.measurementId
-      )?.MeasurementID || row.original.measurementId;
+        m => m.id === currentRowData.measurementId
+      )?.MeasurementID || currentRowData.measurementId;
 
       const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: `Fabric-Order-${row.original.garmentId}`,
+        documentTitle: `Fabric-Order-${currentRowData.garmentId}`,
         pageStyle: `
           @page {
             size: 5in 4in;
@@ -138,21 +142,21 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
       });
 
       const fabricData = {
-        orderId: isOrderCompleted && fatoura ? fatoura : 0,
-        garmentId: row.original.garmentId || "",
-        fabricSource: row.original.fabricSource || "",
-        fabricLength: row.original.fabricLength || "",
+        orderId: orderID || "N/A",
+        garmentId: currentRowData.garmentId || "",
+        fabricSource: currentRowData.fabricSource || "",
+        fabricLength: currentRowData.fabricLength || "",
         measurementId: measurementDisplay,
-        brova: row.original.brova || false,
-        express: row.original.express || false,
-        deliveryDate: row.original.deliveryDate || null,
+        brova: currentRowData.brova || false,
+        express: currentRowData.express || false,
+        deliveryDate: currentRowData.deliveryDate || null,
       };
 
       return (
         <>
           {/* Hidden print component */}
           <div style={{ display: "none" }}>
-            <FabricLabel ref={printRef} fabricData={fabricData} orderDate={orderDate} />
+            <FabricLabel ref={printRef} fabricData={fabricData} />
           </div>
 
           <Button
@@ -160,7 +164,6 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
             variant="outline"
             onClick={handlePrint}
             size="sm"
-            disabled={!isOrderCompleted}
           >
             <Printer className="h-4 w-4 mr-1" />
             Print

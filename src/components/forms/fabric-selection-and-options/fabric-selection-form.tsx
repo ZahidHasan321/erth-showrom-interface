@@ -240,6 +240,18 @@ export function FabricSelectionForm({
     },
     onSuccess: (responses) => {
       console.log("API Response on Save:", responses);
+
+      // Check for any errors in the responses
+      const errorResponses = responses.filter(r => r.status === "error");
+
+      if (errorResponses.length > 0) {
+        // If any responses failed, show error
+        const errorMessages = errorResponses.map(r => r.message || "Unknown error").join(", ");
+        toast.error(`Failed to save ${errorResponses.length} garment(s): ${errorMessages}`);
+        return;
+      }
+
+      // All responses successful
       toast.success(`${responses.length} garment(s) saved successfully!`);
 
       // Update form with response IDs only for valid selections
@@ -641,6 +653,7 @@ export function FabricSelectionForm({
             orderStatus={orderStatus}
             fatoura={fatoura}
             orderDate={orderDate}
+            orderID={orderId || undefined}
           />
 
           <div className="space-y-2 pt-4">

@@ -2,7 +2,7 @@ import React from 'react';
 
 interface FabricLabelProps {
   fabricData: {
-    orderId: number;
+    orderId: string;
     garmentId: string;
     fabricSource: string;
     fabricLength: string;
@@ -11,11 +11,10 @@ interface FabricLabelProps {
     express: boolean;
     deliveryDate: Date | null;
   };
-  orderDate?: Date | string | null;
 }
 
 export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
-  ({ fabricData, orderDate }, ref) => {
+  ({ fabricData }, ref) => {
     const formatDate = (date: Date | string | null | undefined) => {
       if (!date) return "N/A";
       const d = new Date(date);
@@ -77,26 +76,15 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
               borderRight: '1px solid #ccc'
             }}>
               <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Source</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.fabricSource}</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.fabricSource || 'N/A'}</div>
             </div>
             <div style={{
               textAlign: 'center',
               padding: '8px 4px'
             }}>
               <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Length</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.fabricLength}m</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.fabricLength || 'N/A'}m</div>
             </div>
-          </div>
-
-          {/* Order Date */}
-          <div style={{
-            textAlign: 'center',
-            padding: '8px 4px',
-            borderBottom: '2px solid black',
-            fontSize: '18px',
-            fontWeight: 'bold'
-          }}>
-            Order Date: {formatDate(orderDate)}
           </div>
 
           {/* Measurement Details Row */}

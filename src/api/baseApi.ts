@@ -112,6 +112,12 @@ export const createRecord = async <T>(
   }
 
   const data = await response.json();
+
+  // Check if the API returned an error status in the response body
+  if (data.status === 'error') {
+    throw new Error(data.message || `Failed to create record in ${tableName}`);
+  }
+
   return data as ApiResponse<T>;
 };
 
@@ -168,5 +174,11 @@ export const updateRecord = async <T extends {fields:any}>(
   }
 
   const data = await response.json();
+
+  // Check if the API returned an error status in the response body
+  if (data.status === 'error') {
+    throw new Error(data.message || `Failed to update record ${recordId} in ${tableName}`);
+  }
+
   return data as ApiResponse<T>;
 };
