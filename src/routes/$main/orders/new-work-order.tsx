@@ -3,6 +3,9 @@
 import { getEmployees } from "@/api/employees";
 import { getFabrics } from "@/api/fabrics";
 import { getStyles } from "@/api/styles";
+import { getCompleteOrderDetails } from "@/api/orders";
+import type { Order } from "@/types/order";
+import { mapApiGarmentToFormGarment } from "@/lib/garment-mapper";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
 import {
   customerDemographicsDefaults,
@@ -201,6 +204,7 @@ function NewWorkOrder() {
     updateOrder: updateOrderMutation,
     updateShelf: updateShelfMutation,
     updateFabricStock: updateFabricStockMutation,
+    deleteOrder: deleteOrderMutation,
   } = useOrderMutations({
     orderType: "work",
     onOrderCreated: (id, formattedOrder) => {
@@ -226,6 +230,174 @@ function NewWorkOrder() {
       resetWorkOrder();
     },
   });
+
+  // ============================================================================
+  // PENDING ORDER LOADING
+  // ============================================================================
+  const handlePendingOrderSelected = async (order: Order) => {
+    try {
+      if (!order.fields.OrderID) {
+        toast.error("Invalid order ID");
+        return;
+      }
+
+      // Reset all forms and state before loading new order
+      demographicsForm.reset(customerDemographicsDefaults);
+      measurementsForm.reset(customerMeasurementsDefaults);
+      fabricSelectionForm.reset({ fabricSelections: [], styleOptions: [] });
+      ShelvesForm.reset({ products: [] });
+      OrderForm.reset(orderDefaults);
+      paymentForm.reset({ paymentType: "cash" });
+
+      // Clear saved steps
+      savedSteps.forEach(step => removeSavedStep(step));
+
+      // Delete the current empty order that was just created
+      if (orderId) {
+        await deleteOrderMutation.mutateAsync(orderId);
+      }
+
+      // Fetch complete order details from API
+      const response = await getCompleteOrderDetails(order.fields.OrderID);
+
+      if (response.status === "success" && response.data) {
+        const orderData = response.data;
+
+        // Set the order ID in store
+        setOrderId(order.id);
+
+        // Populate customer demographics
+        if (orderData.customer) {
+          const customer = orderData.customer;
+          demographicsForm.setValue("customerRecordId", customer.id);
+          demographicsForm.setValue("id", customer.fields.id);
+          demographicsForm.setValue("name", customer.fields.Name || "");
+          demographicsForm.setValue("nickName", customer.fields.NickName || "");
+          demographicsForm.setValue("mobileNumber", customer.fields.MobileNumber || "");
+          demographicsForm.setValue("email", customer.fields.Email || "");
+          demographicsForm.setValue("accountType", customer.fields.AccountType as any);
+          demographicsForm.setValue("relation", customer.fields.Relation || "");
+          demographicsForm.setValue("nationality", customer.fields.Nationality || "");
+          demographicsForm.setValue("arabicName", customer.fields.ArabicName || "");
+          demographicsForm.setValue("arabicNickname", customer.fields.ArabicNickName || "");
+          demographicsForm.setValue("instagram", customer.fields.Instagram || "");
+          demographicsForm.setValue("whatsapp", customer.fields.Whatsapp || false);
+          demographicsForm.setValue("countryCode", customer.fields.CountryCode || "");
+
+          if (customer.fields.DOB) {
+            demographicsForm.setValue("dob", new Date(customer.fields.DOB));
+          }
+
+          if (customer.fields.Address) {
+            demographicsForm.setValue("address", {
+              city: customer.fields.Address.city || "",
+              area: customer.fields.Address.area || "",
+              block: customer.fields.Address.block || "",
+              street: customer.fields.Address.street || "",
+              houseNumber: customer.fields.Address.houseNumber || "",
+              addressNote: customer.fields.Address.addressNote || "",
+            });
+          }
+
+          setCustomerDemographics({
+            customerRecordId: customer.id,
+            id: customer.fields.id,
+            name: customer.fields.Name || "",
+            nickName: customer.fields.NickName || "",
+            mobileNumber: customer.fields.MobileNumber || "",
+          });
+
+          addSavedStep(0);
+        }
+
+        // Populate order form
+        if (orderData.order) {
+          const orderFields = orderData.order.fields;
+          OrderForm.setValue("customerID", orderFields.CustomerID);
+          OrderForm.setValue("orderID", orderFields.OrderID);
+          OrderForm.setValue("orderDate", orderFields.OrderDate || new Date().toISOString());
+          OrderForm.setValue("orderStatus", orderFields.OrderStatus || "Pending");
+          OrderForm.setValue("homeDelivery", orderFields.HomeDelivery ?? false);
+          OrderForm.setValue("notes", orderFields.Notes || "");
+
+          if (orderFields.Campaigns) {
+            OrderForm.setValue("campaigns", orderFields.Campaigns);
+          }
+
+          // Set charges
+          OrderForm.setValue("charges", {
+            fabric: orderFields.FabricCharge ?? 0,
+            stitching: orderFields.StitchingCharge ?? 0,
+            style: orderFields.StyleCharge ?? 0,
+            delivery: orderFields.DeliveryCharge ?? 0,
+            shelf: orderFields.ShelfCharge ?? 0,
+          });
+
+          OrderForm.setValue("advance", orderFields.Advance ?? 0);
+          OrderForm.setValue("paid", orderFields.Paid ?? 0);
+          OrderForm.setValue("balance", orderFields.Balance ?? 0);
+          OrderForm.setValue("numOfFabrics", orderFields.NumOfFabrics ?? 0);
+          OrderForm.setValue("discountType", orderFields.DiscountType as any);
+          OrderForm.setValue("discountValue", orderFields.DiscountValue ?? 0);
+
+          setOrder({
+            orderID: orderFields.OrderID,
+            customerID: orderFields.CustomerID,
+            orderDate: orderFields.OrderDate,
+            orderStatus: orderFields.OrderStatus,
+            homeDelivery: orderFields.HomeDelivery,
+            campaigns: orderFields.Campaigns,
+            charges: {
+              fabric: orderFields.FabricCharge ?? 0,
+              stitching: orderFields.StitchingCharge ?? 0,
+              style: orderFields.StyleCharge ?? 0,
+              delivery: orderFields.DeliveryCharge ?? 0,
+              shelf: orderFields.ShelfCharge ?? 0,
+            },
+            advance: orderFields.Advance,
+            paid: orderFields.Paid,
+            balance: orderFields.Balance,
+            numOfFabrics: orderFields.NumOfFabrics,
+          });
+        }
+
+        // Populate fabric selections and style options if available
+        if (orderData.garments && orderData.garments.length > 0) {
+          // Use the garment mapper to properly transform API data to form data
+          const mappedGarments = orderData.garments.map((garment: any) =>
+            mapApiGarmentToFormGarment(garment)
+          );
+
+          const fabricSelections = mappedGarments.map((g: any) => g.fabricSelection);
+          const styleOptions = mappedGarments.map((g: any) => g.styleOptions);
+
+          fabricSelectionForm.setValue("fabricSelections", fabricSelections);
+          fabricSelectionForm.setValue("styleOptions", styleOptions);
+          setFabricSelections(fabricSelections);
+          setStyleOptions(styleOptions);
+          addSavedStep(1); // Measurements step must be complete if fabrics exist
+          // Do NOT mark fabric selection step as saved - let user review and save
+        }
+
+        // Populate payment form
+        if (orderData.order?.fields.PaymentType) {
+          paymentForm.setValue("paymentType", orderData.order.fields.PaymentType as any);
+          paymentForm.setValue("paymentRefNo", orderData.order.fields.PaymentRefNo || "");
+          paymentForm.setValue("orderTaker", orderData.order.fields.OrderTaker?.[0] || "");
+        }
+
+        // Navigate to first incomplete step or measurements
+        setCurrentStep(1);
+
+        toast.success(`Order #${order.fields.OrderID} loaded successfully`);
+      } else {
+        toast.error("Failed to load order details");
+      }
+    } catch (error) {
+      console.error("Error loading pending order:", error);
+      toast.error("Failed to load order. Please try again.");
+    }
+  };
 
   // ============================================================================
   // DEMOGRAPHICS FORM HANDLERS
@@ -671,6 +843,8 @@ function NewWorkOrder() {
             onCancel={() => addSavedStep(0)}
             onProceed={handleDemographicsProceed}
             onClear={() => removeSavedStep(0)}
+            checkPendingOrders={true}
+            onPendingOrderSelected={handlePendingOrderSelected}
           />
         </div>
 
@@ -719,6 +893,7 @@ function NewWorkOrder() {
               orderStatus={orderStatus}
               fatoura={fatoura}
               orderDate={order.orderDate}
+              initialCampaigns={order.campaigns || []}
             />
           </ErrorBoundary>
         </div>

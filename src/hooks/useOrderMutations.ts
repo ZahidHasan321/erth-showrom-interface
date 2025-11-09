@@ -1,4 +1,4 @@
-import { createOrder, updateOrder } from "@/api/orders";
+import { createOrder, updateOrder, deleteOrder } from "@/api/orders";
 import { updateShelf } from "@/api/shelves";
 import { updateFabric } from "@/api/fabrics";
 import { mapApiOrderToFormOrder, mapFormOrderToApiOrder } from "@/lib/order-mapper";
@@ -26,15 +26,22 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
 
   const createOrderMutation = useMutation({
     mutationFn: (additionalFields?: Partial<OrderSchema>) => {
-      const fields: any = { OrderStatus: "Pending" };
-      if (options.orderType) {
-        fields.OrderType = options.orderType;
-      }
+      const fields: any = {
+        OrderStatus: "Pending",
+        OrderDate: new Date().toISOString()
+      };
+
       // Merge additional fields if provided
       if (additionalFields) {
         const mappedFields = mapFormOrderToApiOrder(additionalFields);
         Object.assign(fields, mappedFields.fields);
       }
+
+      // Set OrderType AFTER merging to ensure it's not overwritten
+      if (options.orderType) {
+        fields.OrderType = options.orderType;
+      }
+
       return createOrder({ fields });
     },
     onSuccess: (response) => {
@@ -148,10 +155,23 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
     },
   });
 
+  const deleteOrderMutation = useMutation({
+    mutationFn: (orderId: string) => {
+      return deleteOrder(orderId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
+    onError: () => {
+      toast.error("Failed to delete order");
+    },
+  });
+
   return {
     createOrder: createOrderMutation,
     updateOrder: updateOrderMutation,
     updateShelf: updateShelfMutation,
     updateFabricStock: updateFabricStockMutation,
+    deleteOrder: deleteOrderMutation,
   };
 }

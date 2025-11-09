@@ -62,6 +62,8 @@ interface CustomerDemographicsFormProps {
   isOrderClosed?: boolean;
   header?: string;
   subheader?: string;
+  checkPendingOrders?: boolean;
+  onPendingOrderSelected?: (order: any) => void;
 }
 
 export function CustomerDemographicsForm({
@@ -74,6 +76,8 @@ export function CustomerDemographicsForm({
   isOrderClosed,
   header = "Demographics",
   subheader = "Customer information and contact details",
+  checkPendingOrders = false,
+  onPendingOrderSelected,
 }: CustomerDemographicsFormProps) {
   const [isEditing, setIsEditing] = useState(true);
   const [confirmationDialog, setConfirmationDialog] = useState({
@@ -91,6 +95,13 @@ export function CustomerDemographicsForm({
     name: ["accountType", "mobileNumber", "customerRecordId"],
   });
   const countries = getSortedCountries();
+
+  // When customerRecordId changes (loaded or saved), set to readonly mode
+  React.useEffect(() => {
+    if (customerRecordId) {
+      setIsEditing(false);
+    }
+  }, [customerRecordId]);
 
   const {
     data: existingUsers,
@@ -293,9 +304,16 @@ export function CustomerDemographicsForm({
 
         <div className="flex justify-between items-start mb-2">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold text-foreground bg-linear-to-r from-primary to-secondary bg-clip-text">
-              {header}
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-foreground bg-linear-to-r from-primary to-secondary bg-clip-text">
+                {header}
+              </h1>
+              {form.watch("id") && (
+                <span className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-sm font-semibold text-primary">
+                  ID: {form.watch("id")}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">{subheader}</p>
           </div>
         </div>
@@ -310,6 +328,8 @@ export function CustomerDemographicsForm({
                 setWarnings({});
                 onClear?.();
               }}
+              checkPendingOrders={checkPendingOrders}
+              onPendingOrderSelected={onPendingOrderSelected}
             />
           </ErrorBoundary>
         </div>}

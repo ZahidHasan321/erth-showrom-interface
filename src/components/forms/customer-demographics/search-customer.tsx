@@ -1,26 +1,39 @@
 "use client";
 
 import { searchCustomerByPhone } from "@/api/customers";
+import { getPendingOrdersByCustomer } from "@/api/orders";
 import { Button } from "@/components/ui/button";
 import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { Customer } from "@/types/customer";
+import type { Order } from "@/types/order";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CustomerSelectionDialog } from "./customer-selection-dialog";
+import { PendingOrdersDialog } from "./pending-orders-dialog";
 
 interface SearchCustomerProps {
   onCustomerFound: (customer: Customer) => void;
   onHandleClear: () => void;
+  onPendingOrderSelected?: (order: Order) => void;
+  checkPendingOrders?: boolean;
 }
 
-export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustomerProps) {
+export function SearchCustomer({
+  onCustomerFound,
+  onHandleClear,
+  onPendingOrderSelected,
+  checkPendingOrders = false
+}: SearchCustomerProps) {
   const [searchMobile, setSearchMobile] = useState("");
   const [submittedSearch, setSubmittedSearch] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [customerOptions, setCustomerOptions] = useState<Customer[]>([]);
+  const [showPendingOrders, setShowPendingOrders] = useState(false);
+  const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   const { data, isFetching, isSuccess, isError, error } = useQuery({
     queryKey: ["customerSearch", submittedSearch],
@@ -38,7 +51,6 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
       if (data.data) {
         if (data.count === 1) {
           onCustomerFound(data.data[0] as Customer);
-          toast.success("Customer found!");
         } else if (data.count && data.count > 1) {
           setCustomerOptions(data.data);
           setShowDialog(true);
@@ -63,11 +75,51 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
     };
   }, []);
 
-  const handleSelectCustomer = (customer: Customer) => {
-    onCustomerFound(customer);
+  const handleSelectCustomer = async (customer: Customer) => {
     setShowDialog(false);
     setCustomerOptions([]);
     setSubmittedSearch(null);
+    setSelectedCustomer(customer);
+
+    // Check for pending orders if enabled (only for new work orders)
+    if (checkPendingOrders && customer.fields.id) {
+      try {
+        const response = await getPendingOrdersByCustomer(customer.fields.id, 5);
+        if (response.data && response.data.length > 0) {
+          setPendingOrders(response.data);
+          setShowPendingOrders(true);
+        } else {
+          // No pending orders, proceed with customer
+          onCustomerFound(customer);
+        }
+      } catch (error) {
+        console.error("Error fetching pending orders:", error);
+        toast.error("Failed to check for pending orders");
+        // Proceed with customer selection anyway
+        onCustomerFound(customer);
+      }
+    } else {
+      // No need to check pending orders, proceed directly
+      onCustomerFound(customer);
+    }
+  };
+
+  const handlePendingOrderSelect = (order: Order) => {
+    if (onPendingOrderSelected) {
+      onPendingOrderSelected(order);
+    }
+    setShowPendingOrders(false);
+    setPendingOrders([]);
+    setSelectedCustomer(null);
+  };
+
+  const handleCreateNewOrder = () => {
+    if (selectedCustomer) {
+      onCustomerFound(selectedCustomer);
+    }
+    setShowPendingOrders(false);
+    setPendingOrders([]);
+    setSelectedCustomer(null);
   };
 
   const handleSearch = () => {
@@ -130,6 +182,15 @@ export function SearchCustomer({ onCustomerFound, onHandleClear }: SearchCustome
         onOpenChange={setShowDialog}
         customers={customerOptions}
         onSelectCustomer={handleSelectCustomer}
+      />
+
+      <PendingOrdersDialog
+        isOpen={showPendingOrders}
+        onOpenChange={setShowPendingOrders}
+        orders={pendingOrders}
+        onSelectOrder={handlePendingOrderSelect}
+        onCreateNewOrder={handleCreateNewOrder}
+        customerName={selectedCustomer?.fields.Name}
       />
     </div>
   );

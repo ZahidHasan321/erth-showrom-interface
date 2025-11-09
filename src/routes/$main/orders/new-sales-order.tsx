@@ -213,11 +213,15 @@ function NewSalesOrder() {
   const handleOrderConfirmation = () => {
     if (!validateOrderCompletion()) return;
 
+    const { fatouraStages, ...orderValues } = OrderForm.getValues();
+
     const formOrder: Partial<OrderSchema> = {
-      ...OrderForm.getValues(),
+      ...orderValues,
       ...paymentForm.getValues(),
       orderStatus: "Completed",
       orderDate: new Date().toISOString(),
+      // Explicitly exclude fatouraStages for sales orders
+      fatouraStages: undefined,
     };
 
     OrderForm.setValue("orderStatus", "Completed");

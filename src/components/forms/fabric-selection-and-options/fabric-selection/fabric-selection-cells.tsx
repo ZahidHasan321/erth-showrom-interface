@@ -128,11 +128,15 @@ export const FabricSourceCell = ({
     name: `fabricSelections.${row.index}.fabricSource`,
   });
 
+  const previousFabricSource = React.useRef(fabricSource);
+
   React.useEffect(() => {
-    if (fabricSource === "Out") {
+    // Only clear color when actively changing from "In" to "Out", not on initial load
+    if (fabricSource === "Out" && previousFabricSource.current === "In") {
       setValue(`fabricSelections.${row.index}.color`, "", { shouldValidate: true });
       setValue(`fabricSelections.${row.index}.fabricId`, "", { shouldValidate: true });
     }
+    previousFabricSource.current = fabricSource;
   }, [fabricSource, row.index, setValue]);
 
   return (

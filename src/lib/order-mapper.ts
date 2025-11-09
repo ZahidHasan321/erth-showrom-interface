@@ -46,7 +46,8 @@ export function mapFormOrderToApiOrder(
       CustomerID: formOrder.customerID,
       OrderDate: formOrder.orderDate,
       OrderStatus: formOrder.orderStatus,
-      FatouraStages: formOrder.fatouraStages,
+      // Only set FatouraStages for work orders
+      FatouraStages: formOrder.orderType === "work" ? formOrder.fatouraStages : undefined,
       // OrderTotal: formOrder.orderTotal,
       HomeDelivery: formOrder.homeDelivery,
       Notes: formOrder.notes,

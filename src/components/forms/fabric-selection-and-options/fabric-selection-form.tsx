@@ -56,6 +56,7 @@ interface FabricSelectionFormProps {
   orderStatus?: "Pending" | "Completed" | "Cancelled";
   fatoura?: number;
   orderDate?: Date | string | null;
+  initialCampaigns?: string[];
 }
 
 export function FabricSelectionForm({
@@ -71,6 +72,7 @@ export function FabricSelectionForm({
   orderStatus,
   fatoura,
   orderDate,
+  initialCampaigns = [],
 }: FabricSelectionFormProps) {
   const [numRowsToAdd, setNumRowsToAdd] = React.useState(0);
   const [selectedCampaigns, setSelectedCampaigns] = React.useState<string[]>(
@@ -83,6 +85,14 @@ export function FabricSelectionForm({
   const [fabricMeter, setFabricMeter] = React.useState<number | null>(null);
   const [qallabi, setQallabi] = React.useState<number | null>(null);
   const [cuffs, setCuffs] = React.useState<number | null>(null);
+
+  // Set initial campaigns when prop changes (e.g., when loading an order)
+  React.useEffect(() => {
+    // Update selected campaigns whenever initialCampaigns prop changes
+    // This handles both loading campaigns and clearing them
+    setSelectedCampaigns(initialCampaigns || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialCampaigns?.join(',')]);
 
   // Fetch fabrics for validation
   const { data: fabricsResponse } = useQuery({

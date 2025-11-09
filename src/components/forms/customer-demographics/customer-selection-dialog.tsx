@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import type { Customer } from "@/types/customer";
-import { toast } from "sonner";
 
 interface CustomerSelectionDialogProps {
   isOpen: boolean;
@@ -31,7 +30,6 @@ export function CustomerSelectionDialog({
   const handleSelect = (customer: Customer) => {
     onSelectCustomer(customer);
     onOpenChange(false); // Close dialog after selection
-    toast.success(`Selected ${customer.fields.Name}`);
   };
 
   React.useEffect(() => {
