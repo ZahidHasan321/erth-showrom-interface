@@ -380,8 +380,10 @@ export const FabricLengthCell = ({
   const { control, setError, clearErrors } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
+    tempStockUsage?: Map<string, number>;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
+  const tempStockUsage = meta?.tempStockUsage || new Map();
   const { data: fabricsResponse } = useQuery({
     queryKey: ["fabrics"],
     queryFn: getFabrics,
@@ -402,20 +404,23 @@ export const FabricLengthCell = ({
     if (fabricSource === "In" && fabricId && fabricLength) {
       const selectedFabric = fabrics.find((f) => f.id === fabricId);
       if (selectedFabric) {
-        const stock = selectedFabric.fields.RealStock || 0;
+        const realStock = selectedFabric.fields.RealStock || 0;
         const requestedLength = parseFloat(fabricLength as string);
+
+        // Get total usage of this fabric across all rows
+        const totalUsage = tempStockUsage.get(fabricId) || 0;
 
         if (isNaN(requestedLength) || requestedLength <= 0) {
           setError(`fabricSelections.${row.index}.fabricLength`, {
             type: "manual",
             message: "Invalid length",
           });
-        } else if (requestedLength > stock) {
+        } else if (totalUsage > realStock) {
           setError(`fabricSelections.${row.index}.fabricLength`, {
             type: "manual",
-            message: `Insufficient stock (Available: ${stock})`,
+            message: `Insufficient stock (Total used: ${totalUsage.toFixed(2)}m, Available: ${realStock}m)`,
           });
-          toast.error(`Row ${row.index + 1}: Stock unavailable. Available: ${stock}`);
+          toast.error(`Row ${row.index + 1}: Insufficient stock. Total requested: ${totalUsage.toFixed(2)}m, Available: ${realStock}m`);
         } else {
           clearErrors(`fabricSelections.${row.index}.fabricLength`);
         }
@@ -439,6 +444,7 @@ export const FabricLengthCell = ({
     setError,
     clearErrors,
     row.index,
+    tempStockUsage,
   ]);
 
   return (

@@ -86,6 +86,9 @@ export function FabricSelectionForm({
   const [qallabi, setQallabi] = React.useState<number | null>(null);
   const [cuffs, setCuffs] = React.useState<number | null>(null);
 
+  // Temporary stock tracking: Map of fabricId -> total length used
+  const [tempStockUsage, setTempStockUsage] = React.useState<Map<string, number>>(new Map());
+
   // Set initial campaigns when prop changes (e.g., when loading an order)
   React.useEffect(() => {
     // Update selected campaigns whenever initialCampaigns prop changes
@@ -114,6 +117,41 @@ export function FabricSelectionForm({
 
   const styles = stylesResponse?.data || [];
 
+  // Calculate temporary stock usage based on current form values
+  const calculateTempStockUsage = React.useCallback(() => {
+    const fabricSelections = form.getValues("fabricSelections");
+    const usage = new Map<string, number>();
+
+    fabricSelections.forEach((selection) => {
+      if (selection.fabricSource === "In" && selection.fabricId) {
+        const length = parseFloat(selection.fabricLength) || 0;
+        if (length > 0) {
+          const currentUsage = usage.get(selection.fabricId) || 0;
+          usage.set(selection.fabricId, currentUsage + length);
+        }
+      }
+    });
+
+    return usage;
+  }, [form]);
+
+  // Initialize temporary stock usage on mount or when fabric selections are loaded
+  React.useEffect(() => {
+    const initialUsage = calculateTempStockUsage();
+    setTempStockUsage(initialUsage);
+  }, [calculateTempStockUsage]);
+
+  // Update temporary stock usage whenever fabric selections change
+  React.useEffect(() => {
+    const subscription = form.watch((_value, { name }) => {
+      // Only recalculate if fabric-related fields change
+      if (name?.startsWith("fabricSelections")) {
+        const newUsage = calculateTempStockUsage();
+        setTempStockUsage(newUsage);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, calculateTempStockUsage]);
 
   // Validate fabric selections before saving
   const validateFabricSelections = React.useCallback(() => {
@@ -164,12 +202,15 @@ export function FabricSelectionForm({
         } else {
           const selectedFabric = fabrics.find((f) => f.id === selection.fabricId);
           if (selectedFabric) {
-            const stock = selectedFabric.fields.RealStock || 0;
+            const realStock = selectedFabric.fields.RealStock || 0;
             const requestedLength = parseFloat(selection.fabricLength);
 
-            if (!isNaN(requestedLength) && requestedLength > stock) {
+            // Calculate total usage of this fabric across all rows
+            const totalUsage = tempStockUsage.get(selection.fabricId) || 0;
+
+            if (!isNaN(requestedLength) && totalUsage > realStock) {
               errors.push(
-                `Row ${index + 1}: Insufficient stock. Requested: ${requestedLength}, Available: ${stock}`
+                `Row ${index + 1}: Insufficient stock. Total requested for this fabric: ${totalUsage.toFixed(2)}m, Available: ${realStock}m`
               );
             }
           }
@@ -192,7 +233,7 @@ export function FabricSelectionForm({
     });
 
     return errors;
-  }, [form, fabrics]);
+  }, [form, fabrics, tempStockUsage]);
 
   // Mutation to save garments
   const { mutate: saveGarmentsMutation, isPending: isSaving } = useMutation({
@@ -654,6 +695,7 @@ export function FabricSelectionForm({
             fatoura={fatoura}
             orderDate={orderDate}
             orderID={orderId || undefined}
+            tempStockUsage={tempStockUsage}
           />
 
           <div className="space-y-2 pt-4">
