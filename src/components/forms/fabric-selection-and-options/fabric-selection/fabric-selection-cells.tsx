@@ -16,7 +16,6 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Combobox } from "@/components/ui/combobox";
 import { getFabrics } from "@/api/fabrics";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Fuse from "fuse.js";
 import type { CellContext } from "@tanstack/react-table";
@@ -420,7 +419,6 @@ export const FabricLengthCell = ({
             type: "manual",
             message: `Insufficient stock (Total used: ${totalUsage.toFixed(2)}m, Available: ${realStock}m)`,
           });
-          toast.error(`Row ${row.index + 1}: Insufficient stock. Total requested: ${totalUsage.toFixed(2)}m, Available: ${realStock}m`);
         } else {
           clearErrors(`fabricSelections.${row.index}.fabricLength`);
         }
