@@ -74,20 +74,20 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
                     {uniqueBrands.map((brand: string, idx: number) => {
                         const combination = `${selectedType}-${brand}`
                         const isAlreadySelected = selectedProducts?.includes(combination)
-                        
+
                         // Check if product has stock
                         const product = serverProducts?.find(
                             (p: any) => p.fields?.Brand === brand && p.fields?.Type === selectedType
                         )
                         const hasStock = product?.fields?.Stock && product.fields.Stock > 0
-                        
+
                         return (
-                            <SelectItem 
-                                key={`brand-${idx}-${brand}`} 
+                            <SelectItem
+                                key={`brand-${idx}-${brand}`}
                                 value={brand}
                                 disabled={isAlreadySelected || !hasStock}
                             >
-                                {brand} 
+                                {brand}
                                 {isAlreadySelected && ' (Already selected)'}
                                 {!hasStock && !isAlreadySelected && ' (Out of stock)'}
                             </SelectItem>
@@ -103,7 +103,14 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
     header: 'Available Stock',
     minSize: 100,
     cell: ({ row }) => {
-      return <div className="border rounded-md p-2">{row.original.Stock || 0}</div>
+      const stock = row.original.Stock || 0;
+      const getStockColorClass = () => {
+        if (stock <= 0) return "text-red-600 font-semibold"; // Out of stock
+        if (stock < 5) return "text-orange-600 font-semibold"; // Less than 5
+        if (stock >= 5 && stock <= 11) return "text-green-600 font-semibold"; // 5-11
+        return "text-foreground"; // More than 11
+      };
+      return <div className={`border rounded-md p-2 ${getStockColorClass()}`}>{stock}</div>
     },
   },
   {
@@ -219,10 +226,16 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
             </Button>
           </div>
           {maxStock === 0 && (
-            <span className="text-xs text-red-500 text-center">No stock available</span>
+            <span className="text-xs text-red-600 font-semibold text-center">No stock available</span>
           )}
           {quantity > maxStock && maxStock > 0 && (
-            <span className="text-xs text-red-500 text-center">Exceeds stock ({maxStock})</span>
+            <span className="text-xs text-red-600 font-semibold text-center">Exceeds stock ({maxStock})</span>
+          )}
+          {maxStock > 0 && maxStock < 5 && quantity <= maxStock && (
+            <span className="text-xs text-orange-600 font-semibold text-center">Low stock - Only {maxStock} available</span>
+          )}
+          {maxStock >= 5 && maxStock <= 11 && quantity <= maxStock && (
+            <span className="text-xs text-green-600 font-semibold text-center">Limited stock - {maxStock} available</span>
           )}
         </div>
       )

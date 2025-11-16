@@ -19,21 +19,19 @@ export const AnimatedMessage = ({ error, warning, info }: AnimatedMessageProps) 
     };
 
     return (
-        <div className="min-h-[1.25rem] mt-1">
-            <AnimatePresence mode="wait">
-                {message && (
-                    <motion.p
-                        key={message}
-                        initial={{ opacity: 0, y: -3 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -3 }}
-                        transition={{ duration: 0.18 }}
-                        className={`text-sm ${colorMap[type!]}`}
-                    >
-                        {message}
-                    </motion.p>
-                )}
-            </AnimatePresence>
-        </div>
+        <AnimatePresence mode="wait">
+            {message && (
+                <motion.p
+                    key={message}
+                    initial={{ opacity: 0, y: -3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -3 }}
+                    transition={{ duration: 0.18 }}
+                    className={`text-sm ${colorMap[type!]} mt-1`}
+                >
+                    {message}
+                </motion.p>
+            )}
+        </AnimatePresence>
     );
 };

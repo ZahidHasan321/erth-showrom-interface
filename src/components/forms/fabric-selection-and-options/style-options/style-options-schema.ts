@@ -5,7 +5,6 @@ import {
   collarButtons,
   jabzourTypes,
   topPocketTypes,
-  sidePocketTypes,
   cuffTypes,
   thicknessOptions,
 } from "../constants";
@@ -15,7 +14,6 @@ const collarTypeValues = collarTypes.map(i => i.value) as [string, ...string[]];
 const collarButtonValues = collarButtons.map(i => i.value) as [string, ...string[]];
 const jabzourTypeValues = jabzourTypes.map(i => i.value) as [string, ...string[]];
 const topPocketTypeValues = topPocketTypes.map(i => i.value) as [string, ...string[]];
-const sidePocketTypeValues = sidePocketTypes.map(i => i.value) as [string, ...string[]];
 const cuffTypeValues = cuffTypes.map(i => i.value) as [string, ...string[]];
 const thicknessValues = thicknessOptions.map(i => i.value) as [string, ...string[]];
 
@@ -25,7 +23,12 @@ export const styleOptionsSchema = z.object({
   styleOptionId: z.string().optional(),
   garmentId: z.string().optional(),
   style: z.string().optional(),
-  lines: z.string().optional(),
+  lines: z
+    .object({
+      line1: z.boolean().optional(),
+      line2: z.boolean().optional(),
+    })
+    .optional(),
   collar: z
     .object({
       collarType: z.enum(collarTypeValues).optional(),
@@ -42,23 +45,22 @@ export const styleOptionsSchema = z.object({
     })
     .optional(),
 
-  sidePocket: z
-    .object({
-      side_pocket_type: z.enum(sidePocketTypeValues).optional(),
-      phone: z.boolean().optional(),
-      wallet: z.boolean().optional(),
-    })
-    .optional(),
-
   frontPocket: z
     .object({
       front_pocket_type: z.enum(topPocketTypeValues).optional(),
       front_pocket_thickness: z.enum(thicknessValues).optional(),
+    })
+    .optional(),
+  accessories: z
+    .object({
+      phone: z.boolean().optional(),
+      wallet: z.boolean().optional(),
       pen_holder: z.boolean().optional(),
     })
     .optional(),
   cuffs: z
     .object({
+      hasCuffs: z.boolean().optional(),
       cuffs_type: z.enum(cuffTypeValues).optional(),
       cuffs_thickness: z.enum(thicknessValues).optional(),
     })
@@ -85,7 +87,10 @@ export const styleOptionsDefaults: StyleOptionsSchema = {
   styleOptionId: "",
   garmentId: "",
   style: "kuwaiti",
-  lines: "line1",
+  lines: {
+    line1: true,
+    line2: false,
+  },
   collar: {
     collarType: "COL_DOWN_COLLAR",
     collarButton: "COL_TABBAGI",
@@ -96,17 +101,17 @@ export const styleOptionsDefaults: StyleOptionsSchema = {
     jabzour2: "JAB_BAIN_MURABBA",
     jabzour_thickness: "SINGLE",
   },
-  sidePocket: {
-    side_pocket_type: "SID_MUDAWWAR_SIDE_POCKET",
-    phone: true,
-    wallet: false,
-  },
   frontPocket: {
     front_pocket_type: "FRO_MURABBA_FRONT_POCKET",
     front_pocket_thickness: "SINGLE",
+  },
+  accessories: {
+    phone: true,
+    wallet: false,
     pen_holder: false,
   },
   cuffs: {
+    hasCuffs: false,
     cuffs_type: "CUF_NO_CUFF",
     cuffs_thickness: "NO HASHWA",
   },

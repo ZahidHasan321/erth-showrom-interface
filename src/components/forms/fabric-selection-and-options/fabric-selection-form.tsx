@@ -10,7 +10,8 @@ import * as React from "react";
 import {
   FormProvider,
   type UseFormReturn,
-  useFieldArray
+  useFieldArray,
+  Controller
 } from "react-hook-form";
 import { toast } from "sonner";
 import { DataTable } from "./data-table";
@@ -33,7 +34,7 @@ import { Label } from "@/components/ui/label";
 import { mapFormGarmentToApiGarment } from "@/lib/garment-mapper";
 import { getFabricValue } from "@/lib/utils/fabric-utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, XCircle, Sparkles, Plus, X, Save, Pencil, ArrowRight } from "lucide-react";
+import { AlertCircle, XCircle, Sparkles, Plus, X, Save, Pencil, ArrowRight, Copy } from "lucide-react";
 import { SignaturePad } from "../signature-pad";
 import { cn } from "@/lib/utils";
 
@@ -44,10 +45,12 @@ interface FabricSelectionFormProps {
   form: UseFormReturn<{
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
+    signature: string;
   }>;
   onSubmit?: (data: {
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
+    signature: string;
   }) => void;
   onProceed: () => void;
   isProceedDisabled?: boolean;
@@ -323,6 +326,7 @@ export function FabricSelectionForm({
       onSubmit?.({
         fabricSelections: updatedFabricSelections,
         styleOptions: form.getValues("styleOptions"),
+        signature: form.getValues("signature"),
       });
     },
     onError: (error) => {
@@ -495,6 +499,100 @@ export function FabricSelectionForm({
 
   // Check if there are any form errors AND the form has been submitted
   const hasFormErrors = Object.keys(form.formState.errors).length > 0 && form.formState.isSubmitted;
+
+  // Copy first row fabric selections to all other rows
+  const copyFabricSelectionsToAll = () => {
+    const fabricSelections = form.getValues("fabricSelections");
+    if (fabricSelections.length < 2) {
+      toast.info("Need at least 2 rows to copy");
+      return;
+    }
+
+    const firstRow = fabricSelections[0];
+    const updatedSelections = fabricSelections.map((selection, index) => {
+      if (index === 0) return selection; // Keep first row as is
+
+      // Copy all fabric selection fields except id, garmentId, orderId, and measurementId
+      return {
+        ...selection,
+        brova: firstRow.brova,
+        fabricSource: firstRow.fabricSource,
+        fabricId: firstRow.fabricId,
+        shopName: firstRow.shopName,
+        color: firstRow.color,
+        fabricLength: firstRow.fabricLength,
+        ifInside: firstRow.ifInside,
+        express: firstRow.express,
+        homeDelivery: firstRow.homeDelivery,
+        deliveryDate: firstRow.deliveryDate,
+        note: firstRow.note,
+        fabricAmount: firstRow.fabricAmount,
+      };
+    });
+
+    form.setValue("fabricSelections", updatedSelections);
+    toast.success("Copied first row's fabric selections to all rows");
+  };
+
+  // Copy first row style options to all other rows
+  const copyStyleOptionsToAll = () => {
+    const styleOptions = form.getValues("styleOptions");
+    if (styleOptions.length < 2) {
+      toast.info("Need at least 2 rows to copy");
+      return;
+    }
+
+    const firstRow = styleOptions[0];
+
+    // Copy to each subsequent row
+    for (let i = 1; i < styleOptions.length; i++) {
+      // Copy top-level fields
+      form.setValue(`styleOptions.${i}.style`, firstRow.style);
+      form.setValue(`styleOptions.${i}.extraAmount`, firstRow.extraAmount);
+
+      // Copy nested lines object
+      if (firstRow.lines) {
+        form.setValue(`styleOptions.${i}.lines.line1`, firstRow.lines.line1);
+        form.setValue(`styleOptions.${i}.lines.line2`, firstRow.lines.line2);
+      }
+
+      // Copy nested collar object
+      if (firstRow.collar) {
+        form.setValue(`styleOptions.${i}.collar.collarType`, firstRow.collar.collarType);
+        form.setValue(`styleOptions.${i}.collar.collarButton`, firstRow.collar.collarButton);
+        form.setValue(`styleOptions.${i}.collar.smallTabaggi`, firstRow.collar.smallTabaggi);
+      }
+
+      // Copy nested jabzoor object
+      if (firstRow.jabzoor) {
+        form.setValue(`styleOptions.${i}.jabzoor.jabzour1`, firstRow.jabzoor.jabzour1);
+        form.setValue(`styleOptions.${i}.jabzoor.jabzour2`, firstRow.jabzoor.jabzour2);
+        form.setValue(`styleOptions.${i}.jabzoor.jabzour_thickness`, firstRow.jabzoor.jabzour_thickness);
+      }
+
+      // Copy nested frontPocket object
+      if (firstRow.frontPocket) {
+        form.setValue(`styleOptions.${i}.frontPocket.front_pocket_type`, firstRow.frontPocket.front_pocket_type);
+        form.setValue(`styleOptions.${i}.frontPocket.front_pocket_thickness`, firstRow.frontPocket.front_pocket_thickness);
+      }
+
+      // Copy nested accessories object
+      if (firstRow.accessories) {
+        form.setValue(`styleOptions.${i}.accessories.phone`, firstRow.accessories.phone);
+        form.setValue(`styleOptions.${i}.accessories.wallet`, firstRow.accessories.wallet);
+        form.setValue(`styleOptions.${i}.accessories.pen_holder`, firstRow.accessories.pen_holder);
+      }
+
+      // Copy nested cuffs object
+      if (firstRow.cuffs) {
+        form.setValue(`styleOptions.${i}.cuffs.hasCuffs`, firstRow.cuffs.hasCuffs);
+        form.setValue(`styleOptions.${i}.cuffs.cuffs_type`, firstRow.cuffs.cuffs_type);
+        form.setValue(`styleOptions.${i}.cuffs.cuffs_thickness`, firstRow.cuffs.cuffs_thickness);
+      }
+    }
+
+    toast.success("Copied first row's style options to all rows");
+  };
 
   return (
     <FormProvider {...form}>
@@ -675,9 +773,22 @@ export function FabricSelectionForm({
             </div>
           </div>
 
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-foreground">Fabric Selections</h2>
-            <p className="text-sm text-muted-foreground">Select fabric source, type, and measurements for each garment</p>
+          <div className="flex justify-between items-end">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold text-foreground">Fabric Selections</h2>
+              <p className="text-sm text-muted-foreground">Select fabric source, type, and measurements for each garment</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={copyFabricSelectionsToAll}
+              disabled={isFormDisabled || fabricSelectionFields.length < 2}
+              title="Copy first row's fabric selections to all other rows"
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Copy First Row
+            </Button>
           </div>
           <DataTable
             columns={fabricSelectionColumns}
@@ -698,18 +809,22 @@ export function FabricSelectionForm({
             tempStockUsage={tempStockUsage}
           />
 
-          <div className="space-y-2 pt-4">
-            <h3 className="text-lg font-semibold text-foreground">Customer Signature</h3>
-            <SignaturePad
-              onSave={(signature) => {
-                console.log("Fabric Signature:", signature);
-              }}
-            />
-          </div>
-
-          <div className="space-y-1 pt-4">
-            <h2 className="text-2xl font-bold text-foreground">Style Options</h2>
-            <p className="text-sm text-muted-foreground">Customize collar, pockets, buttons, and other style details</p>
+          <div className="flex justify-between items-end pt-4">
+            <div className="space-y-1">
+              <h2 className="text-2xl font-bold text-foreground">Style Options</h2>
+              <p className="text-sm text-muted-foreground">Customize collar, pockets, buttons, and other style details</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={copyStyleOptionsToAll}
+              disabled={isFormDisabled || styleOptionFields.length < 2}
+              title="Copy first row's style options to all other rows"
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Copy First Row
+            </Button>
           </div>
           <DataTable
             columns={styleOptionsColumns}
@@ -724,11 +839,51 @@ export function FabricSelectionForm({
           />
 
           <div className="space-y-2 pt-4">
-            <h3 className="text-lg font-semibold text-foreground">Customer Signature</h3>
-            <SignaturePad
-              onSave={(signature) => {
-                console.log("Style Signature:", signature);
-              }}
+            <h3 className="text-lg font-semibold text-foreground">
+              Customer Signature
+              <span className="text-destructive"> *</span>
+            </h3>
+            <Controller
+              name="signature"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <div className="space-y-2">
+                  <div className="w-fit">
+                    {field.value ? (
+                      <div className="space-y-2">
+                        <div className="border rounded-lg bg-white/70">
+                          <img src={field.value} alt="Customer signature" style={{ width: '500px', height: '200px', display: 'block' }} />
+                        </div>
+                        {!isFormDisabled && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => field.onChange("")}
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Clear Signature
+                          </Button>
+                        )}
+                      </div>
+                    ) : !isFormDisabled ? (
+                      <SignaturePad
+                        onSave={(signature) => {
+                          field.onChange(signature);
+                          toast.success("Signature saved");
+                        }}
+                      />
+                    ) : (
+                      <div className="border rounded-lg bg-muted text-center text-muted-foreground" style={{ width: '500px', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        No signature provided
+                      </div>
+                    )}
+                  </div>
+                  {fieldState.error && (
+                    <p className="text-sm text-destructive">{fieldState.error.message}</p>
+                  )}
+                </div>
+              )}
             />
           </div>
         </div>

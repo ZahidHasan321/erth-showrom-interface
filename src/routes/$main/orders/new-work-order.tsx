@@ -136,14 +136,16 @@ function NewWorkOrder() {
   const fabricSelectionForm = useForm<{
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
+    signature: string;
   }>({
     resolver: zodResolver(
       z.object({
         fabricSelections: z.array(fabricSelectionSchema),
         styleOptions: z.array(styleOptionsSchema),
+        signature: z.string().min(1, "Customer signature is required"),
       })
     ),
-    defaultValues: { fabricSelections: [], styleOptions: [] },
+    defaultValues: { fabricSelections: [], styleOptions: [], signature: "" },
   });
 
   const ShelvesForm = useForm<ShelvesFormValues>({
@@ -244,7 +246,7 @@ function NewWorkOrder() {
       // Reset all forms and state before loading new order
       demographicsForm.reset(customerDemographicsDefaults);
       measurementsForm.reset(customerMeasurementsDefaults);
-      fabricSelectionForm.reset({ fabricSelections: [], styleOptions: [] });
+      fabricSelectionForm.reset({ fabricSelections: [], styleOptions: [], signature: "" });
       ShelvesForm.reset({ products: [] });
       OrderForm.reset(orderDefaults);
       paymentForm.reset({ paymentType: "cash" });
@@ -483,6 +485,7 @@ function NewWorkOrder() {
   const handleFabricSelectionSubmit = (data: {
     fabricSelections: FabricSelectionSchema[];
     styleOptions: StyleOptionsSchema[];
+    signature: string;
   }) => {
     setFabricSelections(data.fabricSelections);
     setStyleOptions(data.styleOptions);
@@ -864,7 +867,7 @@ function NewWorkOrder() {
       </div>
 
       {/* Step Content */}
-      <div className="flex flex-col flex-1 items-center gap-40 py-10 mx-[10%]">
+      <div className="flex flex-col flex-1 items-center gap-16 py-10 mx-[10%]">
         {/* STEP 0: Demographics */}
         <div
           id={steps[0].id}

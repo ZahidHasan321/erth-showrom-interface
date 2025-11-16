@@ -7,6 +7,7 @@ export interface Measurement {
     MeasurementID: string;
     MeasurementReference: "Winter" | "Summer" | "Eid" | "Occasion" | "Other";
     Measurer?: string[];
+    MeasurementDate?: string; // ISO date string
     Notes?: string;
     CollarWidth?: number;
     CollarHeight?: number;

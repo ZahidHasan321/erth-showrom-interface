@@ -260,7 +260,12 @@ export function PaymentTypeForm({
               name="paymentRefNo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Payment Ref. No.</FormLabel>
+                  <FormLabel>
+                    Payment Ref. No.
+                    {paymentType !== "cash" && (
+                      <span className="text-destructive"> *</span>
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter reference no."

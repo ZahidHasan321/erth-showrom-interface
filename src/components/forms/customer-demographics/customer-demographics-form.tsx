@@ -399,11 +399,174 @@ export function CustomerDemographicsForm({
               )}
             />
           </ErrorBoundary>
+          <ErrorBoundary fallback={<div>Mobile number crashed</div>}>
+            <FormField
+              control={form.control}
+              name="mobileNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-semibold">
+                    <span className="text-destructive">*</span> Mobile No
+                  </FormLabel>
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <FormField
+                      control={form.control}
+                      name="countryCode"
+                      disabled={isReadOnly}
+                      render={({ field }) => (
+                        <FormItem className="min-w-42">
+                          <Combobox
+                            disabled={isReadOnly}
+                            options={countries.map((country) => ({
+                              value: country.phoneCode,
+                              label: `${country.name} ${country.phoneCode}`,
+                              node: (
+                                <span className="flex items-center gap-2">
+                                  <FlagIcon code={country.code} />
+                                  {country.name} {country.phoneCode}
+                                </span>
+                              ),
+                            }))}
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder="Code"
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormControl>
+                      <Input
+                        placeholder="Enter mobile number"
+                        {...field}
+                        className="bg-background border-border/60"
+                        readOnly={isReadOnly}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleMobileChange(e.target.value);
+                        }}
+                      />
+                    </FormControl>
+                    <FormField
+                      control={form.control}
+                      name="whatsapp"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="bg-background border-border/60"
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormLabel>
+                            <img
+                              src={WhatsappLogo}
+                              alt="WhatsApp"
+                              className="min-w-8"
+                            />
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormMessage />
+
+                  <AnimatedMessage
+                    info={
+                      isFetching ? "Checking existing accounts..." : undefined
+                    }
+                    warning={
+                      warnings.mobileNumber &&
+                        !isFetching &&
+                        existingUsers?.count &&
+                        existingUsers.count > 0
+                        ? warnings.mobileNumber
+                        : undefined
+                    }
+                  />
+                </FormItem>
+              )}
+            />
+          </ErrorBoundary>
+          <ErrorBoundary
+            fallback={<div>Alternative mobile number crashed</div>}
+          >
+            <FormField
+              control={form.control}
+              name="alternativeMobileNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-medium">Alternative Mobile No</FormLabel>
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <FormField
+                      control={form.control}
+                      name="alternativeCountryCode"
+                      render={({ field }) => (
+                        <FormItem className="min-w-42">
+                          <Combobox
+                            disabled={isReadOnly}
+                            options={countries.map((country) => ({
+                              value: country.phoneCode,
+                              label: `${country.name} ${country.phoneCode}`,
+                              node: (
+                                <span className="flex items-center gap-2">
+                                  <FlagIcon code={country.code} />
+                                  {country.name} {country.phoneCode}
+                                </span>
+                              ),
+                            }))}
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder="Code"
+                          />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormControl>
+                      <Input
+                        placeholder="Enter alternative mobile number"
+                        {...field}
+                        className="bg-background border-border/60"
+                        readOnly={isReadOnly}
+                      />
+                    </FormControl>
+                    <FormField
+                      control={form.control}
+                      name="whatsappOnAlt"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="bg-background border-border/60"
+                              disabled={isReadOnly}
+                            />
+                          </FormControl>
+                          <FormLabel>
+                            <img
+                              src={WhatsappLogo}
+                              alt="WhatsApp"
+                              className="min-w-8"
+                            />
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </ErrorBoundary>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
-            <h3 className="text-base font-semibold text-foreground">Personal Details</h3>
+        <div className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
+          <h3 className="text-lg font-semibold text-foreground">Personal Details</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <ErrorBoundary fallback={<div>Nickname crashed</div>}>
               <FormField
                 control={form.control}
@@ -442,6 +605,36 @@ export function CustomerDemographicsForm({
                         dir="rtl"
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </ErrorBoundary>
+            <ErrorBoundary fallback={<div>Nationality crashed</div>}>
+              <FormField
+                control={form.control}
+                name="nationality"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="font-semibold">
+                      <span className="text-destructive">*</span> Nationality
+                    </FormLabel>
+                    <Combobox
+                      disabled={isReadOnly}
+                      options={countries.map((country) => ({
+                        value: country.name,
+                        label: country.name,
+                        node: (
+                          <span className="flex items-center gap-2">
+                            <FlagIcon code={country.code} />
+                            {country.name}
+                          </span>
+                        ),
+                      }))}
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      placeholder="Select nationality"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -486,203 +679,6 @@ export function CustomerDemographicsForm({
                 )}
               />
             </ErrorBoundary>
-          </div>
-
-          <div className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
-            <h3 className="text-base font-semibold text-foreground">Contact Information</h3>
-            <ErrorBoundary fallback={<div>Mobile number crashed</div>}>
-              <FormField
-                control={form.control}
-                name="mobileNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold">
-                      <span className="text-destructive">*</span> Mobile No
-                    </FormLabel>
-                    <div className="flex flex-col md:flex-row gap-2">
-                      <FormField
-                        control={form.control}
-                        name="countryCode"
-                        disabled={isReadOnly}
-                        render={({ field }) => (
-                          <FormItem className="min-w-42">
-                            <Combobox
-                              disabled={isReadOnly}
-                              options={countries.map((country) => ({
-                                value: country.phoneCode,
-                                label: `${country.name} ${country.phoneCode}`,
-                                node: (
-                                  <span className="flex items-center gap-2">
-                                    <FlagIcon code={country.code} />
-                                    {country.name} {country.phoneCode}
-                                  </span>
-                                ),
-                              }))}
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              placeholder="Code"
-                            />
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormControl>
-                        <Input
-                          placeholder="Enter mobile number"
-                          {...field}
-                          className="bg-background border-border/60"
-                          readOnly={isReadOnly}
-                          onChange={(e) => {
-                            field.onChange(e);
-                            handleMobileChange(e.target.value);
-                          }}
-                        />
-                      </FormControl>
-                      <FormField
-                        control={form.control}
-                        name="whatsapp"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center gap-2">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                className="bg-background border-border/60"
-                                disabled={isReadOnly}
-                              />
-                            </FormControl>
-                            <FormLabel>
-                              <img
-                                src={WhatsappLogo}
-                                alt="WhatsApp"
-                                className="min-w-8"
-                              />
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <FormMessage />
-
-                    <AnimatedMessage
-                      info={
-                        isFetching ? "Checking existing accounts..." : undefined
-                      }
-                      warning={
-                        warnings.mobileNumber &&
-                          !isFetching &&
-                          existingUsers?.count &&
-                          existingUsers.count > 0
-                          ? warnings.mobileNumber
-                          : undefined
-                      }
-                    />
-                  </FormItem>
-                )}
-              />
-            </ErrorBoundary>
-            <ErrorBoundary
-              fallback={<div>Alternative mobile number crashed</div>}
-            >
-              <FormField
-                control={form.control}
-                name="alternativeMobileNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-medium">Alternative Mobile No</FormLabel>
-                    <div className="flex flex-col md:flex-row gap-2">
-                      <FormField
-                        control={form.control}
-                        name="alternativeCountryCode"
-                        render={({ field }) => (
-                          <FormItem className="min-w-42">
-                            <Combobox
-                              disabled={isReadOnly}
-                              options={countries.map((country) => ({
-                                value: country.phoneCode,
-                                label: `${country.name} ${country.phoneCode}`,
-                                node: (
-                                  <span className="flex items-center gap-2">
-                                    <FlagIcon code={country.code} />
-                                    {country.name} {country.phoneCode}
-                                  </span>
-                                ),
-                              }))}
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              placeholder="Code"
-                            />
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormControl>
-                        <Input
-                          placeholder="Enter alternative mobile number"
-                          {...field}
-                          className="bg-background border-border/60"
-                          readOnly={isReadOnly}
-                        />
-                      </FormControl>
-                      <FormField
-                        control={form.control}
-                        name="whatsappOnAlt"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center gap-2">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                className="bg-background border-border/60"
-                                disabled={isReadOnly}
-                              />
-                            </FormControl>
-                            <FormLabel>
-                              <img
-                                src={WhatsappLogo}
-                                alt="WhatsApp"
-                                className="min-w-8"
-                              />
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </ErrorBoundary>
-            <ErrorBoundary fallback={<div>Nationality crashed</div>}>
-              <FormField
-                control={form.control}
-                name="nationality"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel className="font-semibold">
-                      <span className="text-destructive">*</span> Nationality
-                    </FormLabel>
-                    <Combobox
-                      disabled={isReadOnly}
-                      options={countries.map((country) => ({
-                        value: country.name,
-                        label: country.name,
-                        node: (
-                          <span className="flex items-center gap-2">
-                            <FlagIcon code={country.code} />
-                            {country.name}
-                          </span>
-                        ),
-                      }))}
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                      placeholder="Select nationality"
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </ErrorBoundary>{" "}
           </div>
         </div>
 

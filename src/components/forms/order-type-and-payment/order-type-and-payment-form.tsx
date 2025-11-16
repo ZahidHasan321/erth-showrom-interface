@@ -335,10 +335,10 @@ export function OrderTypeAndPaymentForm({
           <motion.section
             layout
             transition={smoothTransition}
-            className="bg-card rounded-xl border border-border shadow-sm overflow-hidden"
+            className="bg-card rounded-xl border border-border shadow-sm overflow-hidden opacity-50"
           >
             <header className="bg-primary text-primary-foreground px-6 py-4">
-              <h3 className="text-lg font-semibold">Select Discount</h3>
+              <h3 className="text-lg font-semibold">Select Discount (Disabled)</h3>
             </header>
 
             <div className="p-6 space-y-4">
@@ -363,13 +363,13 @@ export function OrderTypeAndPaymentForm({
                               field.onChange(active ? undefined : opt.value)
                             }
                             aria-pressed={active}
-                            disabled={isOrderClosed}
+                            disabled={true}
                             className={cn(
                               "flex items-center justify-between rounded-lg border p-4 transition-all w-full",
                               active
                                 ? "border-primary bg-background ring-2 ring-primary/20"
                                 : "border-border bg-background hover:border-primary/50 hover:shadow-sm",
-                              isOrderClosed && "opacity-50 cursor-not-allowed"
+                              "opacity-50 cursor-not-allowed"
                             )}
                           >
                             <div className="flex items-center gap-3">
@@ -486,7 +486,7 @@ export function OrderTypeAndPaymentForm({
                                               placeholder="Discount %"
                                               className="w-32 bg-background border-border/60"
                                               {...pField}
-                                              disabled={isOrderClosed}
+                                              disabled={true}
                                               onChange={(e) =>
                                                 pField.onChange(
                                                   e.target.value === ""
@@ -505,6 +505,7 @@ export function OrderTypeAndPaymentForm({
                                               type="text"
                                               placeholder="Discount (KWD)"
                                               readOnly
+                                              disabled={true}
                                               className="w-40 bg-muted border-border/60"
                                               {...kField}
                                             />
@@ -524,7 +525,7 @@ export function OrderTypeAndPaymentForm({
                                               placeholder="Discount (KWD)"
                                               className="w-40 bg-background border-border/60"
                                               value={cashField.value || ""}
-                                              disabled={isOrderClosed}
+                                              disabled={true}
                                               onChange={(e) =>
                                                 cashField.onChange(
                                                   e.target.value === ""
@@ -547,7 +548,7 @@ export function OrderTypeAndPaymentForm({
                                             <Input
                                               placeholder="Reference Code"
                                               {...rField}
-                                              disabled={isOrderClosed}
+                                              disabled={true}
                                               className="w-full bg-background border-border/60"
                                             />
                                           )}
@@ -555,12 +556,12 @@ export function OrderTypeAndPaymentForm({
                                         <div className="flex flex-wrap gap-3">
                                           <Input
                                             placeholder="Discount %"
-                                            disabled={isOrderClosed}
+                                            disabled={true}
                                             className="w-32 md:w-40 bg-background border-border/60"
                                           />
                                           <Input
                                             placeholder="Discount (KWD)"
-                                            disabled={isOrderClosed}
+                                            disabled={true}
                                             className="w-40 md:w-48 bg-background border-border/60"
                                           />
                                         </div>
@@ -572,18 +573,18 @@ export function OrderTypeAndPaymentForm({
                                         <Button
                                           type="button"
                                           variant="outline"
-                                          disabled={isOrderClosed}
+                                          disabled={true}
                                         >
                                           Check Loyalty
                                         </Button>
                                         <Input
                                           placeholder="Discount %"
-                                          disabled={isOrderClosed}
+                                          disabled={true}
                                           className="w-32 md:w-40 bg-background border-border/60"
                                         />
                                         <Input
                                           placeholder="Discount (KWD)"
-                                          disabled={isOrderClosed}
+                                          disabled={true}
                                           className="w-40 md:w-48 bg-background border-border/60"
                                         />
                                       </div>
@@ -600,8 +601,8 @@ export function OrderTypeAndPaymentForm({
                 )}
               />
 
-              <p className="text-destructive italic text-sm text-center bg-destructive/10 rounded-lg py-3 px-4 mt-4 border border-destructive/20">
-                Only one discount can be applied. No discounts on Installments.
+              <p className="text-muted-foreground italic text-sm text-center bg-muted/10 rounded-lg py-3 px-4 mt-4 border border-border">
+                Discounts are currently disabled.
               </p>
             </div>
           </motion.section>

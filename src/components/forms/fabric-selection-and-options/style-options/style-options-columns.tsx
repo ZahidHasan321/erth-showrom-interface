@@ -43,15 +43,9 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     cell: StyleCells.JabzoorCell,
   },
   {
-    accessorKey: "sidePocket",
-    header: "Side Pocket",
-    minSize: 360,
-    cell: StyleCells.SidePocketCell,
-  },
-  {
     accessorKey: "frontPocket",
     header: "Front Pocket",
-    minSize: 420,
+    minSize: 300,
     cell: StyleCells.FrontPocketCell,
   },
   {
@@ -59,6 +53,12 @@ export const columns: ColumnDef<StyleOptionsSchema>[] = [
     header: "Cuffs",
     minSize: 300,
     cell: StyleCells.CuffsCell,
+  },
+  {
+    accessorKey: "accessories",
+    header: "Accessories",
+    minSize: 280,
+    cell: StyleCells.AccessoriesCell,
   },
   {
     accessorKey: "extraAmount",

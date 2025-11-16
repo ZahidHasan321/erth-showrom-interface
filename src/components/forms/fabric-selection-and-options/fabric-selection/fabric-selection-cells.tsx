@@ -270,6 +270,13 @@ export const IfInsideCell = ({
     [fabrics]
   );
 
+  const getStockColorClass = (stock: number) => {
+    if (stock <= 0) return "text-red-600 font-semibold"; // Out of stock
+    if (stock < 5) return "text-orange-600 font-semibold"; // Less than 5
+    if (stock >= 5 && stock <= 11) return "text-green-600 font-semibold"; // 5-11
+    return "text-muted-foreground"; // More than 11
+  };
+
   const fabricOptions = React.useMemo(() => {
     const results = searchQuery
       ? fuse.search(searchQuery).map((r) => r.item)
@@ -280,10 +287,10 @@ export const IfInsideCell = ({
       label: `${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color} - ${fabric.fields.PricePerMeter} - ${fabric.fields.RealStock}`,
       node: (
         <div className="flex justify-between w-full">
-          <span>{`${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color}`}</span>
+          <span className={getStockColorClass(fabric.fields.RealStock || 0)}>{`${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color}`}</span>
           <div className="flex gap-1">
             <span className="text-muted-foreground">{`Price: ${fabric.fields.PricePerMeter}`}</span>
-            <span className="text-muted-foreground">{`Stock: ${fabric.fields.RealStock}`}</span>
+            <span className={getStockColorClass(fabric.fields.RealStock || 0)}>{`Stock: ${fabric.fields.RealStock}`}</span>
           </div>
         </div>
       ),

@@ -16,13 +16,12 @@ import {
   collarTypes,
   cuffTypes,
   jabzourTypes,
-  sidePocketTypes,
   penIcon,
   phoneIcon,
+  walletIcon,
   smallTabaggiImage,
   thicknessOptions as ThicknessOptions,
   topPocketTypes,
-  walletIcon,
 } from "../constants";
 import type { CellContext } from "@tanstack/react-table";
 import type { StyleOptionsSchema } from "./style-options-schema";
@@ -80,7 +79,7 @@ export const StyleCell = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="kuwaiti">Kuwaiti</SelectItem>
-            <SelectItem value="designer">Designer</SelectItem>
+            <SelectItem value="design">Design</SelectItem>
           </SelectContent>
         </Select>
       )}
@@ -98,25 +97,45 @@ export const LinesCell = ({
   };
   const isFormDisabled = meta?.isFormDisabled || false;
   return (
-    <div className="min-w-[180px] flex items-center space-x-4 px-2">
+    <div className="min-w-[180px] flex items-center space-x-6 px-2">
       <Controller
-        name={`styleOptions.${row.index}.lines`}
+        name={`styleOptions.${row.index}.lines.line1`}
         control={control}
         render={({ field }) => (
-          <Select
-            onValueChange={field.onChange}
-            value={field.value as string}
-            disabled={isFormDisabled}
-          >
-            <SelectTrigger className="bg-background border-border/60 min-w-[140px]">
-              <SelectValue placeholder="Select Lines" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="no_lines">No Lines</SelectItem>
-              <SelectItem value="line1">Line 1</SelectItem>
-              <SelectItem value="line2">Line 2</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id={`line1-${row.index}`}
+              checked={field.value as boolean}
+              onCheckedChange={field.onChange}
+              disabled={isFormDisabled}
+            />
+            <label
+              htmlFor={`line1-${row.index}`}
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Line 1
+            </label>
+          </div>
+        )}
+      />
+      <Controller
+        name={`styleOptions.${row.index}.lines.line2`}
+        control={control}
+        render={({ field }) => (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id={`line2-${row.index}`}
+              checked={field.value as boolean}
+              onCheckedChange={field.onChange}
+              disabled={isFormDisabled}
+            />
+            <label
+              htmlFor={`line2-${row.index}`}
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Line 2
+            </label>
+          </div>
         )}
       />
     </div>
@@ -267,6 +286,9 @@ export const JabzoorCell = ({
   React.useEffect(() => {
     if (jabzour1 !== "JAB_SHAAB") {
       setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, null);
+    } else {
+      // When Shaab is selected, set thickness to DOUBLE by default
+      setValue(`styleOptions.${row.index}.jabzoor.jabzour_thickness`, "DOUBLE");
     }
   }, [jabzour1, setValue, row.index]);
 
@@ -397,109 +419,6 @@ export const JabzoorCell = ({
   );
 };
 
-export const SidePocketCell = ({
-  row,
-  table,
-}: CellContext<StyleOptionsSchema, unknown>) => {
-  const { control } = useFormContext();
-  const meta = table.options.meta as {
-    isFormDisabled?: boolean;
-  };
-  const isFormDisabled = meta?.isFormDisabled || false;
-  const sidePocketType = useWatch({
-    name: `styleOptions.${row.index}.sidePocket.side_pocket_type`,
-  });
-
-  return (
-    <div className="min-w-[360px] flex flex-row space-x-2 items-center">
-      <Controller
-        name={`styleOptions.${row.index}.sidePocket.side_pocket_type`}
-        control={control}
-        render={({ field }) => (
-          <Select
-            onValueChange={field.onChange}
-            value={field.value as string}
-            disabled={isFormDisabled}
-          >
-            <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
-              {sidePocketType ? (
-                <img
-                  src={
-                    sidePocketTypes.find((j) => j.value === sidePocketType)
-                      ?.image || undefined
-                  }
-                  alt={
-                    sidePocketTypes.find((j) => j.value === sidePocketType)?.alt
-                  }
-                  className="min-w-7 h-7 object-contain"
-                />
-              ) : (
-                <SelectValue placeholder="Select Type" />
-              )}
-            </SelectTrigger>
-            <SelectContent>
-              {sidePocketTypes.map((spt) => (
-                <SelectItem key={spt.value} value={spt.value}>
-                  <div className="flex items-center space-x-2">
-                    <img
-                      src={spt.image || undefined}
-                      alt={spt.alt}
-                      className="min-w-12 h-12 object-contain"
-                    />
-                    <span>{spt.displayText}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      />
-      <Controller
-        name={`styleOptions.${row.index}.sidePocket.phone`}
-        control={control}
-        render={({ field }) => (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id={`side_pocket_phone-${row.index}`}
-              checked={field.value as boolean}
-              onCheckedChange={field.onChange}
-              disabled={isFormDisabled}
-            />
-            <label htmlFor={`side_pocket_phone-${row.index}`}>
-              <img
-                src={phoneIcon}
-                alt="Phone Pocket"
-                className="min-w-10 h-14 object-contain"
-              />
-            </label>
-          </div>
-        )}
-      />
-      <Controller
-        name={`styleOptions.${row.index}.sidePocket.wallet`}
-        control={control}
-        render={({ field }) => (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id={`side_pocket_wallet-${row.index}`}
-              checked={field.value as boolean}
-              onCheckedChange={field.onChange}
-              disabled={isFormDisabled}
-            />
-            <label htmlFor={`side_pocket_wallet-${row.index}`}>
-              <img
-                src={walletIcon}
-                alt="Wallet Pocket"
-                className="min-w-10 h-14 object-contain"
-              />
-            </label>
-          </div>
-        )}
-      />
-    </div>
-  );
-};
-
 export const FrontPocketCell = ({
   row,
   table,
@@ -514,7 +433,7 @@ export const FrontPocketCell = ({
   });
 
   return (
-    <div className="min-w-[420px] flex flex-row space-x-2 justify-center items-center">
+    <div className="min-w-[300px] flex flex-row space-x-2 justify-center items-center">
       <Controller
         name={`styleOptions.${row.index}.frontPocket.front_pocket_type`}
         control={control}
@@ -583,22 +502,111 @@ export const FrontPocketCell = ({
           </Select>
         )}
       />
+    </div>
+  );
+};
+
+export const AccessoriesCell = ({
+  row,
+  table,
+}: CellContext<StyleOptionsSchema, unknown>) => {
+  const { control, setValue, getValues } = useFormContext();
+  const meta = table.options.meta as {
+    isFormDisabled?: boolean;
+  };
+  const isFormDisabled = meta?.isFormDisabled || false;
+
+  // Handler to update all rows when first row changes
+  const handleAccessoryChange = (field: string, value: boolean) => {
+    if (row.index === 0) {
+      // Get all style options to determine how many rows exist
+      const allStyleOptions = getValues('styleOptions') as StyleOptionsSchema[];
+
+      // Update all rows with the new value
+      allStyleOptions.forEach((_, index) => {
+        setValue(`styleOptions.${index}.${field}` as any, value);
+      });
+    }
+  };
+
+  return (
+    <div className="min-w-[280px] flex flex-row space-x-4 items-center">
       <Controller
-        name={`styleOptions.${row.index}.frontPocket.pen_holder`}
+        name={`styleOptions.${row.index}.accessories.phone`}
         control={control}
         render={({ field }) => (
-          <div className="flex items-center space-x-2 min-w-[60px]">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id={`phone-${row.index}`}
+              checked={field.value as boolean}
+              onCheckedChange={(value) => {
+                if (row.index === 0) {
+                  handleAccessoryChange('accessories.phone', value as boolean);
+                } else {
+                  field.onChange(value);
+                }
+              }}
+              disabled={isFormDisabled}
+            />
+            <label htmlFor={`phone-${row.index}`}>
+              <img
+                src={phoneIcon}
+                alt="Phone Pocket"
+                className="min-w-14 h-20 object-contain"
+              />
+            </label>
+          </div>
+        )}
+      />
+      <Controller
+        name={`styleOptions.${row.index}.accessories.wallet`}
+        control={control}
+        render={({ field }) => (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id={`wallet-${row.index}`}
+              checked={field.value as boolean}
+              onCheckedChange={(value) => {
+                if (row.index === 0) {
+                  handleAccessoryChange('accessories.wallet', value as boolean);
+                } else {
+                  field.onChange(value);
+                }
+              }}
+              disabled={isFormDisabled}
+            />
+            <label htmlFor={`wallet-${row.index}`}>
+              <img
+                src={walletIcon}
+                alt="Wallet Pocket"
+                className="min-w-14 h-20 object-contain"
+              />
+            </label>
+          </div>
+        )}
+      />
+      <Controller
+        name={`styleOptions.${row.index}.accessories.pen_holder`}
+        control={control}
+        render={({ field }) => (
+          <div className="flex items-center space-x-2">
             <Checkbox
               id={`pen_holder-${row.index}`}
               checked={field.value as boolean}
-              onCheckedChange={field.onChange}
+              onCheckedChange={(value) => {
+                if (row.index === 0) {
+                  handleAccessoryChange('accessories.pen_holder', value as boolean);
+                } else {
+                  field.onChange(value);
+                }
+              }}
               disabled={isFormDisabled}
             />
             <label htmlFor={`pen_holder-${row.index}`}>
               <img
                 src={penIcon}
                 alt="Pen Holder"
-                className="min-w-10 h-14 object-contain"
+                className="min-w-14 h-20 object-contain"
               />
             </label>
           </div>
@@ -617,26 +625,50 @@ export const CuffsCell = ({
     isFormDisabled?: boolean;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
-  const [cuffsType, cuffsThickness] = useWatch({
+  const [hasCuffs, cuffsType] = useWatch({
     name: [
+      `styleOptions.${row.index}.cuffs.hasCuffs`,
       `styleOptions.${row.index}.cuffs.cuffs_type`,
-      `styleOptions.${row.index}.cuffs.cuffs_thickness`,
     ],
   });
 
-  // Auto-set thickness to "NO HASHWA" when "NO CUFF" is selected
+  // When hasCuffs changes, update type and thickness accordingly
   React.useEffect(() => {
-    if (cuffsType === "CUF_NO_CUFF" && cuffsThickness !== "NO HASHWA") {
+    if (!hasCuffs) {
+      // No cuffs selected - set to NO CUFF
+      setValue(`styleOptions.${row.index}.cuffs.cuffs_type`, "CUF_NO_CUFF");
       setValue(`styleOptions.${row.index}.cuffs.cuffs_thickness`, "NO HASHWA");
+    } else {
+      // Cuffs enabled - set default values if currently set to NO CUFF
+      if (cuffsType === "CUF_NO_CUFF") {
+        setValue(`styleOptions.${row.index}.cuffs.cuffs_type`, "CUF_FRENCH");
+        setValue(`styleOptions.${row.index}.cuffs.cuffs_thickness`, "SINGLE");
+      }
     }
-    // When changing FROM "NO CUFF" to another type, reset thickness to "SINGLE"
-    if (cuffsType !== "CUF_NO_CUFF" && cuffsThickness === "NO HASHWA") {
-      setValue(`styleOptions.${row.index}.cuffs.cuffs_thickness`, "SINGLE");
-    }
-  }, [cuffsType, cuffsThickness, setValue, row.index]);
+  }, [hasCuffs, cuffsType, setValue, row.index]);
 
   return (
-    <div className="min-w-[300px] flex flex-row space-x-2">
+    <div className="min-w-[380px] flex flex-row space-x-2 items-center">
+      <Controller
+        name={`styleOptions.${row.index}.cuffs.hasCuffs`}
+        control={control}
+        render={({ field }) => (
+          <div className="flex items-center space-x-2 min-w-[80px]">
+            <Checkbox
+              id={`hasCuffs-${row.index}`}
+              checked={field.value as boolean}
+              onCheckedChange={field.onChange}
+              disabled={isFormDisabled}
+            />
+            <label
+              htmlFor={`hasCuffs-${row.index}`}
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Cuffs
+            </label>
+          </div>
+        )}
+      />
       <Controller
         name={`styleOptions.${row.index}.cuffs.cuffs_type`}
         control={control}
@@ -644,7 +676,7 @@ export const CuffsCell = ({
           <Select
             onValueChange={field.onChange}
             value={field.value as string}
-            disabled={isFormDisabled}
+            disabled={isFormDisabled || !hasCuffs}
           >
             <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
               {cuffsType ? (
@@ -697,7 +729,7 @@ export const CuffsCell = ({
           <Select
             onValueChange={field.onChange}
             value={field.value as string}
-            disabled={isFormDisabled}
+            disabled={isFormDisabled || !hasCuffs}
           >
             <SelectTrigger className="bg-background border-border/60 min-w-[60px]">
               <SelectValue placeholder="Select Thickness" />

@@ -22,12 +22,12 @@ export function SignaturePad({ onSave }: SignaturePadProps) {
   };
 
   return (
-    <div className="flex flex-col space-y-2 w-fit">
-      <div className="border rounded-lg bg-white/70">
+    <div className="space-y-2">
+      <div className="border rounded-lg bg-white/70" style={{ width: '500px', height: '200px' }}>
         <SignatureCanvas
           ref={sigCanvas}
           penColor="black"
-          canvasProps={{ width: 500, height: 200, className: "sigCanvas" }}
+          canvasProps={{ width: 500, height: 200, className: "sigCanvas", style: { display: 'block' } }}
         />
       </div>
       <div className="flex space-x-2">

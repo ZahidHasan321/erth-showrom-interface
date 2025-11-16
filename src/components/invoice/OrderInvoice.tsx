@@ -300,8 +300,8 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
                             itemName = "Dishdasha";
                             optionsCharge = extraAmount - 9;
                           }
-                        } else if (style === "designer") {
-                          itemName = "Designer";
+                        } else if (style === "design") {
+                          itemName = "Design";
                           stitchingCharge = 9;
                           optionsCharge = 6;
                         }

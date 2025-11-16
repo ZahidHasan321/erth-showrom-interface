@@ -26,11 +26,18 @@ export function mapApiGarmentToFormGarment(apiGarment: Garment): { fabricSelecti
     homeDelivery: fields.HomeDelivery ?? false,
   };
 
+  // Convert API lines string to form boolean structure
+  const linesValue = fields.Lines || "line1";
+  const linesObject = {
+    line1: linesValue === "line1" || linesValue === "line2",
+    line2: linesValue === "line2",
+  };
+
   const styleOptions: StyleOptionsSchema = {
     styleOptionId: fields.StyleOptionId || "",
     garmentId: fields.GarmentId || "",
     style: fields.Style || "kuwaiti",
-    lines: fields.Lines || "line1",
+    lines: linesObject,
     collar: {
       collarType: fields.CollarType,
       collarButton: fields.CollarButton,
@@ -41,14 +48,13 @@ export function mapApiGarmentToFormGarment(apiGarment: Garment): { fabricSelecti
       jabzour2: fields.Jabzour2,
       jabzour_thickness: fields.JabzourThickness,
     },
-    sidePocket: {
-      side_pocket_type: fields.SidePocketType,
-      phone: fields.Phone,
-      wallet: fields.Wallet,
-    },
     frontPocket: {
       front_pocket_type: fields.FrontPocketType,
       front_pocket_thickness: fields.FrontPocketThickness,
+    },
+    accessories: {
+      phone: fields.Phone,
+      wallet: fields.Wallet,
       pen_holder: fields.PenHolder,
     },
     cuffs: {
@@ -91,19 +97,22 @@ export function mapFormGarmentToApiGarment(
       // from styleOptions (flattened)
       StyleOptionId: styleOptions.styleOptionId,
       Style: styleOptions.style,
-      Lines: styleOptions.lines,
+      Lines: styleOptions.lines?.line1 && styleOptions.lines?.line2
+        ? "line2"
+        : styleOptions.lines?.line1
+          ? "line1"
+          : "no_lines",
       CollarType: styleOptions.collar?.collarType,
       CollarButton: styleOptions.collar?.collarButton,
       SmallTabaggi: styleOptions.collar?.smallTabaggi,
       Jabzour1: styleOptions.jabzoor?.jabzour1,
       Jabzour2: styleOptions.jabzoor?.jabzour2 || undefined,
       JabzourThickness: styleOptions.jabzoor?.jabzour_thickness,
-      SidePocketType: styleOptions.sidePocket?.side_pocket_type,
-      Phone: styleOptions.sidePocket?.phone,
-      Wallet: styleOptions.sidePocket?.wallet,
       FrontPocketType: styleOptions.frontPocket?.front_pocket_type,
       FrontPocketThickness: styleOptions.frontPocket?.front_pocket_thickness,
-      PenHolder: styleOptions.frontPocket?.pen_holder,
+      Phone: styleOptions.accessories?.phone,
+      Wallet: styleOptions.accessories?.wallet,
+      PenHolder: styleOptions.accessories?.pen_holder,
       CuffsType: styleOptions.cuffs?.cuffs_type,
       CuffsThickness: styleOptions.cuffs?.cuffs_thickness,
     },

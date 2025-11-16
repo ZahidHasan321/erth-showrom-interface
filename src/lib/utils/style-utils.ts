@@ -23,15 +23,18 @@ export function calculateStylePrice(
     styleMap.set(style.fields.Code, style.fields.RatePerItem || 0);
   });
 
-  // Style (kuwaiti or designer)
+  // Style (kuwaiti or design)
   if (styleOptions.style === "kuwaiti") {
     total += styleMap.get("STY_KUWAITI") || 0;
-  } else if (styleOptions.style === "designer") {
+  } else if (styleOptions.style === "design") {
     total += styleMap.get("STY_DESIGNER") || 0;
   }
 
-  // Lines (always add the line price regardless of which line is chosen)
-  if (styleOptions.lines) {
+  // Lines (add line price for each checked line)
+  if (styleOptions.lines?.line1) {
+    total += styleMap.get("STY_LINE") || 0;
+  }
+  if (styleOptions.lines?.line2) {
     total += styleMap.get("STY_LINE") || 0;
   }
 
@@ -59,14 +62,6 @@ export function calculateStylePrice(
   // Jabzour Thickness is not a separate style code
   // No additional price for thickness
 
-  // Side Pocket Type
-  if (styleOptions.sidePocket?.side_pocket_type) {
-    total += styleMap.get(styleOptions.sidePocket.side_pocket_type) || 0;
-  }
-
-  // Phone and Wallet are not separate style codes
-  // No additional price for phone or wallet
-
   // Front Pocket Type
   if (styleOptions.frontPocket?.front_pocket_type) {
     total += styleMap.get(styleOptions.frontPocket.front_pocket_type) || 0;
@@ -88,7 +83,7 @@ export function calculateStylePrice(
 
   const stitchingPrice = 9;
 
-  if(styleOptions.style === "designer") return 15;
-  
+  if(styleOptions.style === "design") return 15;
+
   return total + stitchingPrice;
 }

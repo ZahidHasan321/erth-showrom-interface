@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Combobox } from "@/components/ui/combobox";
+import { DatePicker } from "@/components/ui/date-picker";
 import { GroupedMeasurementFields } from "./GroupedMeasurementFields";
 
 import {
@@ -490,6 +491,26 @@ export function CustomerMeasurementsForm({
                     value={field.value ?? ""}
                     onChange={field.onChange}
                     placeholder="Select measurer"
+                    disabled={!isEditing}
+                    className="w-auto min-w-48"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="measurementDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium">Measurement Date</FormLabel>
+                <FormControl>
+                  <DatePicker
+                    value={field.value ?? null}
+                    onChange={field.onChange}
+                    placeholder="Select date"
                     disabled={!isEditing}
                     className="w-auto min-w-48"
                   />
