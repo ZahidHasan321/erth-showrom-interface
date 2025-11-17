@@ -61,7 +61,7 @@ export const customerMeasurementsSchema = z.object({
   measurementRecord: z.string().optional(),
   measurementID: z.string(),
   measurementType: z.enum(["Body", "Dishdasha"]),
-  measurementReference: z.enum(["Winter", "Summer", "Eid", "Occasion", "Other"]),
+  measurementReference: z.string().min(1, "Reference is required"),
   measurer: z.string().optional(),
   measurementDate: z.date().optional(),
   notes: z.string().optional(),

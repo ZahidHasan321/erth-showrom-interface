@@ -5,7 +5,7 @@ export interface Measurement {
     CustomerID: [string]; // Link to Customer record
     MeasurementType: "Body" | "Dishdasha";
     MeasurementID: string;
-    MeasurementReference: "Winter" | "Summer" | "Eid" | "Occasion" | "Other";
+    MeasurementReference: string;
     Measurer?: string[];
     MeasurementDate?: string; // ISO date string
     Notes?: string;

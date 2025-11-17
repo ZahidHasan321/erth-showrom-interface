@@ -84,7 +84,7 @@ export function CustomerDemographicsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
   const [warnings, setWarnings] = React.useState<{
     [K in keyof CustomerDemographicsSchema]?: string;
@@ -236,8 +236,9 @@ export function CustomerDemographicsForm({
     setConfirmationDialog({
       isOpen: true,
       title: customerRecordId ? "Update Customer" : "Create Customer",
-      description: `Are you sure you want to ${customerRecordId ? "update" : "create"
-        } this customer?`,
+      description: `Are you sure you want to ${
+        customerRecordId ? "update" : "create"
+      } this customer?`,
       onConfirm,
     });
   };
@@ -318,24 +319,28 @@ export function CustomerDemographicsForm({
           </div>
         </div>
 
-        {!isOrderClosed && <div>
-          <ErrorBoundary fallback={<div>Search Customer crashed</div>}>
-            <SearchCustomer
-              onCustomerFound={handleCustomerFound}
-              onHandleClear={() => {
-                form.reset(customerDemographicsDefaults);
-                setIsEditing(true);
-                setWarnings({});
-                onClear?.();
-              }}
-              checkPendingOrders={checkPendingOrders}
-              onPendingOrderSelected={onPendingOrderSelected}
-            />
-          </ErrorBoundary>
-        </div>}
+        {!isOrderClosed && (
+          <div>
+            <ErrorBoundary fallback={<div>Search Customer crashed</div>}>
+              <SearchCustomer
+                onCustomerFound={handleCustomerFound}
+                onHandleClear={() => {
+                  form.reset(customerDemographicsDefaults);
+                  setIsEditing(true);
+                  setWarnings({});
+                  onClear?.();
+                }}
+                checkPendingOrders={checkPendingOrders}
+                onPendingOrderSelected={onPendingOrderSelected}
+              />
+            </ErrorBoundary>
+          </div>
+        )}
 
         <div className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground">Basic Information</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Basic Information
+          </h3>
           <ErrorBoundary fallback={<div>Name field crashed</div>}>
             <FormField
               control={form.control}
@@ -479,9 +484,9 @@ export function CustomerDemographicsForm({
                     }
                     warning={
                       warnings.mobileNumber &&
-                        !isFetching &&
-                        existingUsers?.count &&
-                        existingUsers.count > 0
+                      !isFetching &&
+                      existingUsers?.count &&
+                      existingUsers.count > 0
                         ? warnings.mobileNumber
                         : undefined
                     }
@@ -498,7 +503,9 @@ export function CustomerDemographicsForm({
               name="alternativeMobileNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-medium">Alternative Mobile No</FormLabel>
+                  <FormLabel className="font-medium">
+                    Alternative Mobile No
+                  </FormLabel>
                   <div className="flex flex-col md:flex-row gap-2">
                     <FormField
                       control={form.control}
@@ -565,20 +572,20 @@ export function CustomerDemographicsForm({
         </div>
 
         <div className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground">Personal Details</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Personal Details
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ErrorBoundary fallback={<div>Nickname crashed</div>}>
+            <ErrorBoundary fallback={<div>Note crashed</div>}>
               <FormField
                 control={form.control}
-                name="nickName"
+                name="note"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">
-                      <span className="text-destructive">*</span> Nick Name
-                    </FormLabel>
+                    <FormLabel className="font-medium">Note</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Enter nickname (e.g., Abu Nasser)"
+                      <Textarea
+                        placeholder="Add any notes about the customer"
                         {...field}
                         className="bg-background border-border/60"
                         readOnly={isReadOnly}
@@ -595,7 +602,9 @@ export function CustomerDemographicsForm({
                 name="arabicNickname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium">Arabic Nickname</FormLabel>
+                    <FormLabel className="font-medium">
+                      Arabic Nickname
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="أدخل الكنية بالعربي"
@@ -685,7 +694,9 @@ export function CustomerDemographicsForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <ErrorBoundary fallback={<div>Account Info crashed</div>}>
             <section className="flex flex-col rounded-xl bg-card p-6 gap-4 border border-border shadow-sm">
-              <h3 className="text-base font-semibold text-foreground">Account Information</h3>
+              <h3 className="text-base font-semibold text-foreground">
+                Account Information
+              </h3>
               <FormField
                 control={form.control}
                 name="accountType"
@@ -718,7 +729,11 @@ export function CustomerDemographicsForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel
-                      className={AccountType === "Secondary" ? "font-semibold" : "font-medium"}
+                      className={
+                        AccountType === "Secondary"
+                          ? "font-semibold"
+                          : "font-medium"
+                      }
                     >
                       {AccountType === "Secondary" && (
                         <span className="text-destructive">*</span>
@@ -742,10 +757,15 @@ export function CustomerDemographicsForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Father">Father</SelectItem>
                         <SelectItem value="Son">Son</SelectItem>
+                        <SelectItem value="Father">Father</SelectItem>
                         <SelectItem value="Cousin">Cousin</SelectItem>
                         <SelectItem value="Brother">Brother</SelectItem>
+                        <SelectItem value="Grandfather">Grandfather</SelectItem>
+                        <SelectItem value="Grandson">Grandson</SelectItem>
+                        <SelectItem value="Nephew">Nephew</SelectItem>
+                        <SelectItem value="Friend">Friend</SelectItem>
+                        <SelectItem value="Others">Others</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -755,13 +775,17 @@ export function CustomerDemographicsForm({
             </section>
 
             <section className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
-              <h3 className="text-base font-semibold text-foreground">Customer Details</h3>
+              <h3 className="text-base font-semibold text-foreground">
+                Customer Details
+              </h3>
               <FormField
                 control={form.control}
                 name="customerSegment"
                 render={({ field }) => (
                   <FormItem className="w-full">
-                    <FormLabel className="font-medium">Customer Segment</FormLabel>
+                    <FormLabel className="font-medium">
+                      Customer Segment
+                    </FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
@@ -781,30 +805,10 @@ export function CustomerDemographicsForm({
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="note"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-medium">Note</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Add any notes about the customer"
-                        {...field}
-                        className="bg-background border-border/60"
-                        readOnly={isReadOnly}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </section>
           </ErrorBoundary>
         </div>
-        <div
-          className="bg-card p-6 rounded-xl space-y-4 border border-border shadow-sm"
-        >
+        <div className="bg-card p-6 rounded-xl space-y-4 border border-border shadow-sm">
           <ErrorBoundary fallback={<div>Address fields crashed</div>}>
             <h3 className="text-lg font-semibold text-foreground">Address</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -886,7 +890,9 @@ export function CustomerDemographicsForm({
                   name="address.houseNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-medium">House / Building no.</FormLabel>
+                      <FormLabel className="font-medium">
+                        House / Building no.
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Enter house or building number"
@@ -907,7 +913,9 @@ export function CustomerDemographicsForm({
                   name="address.addressNote"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-medium">Address Note</FormLabel>
+                      <FormLabel className="font-medium">
+                        Address Note
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Add any address details or delivery instructions"
@@ -925,9 +933,7 @@ export function CustomerDemographicsForm({
           </ErrorBoundary>
         </div>
 
-        <div
-          className="flex gap-4 justify-end"
-        >
+        <div className="flex gap-4 justify-end">
           <ErrorBoundary fallback={<div>Action buttons crashed</div>}>
             {/* Customer loaded, not editing */}
             {!isEditing && customerRecordId && !isOrderClosed && (

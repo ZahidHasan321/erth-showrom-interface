@@ -35,6 +35,8 @@ interface DataTableProps<TData, TValue> {
   fatoura?: number;
   orderDate?: Date | string | null;
   orderID?: string;
+  customerId?: string;
+  customerName?: string;
   tempStockUsage?: Map<string, number>;
 }
 
@@ -50,6 +52,8 @@ export function DataTable<TData, TValue>({
   fatoura,
   orderDate,
   orderID,
+  customerId,
+  customerName,
   tempStockUsage,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
@@ -66,6 +70,8 @@ export function DataTable<TData, TValue>({
       fatoura,
       orderDate,
       orderID,
+      customerId,
+      customerName,
       tempStockUsage,
     } as {
       measurementOptions?: { id: string; MeasurementID: string }[];
@@ -77,6 +83,8 @@ export function DataTable<TData, TValue>({
       fatoura?: number;
       orderDate?: Date | string | null;
       orderID?: string;
+      customerId?: string;
+      customerName?: string;
       tempStockUsage?: Map<string, number>;
     },
   });

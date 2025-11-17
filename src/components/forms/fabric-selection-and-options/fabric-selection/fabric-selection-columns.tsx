@@ -103,10 +103,14 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
         orderStatus?: "Pending" | "Completed" | "Cancelled";
         fatoura?: number;
         orderID?: string;
+        customerId?: string;
+        customerName?: string;
         measurementOptions?: { id: string; MeasurementID: string }[];
       };
 
       const orderID = meta?.orderID;
+      const customerId = meta?.customerId || "N/A";
+      const customerName = meta?.customerName || "N/A";
       const measurementOptions = meta?.measurementOptions || [];
 
       // Get current form values for this row instead of row.original
@@ -143,6 +147,8 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
 
       const fabricData = {
         orderId: orderID || "N/A",
+        customerId: customerId,
+        customerName: customerName,
         garmentId: currentRowData.garmentId || "",
         fabricSource: currentRowData.fabricSource || "",
         fabricLength: currentRowData.fabricLength || "",

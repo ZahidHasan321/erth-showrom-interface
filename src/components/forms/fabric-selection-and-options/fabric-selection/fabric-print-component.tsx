@@ -3,6 +3,8 @@ import React from 'react';
 interface FabricLabelProps {
   fabricData: {
     orderId: string;
+    customerId: string;
+    customerName: string;
     garmentId: string;
     fabricSource: string;
     fabricLength: string;
@@ -54,6 +56,29 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
             fontWeight: 'bold'
           }}>
             Order ID: {fabricData.orderId}
+          </div>
+
+          {/* Customer Details Row */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            borderBottom: '2px solid black'
+          }}>
+            <div style={{
+              textAlign: 'center',
+              padding: '8px 4px',
+              borderRight: '1px solid #ccc'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Customer ID</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.customerId}</div>
+            </div>
+            <div style={{
+              textAlign: 'center',
+              padding: '8px 4px'
+            }}>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Customer Name</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.customerName}</div>
+            </div>
           </div>
 
           {/* Garment Details Row */}

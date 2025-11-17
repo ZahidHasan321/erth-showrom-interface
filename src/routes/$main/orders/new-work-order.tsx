@@ -918,6 +918,7 @@ function NewWorkOrder() {
           <ErrorBoundary fallback={<div>Fabric Selection crashed</div>}>
             <FabricSelectionForm
               customerId={customerDemographics.id?.toString() || null}
+              customerName={customerDemographics.nickName || customerDemographics.name}
               form={fabricSelectionForm}
               isOrderClosed={isOrderClosed}
               onSubmit={handleFabricSelectionSubmit}

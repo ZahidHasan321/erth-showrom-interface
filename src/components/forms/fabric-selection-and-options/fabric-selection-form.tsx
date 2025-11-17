@@ -34,12 +34,15 @@ import { Label } from "@/components/ui/label";
 import { mapFormGarmentToApiGarment } from "@/lib/garment-mapper";
 import { getFabricValue } from "@/lib/utils/fabric-utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, XCircle, Sparkles, Plus, X, Save, Pencil, ArrowRight, Copy } from "lucide-react";
+import { AlertCircle, XCircle, Sparkles, Plus, X, Save, Pencil, ArrowRight, Copy, Printer } from "lucide-react";
 import { SignaturePad } from "../signature-pad";
 import { cn } from "@/lib/utils";
+import { useReactToPrint } from "react-to-print";
+import { FabricLabel } from "./fabric-selection/fabric-print-component";
 
 interface FabricSelectionFormProps {
   customerId: string | null;
+  customerName?: string;
   orderId: string | null;
   orderRecordId: string | null;
   form: UseFormReturn<{
@@ -64,6 +67,7 @@ interface FabricSelectionFormProps {
 
 export function FabricSelectionForm({
   customerId,
+  customerName,
   orderId,
   orderRecordId,
   form,
@@ -91,6 +95,33 @@ export function FabricSelectionForm({
 
   // Temporary stock tracking: Map of fabricId -> total length used
   const [tempStockUsage, setTempStockUsage] = React.useState<Map<string, number>>(new Map());
+
+  // Print All Labels ref
+  const printAllRef = React.useRef<HTMLDivElement>(null);
+
+  // Print All Labels handler
+  const handlePrintAll = useReactToPrint({
+    contentRef: printAllRef,
+    documentTitle: `Fabric-Labels-${orderId || 'all'}`,
+    pageStyle: `
+      @page {
+        size: 5in 4in;
+        margin: 0;
+      }
+      @media print {
+        html, body {
+          margin: 0;
+          padding: 0;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        .page-break {
+          page-break-after: always;
+          break-after: page;
+        }
+      }
+    `,
+  });
 
   // Set initial campaigns when prop changes (e.g., when loading an order)
   React.useEffect(() => {
@@ -806,8 +837,55 @@ export function FabricSelectionForm({
             fatoura={fatoura}
             orderDate={orderDate}
             orderID={orderId || undefined}
+            customerId={customerId || undefined}
+            customerName={customerName || undefined}
             tempStockUsage={tempStockUsage}
           />
+
+          {/* Print All Labels Button */}
+          <div className="flex justify-end pt-4">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handlePrintAll}
+              disabled={fabricSelectionFields.length === 0}
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              Print All Labels
+            </Button>
+          </div>
+
+          {/* Hidden component for printing all labels */}
+          <div style={{ display: "none" }}>
+            <div ref={printAllRef}>
+              {fabricSelectionFields.map((_, index) => {
+                const currentRowData = form.getValues(`fabricSelections.${index}`) as FabricSelectionSchema;
+                const measurementDisplay = measurementOptions.find(
+                  m => m.id === currentRowData.measurementId
+                )?.MeasurementID || currentRowData.measurementId;
+
+                const fabricData = {
+                  orderId: orderId || "N/A",
+                  customerId: customerId || "N/A",
+                  customerName: customerName || "N/A",
+                  garmentId: currentRowData.garmentId || "",
+                  fabricSource: currentRowData.fabricSource || "",
+                  fabricLength: currentRowData.fabricLength || "",
+                  measurementId: measurementDisplay,
+                  brova: currentRowData.brova || false,
+                  express: currentRowData.express || false,
+                  deliveryDate: currentRowData.deliveryDate || null,
+                };
+
+                return (
+                  <div key={index} className={index < fabricSelectionFields.length - 1 ? "page-break" : ""}>
+                    <FabricLabel fabricData={fabricData} />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="flex justify-between items-end pt-4">
             <div className="space-y-1">

@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Combobox } from "@/components/ui/combobox";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -54,7 +55,7 @@ interface CustomerMeasurementsFormProps {
   customerId: string | null;
   customerRecordId: string | undefined;
   onProceed?: () => void;
-  isOrderClosed: Boolean
+  isOrderClosed: Boolean;
 }
 
 const unit = "mt";
@@ -117,7 +118,7 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
     ) {
       const newProvision = Math.max(
         0,
-        fullWaistFront + fullWaistBack - fullWaistValue,
+        fullWaistFront + fullWaistBack - fullWaistValue
       );
       if (fullWaistProvision !== newProvision) {
         form.setValue("body.full_waist.provision", newProvision);
@@ -138,7 +139,7 @@ export function CustomerMeasurementsForm({
   customerId,
   customerRecordId,
   onProceed,
-  isOrderClosed
+  isOrderClosed,
 }: CustomerMeasurementsFormProps) {
   const queryClient = useQueryClient();
   const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<
@@ -156,8 +157,9 @@ export function CustomerMeasurementsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
+  const [showCustomReferenceInput, setShowCustomReferenceInput] = React.useState(false);
 
   useAutoProvision(form);
 
@@ -189,49 +191,61 @@ export function CustomerMeasurementsForm({
     });
   };
 
-  const { mutate: createMeasurementMutation, isPending: isCreating } = useMutation({
-    mutationFn: createMeasurement,
-    onSuccess: (response) => {
-      if (response.status === "success") {
-        setIsEditing(false);
-        setIsCreatingNew(false);
-        toast.success("Measurement created successfully!");
-        queryClient.invalidateQueries({
-          queryKey: ["measurements", customerId],
-        });
-      } else {
-        toast.error(response.message || "Failed to create measurement.");
-      }
-    },
-    onError: (e: Error) => {
-      console.error("API Error:", e);
-      toast.error("Error creating measurement.");
-    },
-  });
+  const { mutate: createMeasurementMutation, isPending: isCreating } =
+    useMutation({
+      mutationFn: createMeasurement,
+      onSuccess: (response) => {
+        if (response.status === "success") {
+          setIsEditing(false);
+          setIsCreatingNew(false);
+          toast.success("Measurement created successfully!");
+          queryClient.invalidateQueries({
+            queryKey: ["measurements", customerId],
+          });
+        } else {
+          toast.error(response.message || "Failed to create measurement.");
+        }
+      },
+      onError: (e: Error) => {
+        console.error("API Error:", e);
+        toast.error("Error creating measurement.");
+      },
+    });
 
-  const { mutate: updateMeasurementMutation, isPending: isUpdating } = useMutation({
-    mutationFn: ({ recordId, values }: { recordId: string, values: Partial<Measurement["fields"]> }) => updateMeasurement(recordId, values),
-    onSuccess: (response) => {
-      if (response.status === "success") {
-        setIsEditing(false);
-        setIsCreatingNew(false);
-        toast.success("Measurement updated successfully!");
-        queryClient.invalidateQueries({
-          queryKey: ["measurements", customerId],
-        });
-      } else {
-        toast.error(response.message || "Failed to update measurement.");
-      }
-    },
-    onError: (e: Error) => {
-      console.error("API Error:", e);
-      toast.error("Error updating measurement.");
-    },
-  });
+  const { mutate: updateMeasurementMutation, isPending: isUpdating } =
+    useMutation({
+      mutationFn: ({
+        recordId,
+        values,
+      }: {
+        recordId: string;
+        values: Partial<Measurement["fields"]>;
+      }) => updateMeasurement(recordId, values),
+      onSuccess: (response) => {
+        if (response.status === "success") {
+          setIsEditing(false);
+          setIsCreatingNew(false);
+          toast.success("Measurement updated successfully!");
+          queryClient.invalidateQueries({
+            queryKey: ["measurements", customerId],
+          });
+        } else {
+          toast.error(response.message || "Failed to update measurement.");
+        }
+      },
+      onError: (e: Error) => {
+        console.error("API Error:", e);
+        toast.error("Error updating measurement.");
+      },
+    });
 
   const isSaving = isCreating || isUpdating;
 
-  const { data: measurementQuery, isSuccess, isFetching } = useQuery({
+  const {
+    data: measurementQuery,
+    isSuccess,
+    isFetching,
+  } = useQuery({
     queryKey: ["measurements", customerId],
     queryFn: () => {
       if (!customerId) {
@@ -255,7 +269,7 @@ export function CustomerMeasurementsForm({
         });
         setMeasurements(newMap);
         setSelectedMeasurementId(
-          measurementQuery.data[0]?.fields.MeasurementID ?? null,
+          measurementQuery.data[0]?.fields.MeasurementID ?? null
         );
       } else {
         // No measurements for this customer, so reset everything.
@@ -282,7 +296,7 @@ export function CustomerMeasurementsForm({
   // Handlers
   // ---------------------------------------
   const handleFormSubmit = (
-    values: z.infer<typeof customerMeasurementsSchema>,
+    values: z.infer<typeof customerMeasurementsSchema>
   ) => {
     const onConfirm = () => {
       if (!customerId || !customerRecordId) {
@@ -300,12 +314,17 @@ export function CustomerMeasurementsForm({
           return;
         }
 
-        const recordId = measurements.get(selectedMeasurementId)?.measurementRecord
+        const recordId = measurements.get(
+          selectedMeasurementId
+        )?.measurementRecord;
         if (!recordId) {
           toast.error("No measurement selected for updating.");
           return;
         }
-        updateMeasurementMutation({ recordId: recordId, values: record.fields });
+        updateMeasurementMutation({
+          recordId: recordId,
+          values: record.fields,
+        });
       }
 
       setConfirmationDialog((d) => ({ ...d, isOpen: false }));
@@ -383,7 +402,9 @@ export function CustomerMeasurementsForm({
             <h1 className="text-3xl font-bold text-foreground bg-linear-to-r from-primary to-secondary bg-clip-text">
               Measurement
             </h1>
-            <p className="text-sm text-muted-foreground">Customer body measurements and details</p>
+            <p className="text-sm text-muted-foreground">
+              Customer body measurements and details
+            </p>
           </div>
         </div>
 
@@ -451,29 +472,55 @@ export function CustomerMeasurementsForm({
           <FormField
             control={form.control}
             name="measurementReference"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-medium">Reference</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!isEditing}
-                >
-                  <FormControl>
-                    <SelectTrigger className="bg-background border-border/60 w-auto min-w-24">
-                      <SelectValue placeholder="Reference" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Winter">Winter</SelectItem>
-                    <SelectItem value="Summer">Summer</SelectItem>
-                    <SelectItem value="Eid">Eid</SelectItem>
-                    <SelectItem value="Occasion">Occasion</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const predefinedOptions = ["Winter", "Summer", "Eid", "Occasion"];
+              const isCustomValue =
+                field.value && !predefinedOptions.includes(field.value);
+
+              return (
+                <FormItem>
+                  <FormLabel className="font-medium">Reference</FormLabel>
+                  <div className="flex gap-2 items-center">
+                    <Select
+                      onValueChange={(value) => {
+                        if (value === "Other") {
+                          setShowCustomReferenceInput(true);
+                          field.onChange("");
+                        } else {
+                          field.onChange(value);
+                          setShowCustomReferenceInput(false);
+                        }
+                      }}
+                      value={isCustomValue ? "Other" : field.value}
+                      disabled={!isEditing}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-background border-border/60 w-auto min-w-24">
+                          <SelectValue placeholder="Reference" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Winter">Winter</SelectItem>
+                        <SelectItem value="Summer">Summer</SelectItem>
+                        <SelectItem value="Eid">Eid</SelectItem>
+                        <SelectItem value="Occasion">Occasion</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {(showCustomReferenceInput || isCustomValue) && (
+                      <Input
+                        placeholder="Enter custom reference"
+                        className="bg-background border-border/60 w-auto min-w-48"
+                        value={field.value}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    )}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
 
           <FormField
@@ -671,11 +718,7 @@ export function CustomerMeasurementsForm({
           )}
           {(isEditing || isCreatingNew) && !isOrderClosed && (
             <>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-              >
+              <Button type="button" variant="outline" onClick={handleCancel}>
                 <X className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
