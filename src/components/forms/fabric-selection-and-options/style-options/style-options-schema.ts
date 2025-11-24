@@ -102,7 +102,7 @@ export const styleOptionsDefaults: StyleOptionsSchema = {
     jabzour_thickness: "SINGLE",
   },
   frontPocket: {
-    front_pocket_type: "FRO_MURABBA_FRONT_POCKET",
+    front_pocket_type: "FRO_MUDAWWAR_FRONT_POCKET",
     front_pocket_thickness: "SINGLE",
   },
   accessories: {

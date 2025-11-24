@@ -27,10 +27,10 @@ export function mapApiGarmentToFormGarment(apiGarment: Garment): { fabricSelecti
   };
 
   // Convert API lines string to form boolean structure
-  const linesValue = fields.Lines || "line1";
+  const linesValue = fields.Lines || "1";
   const linesObject = {
-    line1: linesValue === "line1" || linesValue === "line2",
-    line2: linesValue === "line2",
+    line1: linesValue === "1",
+    line2: linesValue === "2",
   };
 
   const styleOptions: StyleOptionsSchema = {
@@ -97,11 +97,9 @@ export function mapFormGarmentToApiGarment(
       // from styleOptions (flattened)
       StyleOptionId: styleOptions.styleOptionId,
       Style: styleOptions.style,
-      Lines: styleOptions.lines?.line1 && styleOptions.lines?.line2
-        ? "line2"
-        : styleOptions.lines?.line1
-          ? "line1"
-          : "no_lines",
+      Lines: styleOptions.lines?.line2
+        ? "2"
+        : "1",
       CollarType: styleOptions.collar?.collarType,
       CollarButton: styleOptions.collar?.collarButton,
       SmallTabaggi: styleOptions.collar?.smallTabaggi,

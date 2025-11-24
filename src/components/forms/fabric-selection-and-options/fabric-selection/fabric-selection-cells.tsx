@@ -272,7 +272,7 @@ export const IfInsideCell = ({
 
   const getStockColorClass = (stock: number) => {
     if (stock <= 0) return "text-red-600 font-semibold"; // Out of stock
-    if (stock < 5) return "text-orange-600 font-semibold"; // Less than 5
+    if (stock < 5) return "text-orange-500 font-semibold"; // Less than 5 - Warning
     if (stock >= 5 && stock <= 11) return "text-green-600 font-semibold"; // 5-11
     return "text-muted-foreground"; // More than 11
   };

@@ -91,11 +91,19 @@ export const LinesCell = ({
   row,
   table,
 }: CellContext<StyleOptionsSchema, unknown>) => {
-  const { control } = useFormContext();
+  const { control, setValue } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
   };
   const isFormDisabled = meta?.isFormDisabled || false;
+
+  const [line1, line2] = useWatch({
+    name: [
+      `styleOptions.${row.index}.lines.line1`,
+      `styleOptions.${row.index}.lines.line2`,
+    ],
+  });
+
   return (
     <div className="min-w-[180px] flex items-center space-x-6 px-2">
       <Controller
@@ -106,14 +114,24 @@ export const LinesCell = ({
             <Checkbox
               id={`line1-${row.index}`}
               checked={field.value as boolean}
-              onCheckedChange={field.onChange}
+              onCheckedChange={(checked) => {
+                // Prevent unchecking if it's the only one checked
+                if (!checked && !line2) {
+                  return; // Don't allow unchecking
+                }
+                field.onChange(checked);
+                // When line1 is checked, uncheck line2
+                if (checked) {
+                  setValue(`styleOptions.${row.index}.lines.line2`, false);
+                }
+              }}
               disabled={isFormDisabled}
             />
             <label
               htmlFor={`line1-${row.index}`}
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Line 1
+              1 Line
             </label>
           </div>
         )}
@@ -126,14 +144,24 @@ export const LinesCell = ({
             <Checkbox
               id={`line2-${row.index}`}
               checked={field.value as boolean}
-              onCheckedChange={field.onChange}
+              onCheckedChange={(checked) => {
+                // Prevent unchecking if it's the only one checked
+                if (!checked && !line1) {
+                  return; // Don't allow unchecking
+                }
+                field.onChange(checked);
+                // When line2 is checked, uncheck line1
+                if (checked) {
+                  setValue(`styleOptions.${row.index}.lines.line1`, false);
+                }
+              }}
               disabled={isFormDisabled}
             />
             <label
               htmlFor={`line2-${row.index}`}
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Line 2
+              2 Lines
             </label>
           </div>
         )}
@@ -287,7 +315,8 @@ export const JabzoorCell = ({
     if (jabzour1 !== "JAB_SHAAB") {
       setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, null);
     } else {
-      // When Shaab is selected, set thickness to DOUBLE by default
+      // When Shaab is selected, auto-select Magfi Morabba and set thickness to DOUBLE
+      setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, "JAB_MAGFI_MURABBA");
       setValue(`styleOptions.${row.index}.jabzoor.jabzour_thickness`, "DOUBLE");
     }
   }, [jabzour1, setValue, row.index]);
@@ -483,13 +512,13 @@ export const FrontPocketCell = ({
           <Select
             onValueChange={field.onChange}
             value={field.value as string}
-            disabled={isFormDisabled}
+            disabled={isFormDisabled || !frontPocketType}
           >
             <SelectTrigger className="bg-background border-border/60 min-w-[60px]">
               <SelectValue placeholder="Select Thickness" />
             </SelectTrigger>
             <SelectContent>
-              {ThicknessOptions.map((option) => (
+              {ThicknessOptions.filter((option) => option.value !== "NO HASHWA").map((option) => (
                 <SelectItem
                   key={option.value}
                   value={option.value}

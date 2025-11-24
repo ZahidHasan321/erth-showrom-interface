@@ -15,7 +15,7 @@ type UpdateOrderPayload = {
 };
 
 type UseOrderMutationsOptions = {
-  onOrderCreated?: (orderId: string, order: OrderSchema) => void;
+  onOrderCreated?: (orderId: string | undefined, order: OrderSchema, recordId: string) => void;
   onOrderUpdated?: (action: string | null | undefined) => void;
   onOrderError?: () => void;
   orderType?: "work" | "sales";
@@ -54,8 +54,14 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
       if (response.data) {
         const order = response.data;
         const formattedOrder = mapApiOrderToFormOrder(order);
-        options.onOrderCreated?.(order.id, formattedOrder);
-        toast.success("New order created successfully!");
+        // Pass the OrderID (may be undefined), formattedOrder, and record ID
+        options.onOrderCreated?.(formattedOrder.orderID, formattedOrder, order.id);
+
+        if (formattedOrder.orderID) {
+          toast.success(`Order created successfully! Order ID: ${formattedOrder.orderID}`);
+        } else {
+          toast.success("Order created! Generating Order ID...");
+        }
       }
     },
     onError: () => {

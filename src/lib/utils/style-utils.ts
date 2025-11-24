@@ -2,6 +2,73 @@ import type { Style } from "@/types/style";
 import type { StyleOptionsSchema } from "@/components/forms/fabric-selection-and-options/style-options/style-options-schema";
 
 /**
+ * Generate a hash string from style options for comparison
+ * Excludes styleOptionId, garmentId, and extraAmount as they're not part of the style definition
+ */
+function generateStyleHash(styleOptions: StyleOptionsSchema): string {
+  const relevantFields = {
+    style: styleOptions.style,
+    lines: styleOptions.lines,
+    collar: styleOptions.collar,
+    jabzoor: styleOptions.jabzoor,
+    frontPocket: styleOptions.frontPocket,
+    accessories: styleOptions.accessories,
+    cuffs: styleOptions.cuffs,
+  };
+  return JSON.stringify(relevantFields);
+}
+
+/**
+ * Compare two style options to check if they're identical
+ * @param style1 - First style option
+ * @param style2 - Second style option
+ * @returns true if styles are identical (excluding IDs and amounts)
+ */
+export function areStylesIdentical(
+  style1: StyleOptionsSchema,
+  style2: StyleOptionsSchema
+): boolean {
+  return generateStyleHash(style1) === generateStyleHash(style2);
+}
+
+/**
+ * Assign matching style option IDs to rows with identical styles
+ * @param styleOptions - Array of all style options
+ * @returns Array of style options with updated styleOptionId values
+ */
+export function assignMatchingStyleIds(
+  styleOptions: StyleOptionsSchema[]
+): StyleOptionsSchema[] {
+  // Safety check for empty or invalid arrays
+  if (!styleOptions || styleOptions.length === 0) {
+    return styleOptions;
+  }
+
+  const styleGroups = new Map<string, string>(); // hash -> assigned ID
+  let nextStyleId = 1;
+
+  return styleOptions.map((style) => {
+    // Skip if style is undefined or null
+    if (!style) {
+      return style;
+    }
+
+    const hash = generateStyleHash(style);
+
+    if (!styleGroups.has(hash)) {
+      // First occurrence of this style - assign new ID
+      styleGroups.set(hash, `S-${nextStyleId}`);
+      nextStyleId++;
+    }
+
+    return {
+      ...style,
+      styleOptionId: styleGroups.get(hash),
+    };
+  });
+}
+
+/**
  * Calculate the total price for style options based on selected codes
  * @param styleOptions - The style options data for a single row
  * @param styles - The array of all available styles with pricing

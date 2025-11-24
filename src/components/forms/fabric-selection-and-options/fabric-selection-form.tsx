@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { mapFormGarmentToApiGarment } from "@/lib/garment-mapper";
 import { getFabricValue } from "@/lib/utils/fabric-utils";
+import { assignMatchingStyleIds } from "@/lib/utils/style-utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertCircle, XCircle, Sparkles, Plus, X, Save, Pencil, ArrowRight, Copy, Printer } from "lucide-react";
 import { SignaturePad } from "../signature-pad";
@@ -186,6 +187,42 @@ export function FabricSelectionForm({
     });
     return () => subscription.unsubscribe();
   }, [form, calculateTempStockUsage]);
+
+  // Update style option IDs when style options change to match identical styles
+  React.useEffect(() => {
+    const subscription = form.watch((_value, { name }) => {
+      // Only recalculate if style-related fields change (but NOT styleOptionId itself)
+      if (name?.startsWith("styleOptions") && !name?.includes("styleOptionId")) {
+        const currentStyleOptions = form.getValues("styleOptions");
+
+        // Safety check
+        if (!currentStyleOptions || currentStyleOptions.length === 0) {
+          return;
+        }
+
+        const updatedStyleOptions = assignMatchingStyleIds(currentStyleOptions);
+
+        // Only update if IDs actually changed to avoid infinite loops
+        const needsUpdate = updatedStyleOptions.some((updated, index) => {
+          const current = currentStyleOptions[index];
+          return current && updated && updated.styleOptionId !== current.styleOptionId;
+        });
+
+        if (needsUpdate) {
+          updatedStyleOptions.forEach((updated, index) => {
+            if (updated?.styleOptionId) {
+              form.setValue(`styleOptions.${index}.styleOptionId`, updated.styleOptionId, {
+                shouldValidate: false,
+                shouldDirty: false,
+                shouldTouch: false
+              });
+            }
+          });
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   // Validate fabric selections before saving
   const validateFabricSelections = React.useCallback(() => {
@@ -470,12 +507,13 @@ export function FabricSelectionForm({
         }))
       : [];
 
-  const addFabricRow = (index: number, orderId?: string) => {
+  const addFabricRow = (index: number, orderIdParam?: string) => {
     const latestMeasurement =
       measurements.length > 0 ? measurements[measurements.length - 1] : null;
+    const currentOrderId = orderIdParam || orderId || "";
     appendFabricSelection({
       ...fabricSelectionDefaults,
-      garmentId: orderId + "-" + (index + 1),
+      garmentId: currentOrderId + "-" + (index + 1),
       measurementId: latestMeasurement?.id ?? "",
     });
   };

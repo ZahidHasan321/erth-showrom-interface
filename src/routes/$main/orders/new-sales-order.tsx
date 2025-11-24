@@ -141,7 +141,10 @@ function NewSalesOrder() {
   } = useOrderMutations({
     orderType: "sales",
     onOrderCreated: (id, formattedOrder) => {
-      setOrderId(id);
+      // For sales orders, the ID should always be available immediately
+      if (id) {
+        setOrderId(id);
+      }
       setOrder(formattedOrder);
       // Update stocks after order is created
       updateShelfMutation.mutate(ShelvesForm.getValues());

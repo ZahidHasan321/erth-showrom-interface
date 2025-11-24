@@ -120,6 +120,9 @@ function NewWorkOrder() {
   const setOrder = useCurrentWorkOrderStore((s) => s.setOrder);
   const resetWorkOrder = useCurrentWorkOrderStore((s) => s.resetWorkOrder);
 
+  // Track the Airtable record ID for polling
+  const [orderRecordId, setOrderRecordId] = React.useState<string | null>(null);
+
   // ============================================================================
   // FORMS SETUP
   // ============================================================================
@@ -194,9 +197,37 @@ function NewWorkOrder() {
   // FATOURA POLLING
   // ============================================================================
   const { fatoura } = useFatouraPolling(
-    orderId,
+    orderRecordId,
     orderStatus === "Completed"
   );
+
+  // Poll for OrderID if it's not available yet (we have recordId but no orderId)
+  const { data: polledOrderData } = useQuery({
+    queryKey: ["order", orderRecordId, "orderID"],
+    queryFn: () => getCompleteOrderDetails(orderRecordId!),
+    enabled: Boolean(orderRecordId && !orderId),
+    refetchInterval: (query) => {
+      const orderData = query.state.data as any;
+      // Stop polling if we got the OrderID or there's an error
+      if (orderData?.order?.fields?.OrderID || query.state.error) {
+        return false;
+      }
+      // Poll every 1 second
+      return 1000;
+    },
+    retry: 5,
+  });
+
+  // Update orderId when OrderID is generated
+  React.useEffect(() => {
+    if (polledOrderData?.data?.order?.fields?.OrderID) {
+      const generatedOrderId = polledOrderData.data.order.fields.OrderID;
+      if (generatedOrderId !== orderId) {
+        setOrderId(generatedOrderId);
+        toast.success(`Order ID generated: ${generatedOrderId}`);
+      }
+    }
+  }, [polledOrderData, orderId, setOrderId]);
 
   // ============================================================================
   // ORDER MUTATIONS
@@ -209,8 +240,12 @@ function NewWorkOrder() {
     deleteOrder: deleteOrderMutation,
   } = useOrderMutations({
     orderType: "work",
-    onOrderCreated: (id, formattedOrder) => {
-      setOrderId(id);
+    onOrderCreated: (id, formattedOrder, recordId) => {
+      // Only set orderId if it's actually generated, otherwise leave it undefined
+      if (id) {
+        setOrderId(id);
+      }
+      setOrderRecordId(recordId);
       setOrder(formattedOrder);
       demographicsForm.reset();
       measurementsForm.reset();
@@ -425,13 +460,15 @@ function NewWorkOrder() {
     // Update store with customer demographics
     setCustomerDemographics(customerData);
 
-    // Update order in backend
-    if (orderId) {
+    // Update order in backend (use orderRecordId which is the Airtable record ID)
+    if (orderRecordId) {
       updateOrderMutation.mutate({
         fields: { customerID: [recordID] },
-        orderId: orderId,
+        orderId: orderRecordId,
         onSuccessAction: "customer",
       });
+    } else {
+      toast.error("Order not created yet. Please create an order first.");
     }
   };
 
@@ -806,10 +843,13 @@ function NewWorkOrder() {
     stylesResponse,
   ]);
 
+  // Check if we're waiting for OrderID to be generated (have recordId but no orderId)
+  const isWaitingForOrderId = orderRecordId && !orderId;
+
   // ============================================================================
   // RENDER: NO ORDER STATE
   // ============================================================================
-  if (!orderId) {
+  if (!orderId && !orderRecordId) {
     return (
       <OrderCreationPrompt
         orderType="Work Order"
@@ -827,6 +867,24 @@ function NewWorkOrder() {
         dialogState={dialog}
         onCloseDialog={closeDialog}
       />
+    );
+  }
+
+  // ============================================================================
+  // RENDER: LOADING ORDER ID
+  // ============================================================================
+  if (isWaitingForOrderId) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-6">
+        <div className="relative">
+          <div className="w-20 h-20 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-bold text-foreground">Generating Order ID...</h2>
+          <p className="text-muted-foreground">Please wait while we create your order ID</p>
+          <p className="text-sm text-muted-foreground">This usually takes a few seconds</p>
+        </div>
+      </div>
     );
   }
 
