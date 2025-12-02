@@ -6,7 +6,7 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
   measurementReference: "", // fallback
   measurementOtherNote: "",
   measurer: "",
-  measurementDate: new Date(),
+  measurementDate: new Date(), // Default to today for new measurements
   notes: "",
   collar: {
     width: 0,

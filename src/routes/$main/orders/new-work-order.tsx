@@ -6,6 +6,7 @@ import { getStyles } from "@/api/styles";
 import { getCompleteOrderDetails } from "@/api/orders";
 import type { Order } from "@/types/order";
 import { mapApiGarmentToFormGarment } from "@/lib/garment-mapper";
+import { mapCustomerToFormValues } from "@/lib/customer-mapper";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
 import {
   customerDemographicsDefaults,
@@ -133,7 +134,10 @@ function NewWorkOrder() {
 
   const measurementsForm = useForm<z.infer<typeof customerMeasurementsSchema>>({
     resolver: zodResolver(customerMeasurementsSchema),
-    defaultValues: customerMeasurementsDefaults,
+    defaultValues: {
+      ...customerMeasurementsDefaults,
+      measurementDate: new Date(), // Set to today for new measurements
+    },
   });
 
   const fabricSelectionForm = useForm<{
@@ -250,7 +254,10 @@ function NewWorkOrder() {
 
       // Reset all forms and state before loading new order
       demographicsForm.reset(customerDemographicsDefaults);
-      measurementsForm.reset(customerMeasurementsDefaults);
+      measurementsForm.reset({
+        ...customerMeasurementsDefaults,
+        measurementDate: new Date(), // Set to today for new measurements
+      });
       fabricSelectionForm.reset({ fabricSelections: [], styleOptions: [], signature: "" });
       ShelvesForm.reset({ products: [] });
       OrderForm.reset(orderDefaults);
@@ -278,42 +285,20 @@ function NewWorkOrder() {
         // Populate customer demographics
         if (orderData.customer) {
           const customer = orderData.customer;
-          demographicsForm.setValue("customerRecordId", customer.id);
-          demographicsForm.setValue("id", customer.fields.id);
-          demographicsForm.setValue("name", customer.fields.Name || "");
-          demographicsForm.setValue("nickName", customer.fields.NickName || "");
-          demographicsForm.setValue("mobileNumber", customer.fields.MobileNumber || "");
-          demographicsForm.setValue("email", customer.fields.Email || "");
-          demographicsForm.setValue("accountType", customer.fields.AccountType as any);
-          demographicsForm.setValue("relation", customer.fields.Relation || "");
-          demographicsForm.setValue("nationality", customer.fields.Nationality || "");
-          demographicsForm.setValue("arabicName", customer.fields.ArabicName || "");
-          demographicsForm.setValue("arabicNickname", customer.fields.ArabicNickName || "");
-          demographicsForm.setValue("instagram", customer.fields.Instagram || "");
-          demographicsForm.setValue("whatsapp", customer.fields.Whatsapp || false);
-          demographicsForm.setValue("countryCode", customer.fields.CountryCode || "");
 
-          if (customer.fields.DOB) {
-            demographicsForm.setValue("dob", new Date(customer.fields.DOB));
-          }
+          // Use the mapper to properly transform customer data
+          const customerFormValues = mapCustomerToFormValues(customer);
 
-          if (customer.fields.Address) {
-            demographicsForm.setValue("address", {
-              city: customer.fields.Address.city || "",
-              area: customer.fields.Address.area || "",
-              block: customer.fields.Address.block || "",
-              street: customer.fields.Address.street || "",
-              houseNumber: customer.fields.Address.houseNumber || "",
-              addressNote: customer.fields.Address.addressNote || "",
-            });
-          }
+          // Reset form with mapped values
+          demographicsForm.reset(customerFormValues);
 
+          // Update store with essential customer info
           setCustomerDemographics({
             customerRecordId: customer.id,
             id: customer.fields.id,
             name: customer.fields.Name || "",
             nickName: customer.fields.NickName || "",
-            mobileNumber: customer.fields.MobileNumber || "",
+            mobileNumber: customer.fields.Phone || "",
           });
 
           addSavedStep(0);
@@ -676,7 +661,10 @@ function NewWorkOrder() {
 
   // Reset measurements when customer changes
   React.useEffect(() => {
-    measurementsForm.reset(customerMeasurementsDefaults);
+    measurementsForm.reset({
+      ...customerMeasurementsDefaults,
+      measurementDate: new Date(), // Always set to today for new measurements
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerDemographics.id]);
 
