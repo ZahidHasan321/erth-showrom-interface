@@ -37,7 +37,9 @@ export const fabricSelectionSchema = z.object({
   color: z.string().min(1, "Color is required"),
   measurementId: z.string().min(1, "Measurement ID is required"),
   express: z.boolean(),
-  deliveryDate: z.union([z.date(), z.null()]),
+  deliveryDate: z.date().nullable().refine((date) => date !== null, {
+    message: "Delivery date is required",
+  }),
   note: z.string(),
   fabricAmount: z.number(),
   homeDelivery: z.boolean(),
@@ -53,19 +55,6 @@ export const fabricSelectionSchema = z.object({
     {
       message: "Fabric selection is required when source is 'IN'",
       path: ["fabricId"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Home delivery requires a delivery date
-      if (data.homeDelivery) {
-        return data.deliveryDate !== null;
-      }
-      return true;
-    },
-    {
-      message: "Delivery date is required when home delivery is selected",
-      path: ["deliveryDate"],
     }
   );
 

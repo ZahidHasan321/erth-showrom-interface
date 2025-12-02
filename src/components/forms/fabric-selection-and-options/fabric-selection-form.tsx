@@ -297,9 +297,9 @@ export function FabricSelectionForm({
         errors.push(`Row ${index + 1}: Color is required for "OUT" source`);
       }
 
-      // Validate delivery date when home delivery is selected
-      if (selection.homeDelivery && !selection.deliveryDate) {
-        errors.push(`Row ${index + 1}: Delivery date is required when home delivery is selected`);
+      // Validate delivery date is always required
+      if (!selection.deliveryDate) {
+        errors.push(`Row ${index + 1}: Delivery date is required`);
       }
     });
 
@@ -520,6 +520,20 @@ export function FabricSelectionForm({
     removeFabricSelection(rowIndex);
     // Also remove the corresponding style option row
     removeStyleOption(rowIndex);
+
+    // Re-index garmentIds for remaining rows after the removed row
+    const currentOrderId = orderId || "";
+    const fabricSelections = form.getValues("fabricSelections");
+
+    // Update garmentIds for all rows after the removed index
+    fabricSelections.forEach((_, index) => {
+      if (index >= rowIndex) {
+        const newGarmentId = currentOrderId + "-" + (index + 1);
+        form.setValue(`fabricSelections.${index}.garmentId`, newGarmentId);
+        form.setValue(`styleOptions.${index}.garmentId`, newGarmentId);
+      }
+    });
+
     // Clear validation errors for this row
     setValidationErrors((prev) =>
       prev.filter((error) => !error.startsWith(`Row ${rowIndex + 1}:`))

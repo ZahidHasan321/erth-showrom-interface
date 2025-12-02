@@ -518,24 +518,21 @@ export const DeliveryDateCell = ({
   };
   const isFormDisabled = meta?.isFormDisabled || false;
 
-  const [homeDelivery, deliveryDate] = useWatch({
-    name: [
-      `fabricSelections.${row.index}.homeDelivery`,
-      `fabricSelections.${row.index}.deliveryDate`,
-    ],
+  const deliveryDate = useWatch({
+    name: `fabricSelections.${row.index}.deliveryDate`,
   });
 
-  // Validate delivery date is required when home delivery is selected
+  // Validate delivery date is always required
   React.useEffect(() => {
-    if (homeDelivery && !deliveryDate) {
+    if (!deliveryDate) {
       setError(`fabricSelections.${row.index}.deliveryDate`, {
         type: "manual",
-        message: "Required for home delivery",
+        message: "Delivery date is required",
       });
     } else {
       clearErrors(`fabricSelections.${row.index}.deliveryDate`);
     }
-  }, [homeDelivery, deliveryDate, row.index, setError, clearErrors]);
+  }, [deliveryDate, row.index, setError, clearErrors]);
 
   const handleDateChange = (date: Date | null) => {
     // Update current row
