@@ -12,7 +12,7 @@ type OrderInfoCardProps = {
   paymentType?: string;
   numOfFabrics?: number;
   totalAmount?: number;
-  advance?: number;
+  paid?: number;
   balance?: number;
 };
 
@@ -26,7 +26,7 @@ export function OrderInfoCard({
   paymentType,
   numOfFabrics,
   totalAmount,
-  advance,
+  paid,
   balance,
 }: OrderInfoCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -129,7 +129,7 @@ export function OrderInfoCard({
           )}
 
           {/* Financial Info */}
-          {(totalAmount !== undefined && totalAmount > 0) || (advance !== undefined && advance > 0) || (balance !== undefined && balance > 0) ? (
+          {(totalAmount !== undefined && totalAmount > 0) || (paid !== undefined && paid > 0) || (balance !== undefined && balance > 0) ? (
             <div className="mt-3 pt-3 border-t border-border/50 space-y-1.5">
               {totalAmount !== undefined && totalAmount > 0 && (
                 <div className="flex items-center gap-2">
@@ -138,11 +138,11 @@ export function OrderInfoCard({
                   <span className="text-sm font-bold text-primary">{totalAmount.toFixed(2)} KWD</span>
                 </div>
               )}
-              {advance !== undefined && advance > 0 && (
+              {paid !== undefined && paid > 0 && (
                 <div className="flex items-center gap-2">
                   <Wallet className="w-3.5 h-3.5 text-secondary" />
-                  <span className="text-sm text-muted-foreground min-w-[76px]">Advance:</span>
-                  <span className="text-sm font-semibold text-secondary">{advance.toFixed(2)} KWD</span>
+                  <span className="text-sm text-muted-foreground min-w-[76px]">Paid:</span>
+                  <span className="text-sm font-semibold text-secondary">{paid.toFixed(2)} KWD</span>
                 </div>
               )}
               {balance !== undefined && balance > 0 && (

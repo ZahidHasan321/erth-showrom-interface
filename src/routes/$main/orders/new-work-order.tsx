@@ -879,7 +879,7 @@ function NewWorkOrder() {
           paymentType={order.paymentType}
           numOfFabrics={order.numOfFabrics}
           totalAmount={order.charges ? Object.values(order.charges).reduce((a, b) => a + b, 0) : 0}
-          advance={order.advance}
+          paid={order.advance}
           balance={order.balance}
         />
       </div>
