@@ -40,37 +40,41 @@ export function mapFormOrderToApiOrder(
   formOrder: Partial<OrderSchema>,
   orderId?: string
 ): { id?: string; fields: Partial<Order["fields"]> } {
-  const apiOrder: { id?: string; fields: Partial<Order["fields"]> } = {
-    fields: {
-      // OrderID is a computed field in Airtable, don't send it
-      // OrderID: formOrder.orderID,
-      CustomerID: formOrder.customerID,
-      OrderDate: formOrder.orderDate,
-      OrderStatus: formOrder.orderStatus,
-      // Only set FatouraStages for work orders
-      FatouraStages: formOrder.orderType === "work" ? formOrder.fatouraStages : undefined,
-      // OrderTotal: formOrder.orderTotal,
-      HomeDelivery: formOrder.homeDelivery,
-      Notes: formOrder.notes,
-      Campaigns: formOrder.campaigns,
-      OrderType: formOrder.orderType,
-      PaymentType: formOrder.paymentType,
-      PaymentRefNo: formOrder.paymentRefNo,
-      OrderTaker: formOrder.orderTaker ? [formOrder.orderTaker] : undefined,
-      DiscountType: formOrder.discountType,
-      ReferralCode: formOrder.referralCode || "",
-      DiscountValue: formOrder.discountValue,
-      FabricCharge: formOrder.charges?.fabric,
-      StitchingCharge: formOrder.charges?.stitching,
-      StyleCharge: formOrder.charges?.style,
-      DeliveryCharge: formOrder.charges?.delivery,
-      ShelfCharge: formOrder.charges?.shelf,
-      Advance: formOrder.advance,
-      Paid: formOrder.paid,
-      Balance: formOrder.balance,
-      NumOfFabrics: formOrder.numOfFabrics,
-    },
-  };
+  // Build fields object and filter out undefined values to avoid overwriting existing data
+  const fields: Partial<Order["fields"]> = {};
+
+  // Only include fields that are actually provided
+  if (formOrder.customerID !== undefined) fields.CustomerID = formOrder.customerID;
+  if (formOrder.orderDate !== undefined) fields.OrderDate = formOrder.orderDate;
+  if (formOrder.orderStatus !== undefined) fields.OrderStatus = formOrder.orderStatus;
+  if (formOrder.orderType === "work" && formOrder.fatouraStages !== undefined) {
+    fields.FatouraStages = formOrder.fatouraStages;
+  }
+  if (formOrder.homeDelivery !== undefined) fields.HomeDelivery = formOrder.homeDelivery;
+  if (formOrder.notes !== undefined) fields.Notes = formOrder.notes;
+  if (formOrder.campaigns !== undefined) fields.Campaigns = formOrder.campaigns;
+  if (formOrder.orderType !== undefined) fields.OrderType = formOrder.orderType;
+  if (formOrder.paymentType !== undefined) fields.PaymentType = formOrder.paymentType;
+  if (formOrder.paymentRefNo !== undefined) fields.PaymentRefNo = formOrder.paymentRefNo;
+  if (formOrder.orderTaker !== undefined) fields.OrderTaker = [formOrder.orderTaker];
+  if (formOrder.discountType !== undefined) fields.DiscountType = formOrder.discountType;
+  if (formOrder.referralCode !== undefined) fields.ReferralCode = formOrder.referralCode;
+  if (formOrder.discountValue !== undefined) fields.DiscountValue = formOrder.discountValue;
+
+  // Handle charges object
+  if (formOrder.charges?.fabric !== undefined) fields.FabricCharge = formOrder.charges.fabric;
+  if (formOrder.charges?.stitching !== undefined) fields.StitchingCharge = formOrder.charges.stitching;
+  if (formOrder.charges?.style !== undefined) fields.StyleCharge = formOrder.charges.style;
+  if (formOrder.charges?.delivery !== undefined) fields.DeliveryCharge = formOrder.charges.delivery;
+  if (formOrder.charges?.shelf !== undefined) fields.ShelfCharge = formOrder.charges.shelf;
+
+  if (formOrder.advance !== undefined) fields.Advance = formOrder.advance;
+  if (formOrder.paid !== undefined) fields.Paid = formOrder.paid;
+  if (formOrder.balance !== undefined) fields.Balance = formOrder.balance;
+  if (formOrder.numOfFabrics !== undefined) fields.NumOfFabrics = formOrder.numOfFabrics;
+
+  const apiOrder: { id?: string; fields: Partial<Order["fields"]> } = { fields };
+
   if (orderId) {
     apiOrder.id = orderId;
   }
