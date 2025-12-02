@@ -56,7 +56,8 @@ export function PaymentTypeForm({
   // Poll for fatoura number when order is completed (only for work orders)
   const { fatoura, isLoadingFatoura, hasFatoura } = useFatouraPolling(
     orderRecordId,
-    orderStatus === "Completed" && useFatoura
+    orderStatus === "Completed",
+    useFatoura
   );
 
   // Fetch employees data

@@ -9,7 +9,7 @@ import type { Customer } from "@/types/customer";
 import type { Order } from "@/types/order";
 import { useQuery } from "@tanstack/react-query";
 import { SearchIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CustomerSelectionDialog } from "./customer-selection-dialog";
 import { PendingOrdersDialog } from "./pending-orders-dialog";
@@ -46,36 +46,7 @@ export function SearchCustomer({
     retry: false,
   });
 
-  useEffect(() => {
-    if (isSuccess && data) {
-      if (data.data) {
-        if (data.count === 1) {
-          onCustomerFound(data.data[0] as Customer);
-        } else if (data.count && data.count > 1) {
-          setCustomerOptions(data.data);
-          setShowDialog(true);
-        } else {
-          toast.error("Customer not found.");
-        }
-      }
-    }
-  }, [isSuccess, data, onCustomerFound]);
-
-  useEffect(() => {
-    if (isError) {
-      toast.error(error.message || "Failed to search for customer.");
-      console.error("Error searching for customer:", error);
-    }
-  }, [isError, error]);
-
-  useEffect(() => {
-    return () => {
-      setSubmittedSearch(null);
-      setSearchMobile("");
-    };
-  }, []);
-
-  const handleSelectCustomer = async (customer: Customer) => {
+  const handleSelectCustomer = useCallback(async (customer: Customer) => {
     setShowDialog(false);
     setCustomerOptions([]);
     setSubmittedSearch(null);
@@ -102,7 +73,37 @@ export function SearchCustomer({
       // No need to check pending orders, proceed directly
       onCustomerFound(customer);
     }
-  };
+  }, [checkPendingOrders, onCustomerFound]);
+
+  useEffect(() => {
+    if (isSuccess && data) {
+      if (data.data) {
+        if (data.count === 1) {
+          // Use handleSelectCustomer to ensure pending orders check runs
+          handleSelectCustomer(data.data[0] as Customer);
+        } else if (data.count && data.count > 1) {
+          setCustomerOptions(data.data);
+          setShowDialog(true);
+        } else {
+          toast.error("Customer not found.");
+        }
+      }
+    }
+  }, [isSuccess, data, handleSelectCustomer]);
+
+  useEffect(() => {
+    if (isError) {
+      toast.error(error.message || "Failed to search for customer.");
+      console.error("Error searching for customer:", error);
+    }
+  }, [isError, error]);
+
+  useEffect(() => {
+    return () => {
+      setSubmittedSearch(null);
+      setSearchMobile("");
+    };
+  }, []);
 
   const handlePendingOrderSelect = (order: Order) => {
     if (onPendingOrderSelected) {

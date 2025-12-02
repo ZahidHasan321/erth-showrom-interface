@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getOrderById } from "@/api/orders";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { showFatouraNotification, requestNotificationPermission } from "@/lib/notifications";
 
 /**
  * Hook to poll for fatoura number after order is completed
@@ -16,24 +17,25 @@ export function useFatouraPolling(
 ) {
   const [fatoura, setFatoura] = useState<number | undefined>(undefined);
   const [isPolling, setIsPolling] = useState(false);
+  const hasRequestedPermission = useRef(false);
+  const hasShownNotification = useRef(false);
 
   // Only poll if order is completed and we don't have a fatoura yet
   const shouldPoll = Boolean(enabled && isOrderCompleted && orderRecordId && !fatoura);
 
-  console.log('useFatouraPolling state:', {
-    orderRecordId,
-    isOrderCompleted,
-    enabled,
-    fatoura,
-    shouldPoll
-  });
+  // Request notification permission when polling starts
+  useEffect(() => {
+    if (shouldPoll && !hasRequestedPermission.current) {
+      hasRequestedPermission.current = true;
+      requestNotificationPermission().catch((error) => {
+        console.error("Failed to request notification permission:", error);
+      });
+    }
+  }, [shouldPoll]);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["order", orderRecordId, "fatoura"],
-    queryFn: () => {
-      console.log('Fetching order for fatoura:', orderRecordId);
-      return getOrderById(orderRecordId!);
-    },
+    queryFn: () => getOrderById(orderRecordId!),
     enabled: shouldPoll,
     refetchInterval: shouldPoll ? 2000 : false,
     retry: 3,
@@ -42,17 +44,16 @@ export function useFatouraPolling(
   useEffect(() => {
     const orderData = data as any;
 
-    console.log('Data effect triggered:', {
-      hasFatourainData: !!orderData?.data?.fields?.Fatoura,
-      fatouraValue: orderData?.data?.fields?.Fatoura,
-      shouldPoll,
-      rawData: orderData
-    });
-
     if (orderData?.data?.fields?.Fatoura) {
-      console.log('Setting fatoura:', orderData.data.fields.Fatoura);
-      setFatoura(orderData.data.fields.Fatoura);
+      const fatouraNumber = orderData.data.fields.Fatoura;
+      setFatoura(fatouraNumber);
       setIsPolling(false);
+
+      // Show notification when fatoura is received (only once per order)
+      if (!hasShownNotification.current) {
+        hasShownNotification.current = true;
+        showFatouraNotification(fatouraNumber);
+      }
     } else if (shouldPoll) {
       setIsPolling(true);
     } else {
@@ -62,11 +63,11 @@ export function useFatouraPolling(
 
   // Reset when order changes or becomes not completed
   useEffect(() => {
-    console.log('Reset effect:', { isOrderCompleted, orderRecordId });
     if (!isOrderCompleted) {
-      console.log('Resetting fatoura state');
       setFatoura(undefined);
       setIsPolling(false);
+      hasShownNotification.current = false;
+      hasRequestedPermission.current = false;
     }
   }, [isOrderCompleted, orderRecordId]);
 

@@ -1008,7 +1008,8 @@ function NewWorkOrder() {
               invoiceData={invoiceData}
               orderRecordId={orderRecordId}
               orderStatus={orderStatus}
-              onConfirm={() => {
+              onConfirm={(values) => {
+                console.log("Payment form submitted with values:", values);
                 openDialog(
                   "Confirm new work order",
                   "Do you want to confirm a new work order?",
