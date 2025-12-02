@@ -157,11 +157,17 @@ export function CustomerMeasurementsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
-  const [showCustomReferenceInput, setShowCustomReferenceInput] = React.useState(false);
 
+
+  const selectedReference = form.watch("measurementReference");
   useAutoProvision(form);
+
+  // Debug: Log selected reference
+  React.useEffect(() => {
+    console.log("Selected Reference:", selectedReference);
+  }, [selectedReference]);
 
   // Fetch employees data
   const { data: employeesResponse } = useQuery({
@@ -473,25 +479,15 @@ export function CustomerMeasurementsForm({
             control={form.control}
             name="measurementReference"
             render={({ field }) => {
-              const predefinedOptions = ["Winter", "Summer", "Eid", "Occasion"];
-              const isCustomValue =
-                field.value && !predefinedOptions.includes(field.value);
-
               return (
                 <FormItem>
                   <FormLabel className="font-medium">Reference</FormLabel>
                   <div className="flex gap-2 items-center">
                     <Select
                       onValueChange={(value) => {
-                        if (value === "Other") {
-                          setShowCustomReferenceInput(true);
-                          field.onChange("");
-                        } else {
-                          field.onChange(value);
-                          setShowCustomReferenceInput(false);
-                        }
+                        field.onChange(value);
                       }}
-                      value={isCustomValue ? "Other" : field.value}
+                      value={field.value}
                       disabled={!isEditing}
                     >
                       <FormControl>
@@ -507,21 +503,34 @@ export function CustomerMeasurementsForm({
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
-                    {(showCustomReferenceInput || isCustomValue) && (
-                      <Input
-                        placeholder="Enter custom reference"
-                        className="bg-background border-border/60 w-auto min-w-48"
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        disabled={!isEditing}
-                      />
-                    )}
                   </div>
                   <FormMessage />
                 </FormItem>
               );
             }}
           />
+
+          {selectedReference === "Other" && (
+            <FormField
+              control={form.control}
+              name="measurementOtherNote"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-medium">Reference Note</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter custom reference"
+                      className="bg-background border-border/60 w-auto min-w-48"
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      disabled={!isEditing}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}
@@ -630,6 +639,7 @@ export function CustomerMeasurementsForm({
                   isDisabled: true,
                 },
               ],
+              {name: "body.back_chest", label:"Back Chest"},
               [
                 { name: "body.full_waist.value", label: "Full Waist" },
                 { name: "body.full_waist.front", label: "Front" },

@@ -24,7 +24,7 @@ export const orderSchema = z.object({
   notes: z.string().optional(),
   campaigns: z.array(z.string()).optional(),
   homeDelivery: z.boolean(),
-  orderType: z.enum(["work", "sales"]),
+  orderType: z.enum(["WORK", "SALES"]),
   paymentType: z
     .enum(["k-net", "cash", "link-payment", "installments", "others"])
     .optional(),
@@ -55,7 +55,7 @@ export const orderDefaults: OrderSchema = {
   fatouraStages: FatouraStage.FATOURA_RECEIVED,
   // orderTotal: 0,
   paymentType: "cash",
-  orderType: "work",
+  orderType: "WORK",
   homeDelivery: false,
   discountValue: 0,
   charges: {

@@ -172,7 +172,7 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
             </h3>
 
             {/* Fabric Selections - Inside Source */}
-            {fabricSelections.filter(f => f.fabricSource === "In").length > 0 && (
+            {fabricSelections.filter(f => f.fabricSource === "IN").length > 0 && (
               <div className="mb-2">
                 <h4 className="text-xs font-semibold text-gray-700 mb-1">
                   Fabrics (Inside) | القماش (من الداخل)
@@ -202,7 +202,7 @@ export const OrderInvoice = React.forwardRef<HTMLDivElement, OrderInvoiceProps>(
                   </thead>
                   <tbody>
                     {(() => {
-                      const insideFabrics = fabricSelections.filter(f => f.fabricSource === "In");
+                      const insideFabrics = fabricSelections.filter(f => f.fabricSource === "IN");
                       const grouped = insideFabrics.reduce((acc, fabric) => {
                         const fabricName = getFabricName(fabric.fabricId || "");
                         const unitPrice = fabric.fabricAmount / parseFloat(fabric.fabricLength);

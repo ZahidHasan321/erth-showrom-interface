@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import React from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import {
@@ -312,72 +313,78 @@ export const JabzoorCell = ({
   });
 
   React.useEffect(() => {
-    if (jabzour1 !== "JAB_SHAAB") {
-      setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, null);
-    } else {
-      // When Shaab is selected, auto-select Magfi Morabba and set thickness to DOUBLE
-      setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, "JAB_MAGFI_MURABBA");
+    if (jabzour1 === "JAB_SHAAB") {
+      // Auto-set jabzour2 to Magfi Murabba and hashwa to DOUBLE when Shaab is selected
+      if (!jabzour2) {
+        setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, "JAB_MAGFI_MURABBA");
+      }
       setValue(`styleOptions.${row.index}.jabzoor.jabzour_thickness`, "DOUBLE");
+    } else {
+      // Clear jabzour2 when jabzour1 is not SHAAB
+      setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, undefined);
     }
-  }, [jabzour1, setValue, row.index]);
+  }, [jabzour1, jabzour2, setValue, row.index]);
 
   return (
     <div className="min-w-[420px] flex flex-row space-x-2">
       <Controller
         name={`styleOptions.${row.index}.jabzoor.jabzour1`}
         control={control}
-        render={({ field }) => (
-          <Select
-            onValueChange={field.onChange}
-            value={field.value as string}
-            disabled={isFormDisabled}
-          >
-            <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
-              {jabzour1 ? (
-                <img
-                  src={
-                    jabzourTypes.find((j) => j.value === jabzour1)?.image ||
-                    undefined
-                  }
-                  alt={jabzourTypes.find((j) => j.value === jabzour1)?.alt}
-                  className="min-w-10 h-10 object-contain"
-                />
-              ) : (
-                <SelectValue placeholder="Select Type" />
-              )}
-            </SelectTrigger>
-            <SelectContent>
-              {jabzourTypes.map((jabzourType) => (
-                <SelectItem
-                  key={jabzourType.value}
-                  value={jabzourType.value}
-                >
-                  <div className="flex items-center space-x-2">
-                    <img
-                      src={jabzourType.image || undefined}
-                      alt={jabzourType.alt}
-                      className="min-w-12 h-12 object-contain"
-                    />
-                    <span>{jabzourType.displayText}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      />
-      <Plus className="min-w-5 h-6 mt-2" />
-      {jabzour1 === "JAB_SHAAB" ? (
-        <Controller
-          name={`styleOptions.${row.index}.jabzoor.jabzour2`}
-          control={control}
-          render={({ field }) => (
+        render={({ field, fieldState }) => (
+          <div className="flex flex-col space-y-1">
             <Select
               onValueChange={field.onChange}
               value={field.value as string}
               disabled={isFormDisabled}
             >
-              <SelectTrigger className="bg-background border-border/60 min-w-[120px]">
+              <SelectTrigger className={cn("bg-background border-border/60 min-w-[120px]", fieldState.error && "border-destructive")}>
+                {jabzour1 ? (
+                  <img
+                    src={
+                      jabzourTypes.find((j) => j.value === jabzour1)?.image ||
+                      undefined
+                    }
+                    alt={jabzourTypes.find((j) => j.value === jabzour1)?.alt}
+                    className="min-w-10 h-10 object-contain"
+                  />
+                ) : (
+                  <SelectValue placeholder="Select Type" />
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                {jabzourTypes.map((jabzourType) => (
+                  <SelectItem
+                    key={jabzourType.value}
+                    value={jabzourType.value}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <img
+                        src={jabzourType.image || undefined}
+                        alt={jabzourType.alt}
+                        className="min-w-12 h-12 object-contain"
+                      />
+                      <span>{jabzourType.displayText}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+          </div>
+        )}
+      />
+      <Plus className="min-w-5 h-6 mt-2" />
+      <Controller
+        name={`styleOptions.${row.index}.jabzoor.jabzour2`}
+        control={control}
+        render={({ field, fieldState }) => (
+          <div className="flex flex-col space-y-1">
+            <Select
+              onValueChange={field.onChange}
+              value={field.value as string}
+              disabled={isFormDisabled || jabzour1 !== "JAB_SHAAB"}
+            >
+              <SelectTrigger className={cn("bg-background border-border/60 min-w-[120px]", fieldState.error && "border-destructive")}>
                 {jabzour2 ? (
                   <img
                     src={
@@ -413,35 +420,37 @@ export const JabzoorCell = ({
                   ))}
               </SelectContent>
             </Select>
-          )}
-        />
-      ) : (
-        <div className="min-w-[120px] h-10 border rounded-md bg-gray-100" />
-      )}
+            {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+          </div>
+        )}
+      />
       <Controller
         name={`styleOptions.${row.index}.jabzoor.jabzour_thickness`}
         control={control}
-        render={({ field }) => (
-          <Select
-            onValueChange={field.onChange}
-            value={field.value as string}
-            disabled={isFormDisabled}
-          >
-            <SelectTrigger className="bg-background border-border/60 min-w-[60px]">
-              <SelectValue placeholder="Select Thickness" />
-            </SelectTrigger>
-            <SelectContent>
-              {ThicknessOptions.map((option) => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                  className={option.className}
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        render={({ field, fieldState }) => (
+          <div className="flex flex-col space-y-1">
+            <Select
+              onValueChange={field.onChange}
+              value={field.value as string}
+              disabled={isFormDisabled}
+            >
+              <SelectTrigger className={cn("bg-background border-border/60 min-w-[60px]", fieldState.error && "border-destructive")}>
+                <SelectValue placeholder="Select Thickness" />
+              </SelectTrigger>
+              <SelectContent>
+                {ThicknessOptions.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className={option.className}
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+          </div>
         )}
       />
     </div>
@@ -452,7 +461,7 @@ export const FrontPocketCell = ({
   row,
   table,
 }: CellContext<StyleOptionsSchema, unknown>) => {
-  const { control } = useFormContext();
+  const { control, setValue, getValues } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
   };
@@ -460,6 +469,17 @@ export const FrontPocketCell = ({
   const frontPocketType = useWatch({
     name: `styleOptions.${row.index}.frontPocket.front_pocket_type`,
   });
+
+  // Auto-change NO HASHWA to DOUBLE when Mudwwar front pocket is selected (not Magfi)
+  React.useEffect(() => {
+    const isMudawwar = frontPocketType === "FRO_MUDAWWAR_FRONT_POCKET";
+    if (isMudawwar) {
+      const currentThickness = getValues(`styleOptions.${row.index}.frontPocket.front_pocket_thickness`);
+      if (currentThickness === "NO HASHWA") {
+        setValue(`styleOptions.${row.index}.frontPocket.front_pocket_thickness`, "DOUBLE");
+      }
+    }
+  }, [frontPocketType, setValue, getValues, row.index]);
 
   return (
     <div className="min-w-[300px] flex flex-row space-x-2 justify-center items-center">
@@ -508,28 +528,36 @@ export const FrontPocketCell = ({
       <Controller
         name={`styleOptions.${row.index}.frontPocket.front_pocket_thickness`}
         control={control}
-        render={({ field }) => (
-          <Select
-            onValueChange={field.onChange}
-            value={field.value as string}
-            disabled={isFormDisabled || !frontPocketType}
-          >
-            <SelectTrigger className="bg-background border-border/60 min-w-[60px]">
-              <SelectValue placeholder="Select Thickness" />
-            </SelectTrigger>
-            <SelectContent>
-              {ThicknessOptions.filter((option) => option.value !== "NO HASHWA").map((option) => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                  className={option.className}
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        render={({ field }) => {
+          // Only filter out NO HASHWA when front pocket is Mudwwar type (not Magfi)
+          const isMudawwar = frontPocketType === "FRO_MUDAWWAR_FRONT_POCKET";
+          const filteredOptions = isMudawwar
+            ? ThicknessOptions.filter((option) => option.value !== "NO HASHWA")
+            : ThicknessOptions;
+
+          return (
+            <Select
+              onValueChange={field.onChange}
+              value={field.value as string}
+              disabled={isFormDisabled || !frontPocketType}
+            >
+              <SelectTrigger className="bg-background border-border/60 min-w-[60px]">
+                <SelectValue placeholder="Select Thickness" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredOptions.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className={option.className}
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          );
+        }}
       />
     </div>
   );
@@ -682,7 +710,7 @@ export const CuffsCell = ({
         name={`styleOptions.${row.index}.cuffs.hasCuffs`}
         control={control}
         render={({ field }) => (
-          <div className="flex items-center space-x-2 min-w-[80px]">
+          <div className="flex items-center space-x-2 min-w-20">
             <Checkbox
               id={`hasCuffs-${row.index}`}
               checked={field.value as boolean}
@@ -797,13 +825,16 @@ export const ExtraAmountCell = ({
     name: `styleOptions.${row.index}` as any,
   }) as StyleOptionsSchema;
 
-  // Calculate the total price based on selected styles
-  const totalPrice = React.useMemo(() => {
+  // Calculate the total price based on selected styles (style options only)
+  const stylePrice = React.useMemo(() => {
     if (!styleOptions || !styles.length) return 0;
     return calculateStylePrice(styleOptions, styles);
   }, [styleOptions, styles]);
 
-  // Update the extraAmount field whenever the total changes
+  // Total price including stitching (9 KWD standard stitching)
+  const totalPrice = stylePrice + 9;
+
+  // Update the extraAmount field with total price (including stitching)
   React.useEffect(() => {
     setValue(`styleOptions.${row.index}.extraAmount`, totalPrice);
   }, [totalPrice, setValue, row.index]);

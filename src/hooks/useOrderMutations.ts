@@ -18,7 +18,7 @@ type UseOrderMutationsOptions = {
   onOrderCreated?: (orderId: string | undefined, order: OrderSchema, recordId: string) => void;
   onOrderUpdated?: (action: string | null | undefined) => void;
   onOrderError?: () => void;
-  orderType?: "work" | "sales";
+  orderType?: "WORK" | "SALES";
 };
 
 export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
@@ -56,12 +56,7 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
         const formattedOrder = mapApiOrderToFormOrder(order);
         // Pass the OrderID (may be undefined), formattedOrder, and record ID
         options.onOrderCreated?.(formattedOrder.orderID, formattedOrder, order.id);
-
-        if (formattedOrder.orderID) {
-          toast.success(`Order created successfully! Order ID: ${formattedOrder.orderID}`);
-        } else {
-          toast.success("Order created! Generating Order ID...");
-        }
+        toast.success("New order created successfully!");
       }
     },
     onError: () => {
@@ -128,7 +123,7 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
       fabricsData: any[];
     }) => {
       const internalFabrics = fabricSelections.filter(
-        (fabric) => fabric.fabricSource === "In" && fabric.fabricId
+        (fabric) => fabric.fabricSource === "IN" && fabric.fabricId
       );
 
       if (internalFabrics.length === 0) {
@@ -162,7 +157,7 @@ export function useOrderMutations(options: UseOrderMutationsOptions = {}) {
         }
 
         return updateFabric(currentId, {
-          ...currentFabric.fields,
+          // ...currentFabric.fields,
           RealStock: newStock,
         });
       });

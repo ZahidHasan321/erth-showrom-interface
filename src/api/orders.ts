@@ -48,14 +48,14 @@ export const getPendingOrdersByCustomer = async (
   const response = await searchAllRecords<Order[]>(TABLE_NAME, {
     CustomerID: customerId,
     OrderStatus: "Pending",
-    OrderType: "work"
+    OrderType: "WORK"
   });
 
   // Filter for pending work orders only (safety check), sort by OrderDate, and limit results
   if (response.data && Array.isArray(response.data)) {
     // Client-side filter to ensure only Pending work orders
     const pendingOrders = response.data.filter(
-      order => order.fields.OrderStatus === "Pending" && order.fields.OrderType === "work"
+      order => order.fields.OrderStatus === "Pending" && order.fields.OrderType === "WORK"
     );
 
     // Sort by OrderDate (newest first)

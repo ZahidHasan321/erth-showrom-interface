@@ -20,36 +20,51 @@ export function useFatouraPolling(
   // Only poll if order is completed and we don't have a fatoura yet
   const shouldPoll = Boolean(enabled && isOrderCompleted && orderRecordId && !fatoura);
 
+  console.log('useFatouraPolling state:', {
+    orderRecordId,
+    isOrderCompleted,
+    enabled,
+    fatoura,
+    shouldPoll
+  });
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["order", orderRecordId, "fatoura"],
-    queryFn: () => getOrderById(orderRecordId!),
-    enabled: shouldPoll,
-    refetchInterval: (query) => {
-      // Stop polling if we got the fatoura or there's an error
-      const orderData = query.state.data as any;
-      if (orderData?.data?.fields?.Fatoura || query.state.error) {
-        return false;
-      }
-      // Poll every 2 seconds
-      return 2000;
+    queryFn: () => {
+      console.log('Fetching order for fatoura:', orderRecordId);
+      return getOrderById(orderRecordId!);
     },
+    enabled: shouldPoll,
+    refetchInterval: shouldPoll ? 2000 : false,
     retry: 3,
   });
 
   useEffect(() => {
     const orderData = data as any;
 
+    console.log('Data effect triggered:', {
+      hasFatourainData: !!orderData?.data?.fields?.Fatoura,
+      fatouraValue: orderData?.data?.fields?.Fatoura,
+      shouldPoll,
+      rawData: orderData
+    });
+
     if (orderData?.data?.fields?.Fatoura) {
+      console.log('Setting fatoura:', orderData.data.fields.Fatoura);
       setFatoura(orderData.data.fields.Fatoura);
       setIsPolling(false);
     } else if (shouldPoll) {
       setIsPolling(true);
+    } else {
+      setIsPolling(false);
     }
   }, [data, shouldPoll]);
 
-  // Reset when order changes
+  // Reset when order changes or becomes not completed
   useEffect(() => {
+    console.log('Reset effect:', { isOrderCompleted, orderRecordId });
     if (!isOrderCompleted) {
+      console.log('Resetting fatoura state');
       setFatoura(undefined);
       setIsPolling(false);
     }

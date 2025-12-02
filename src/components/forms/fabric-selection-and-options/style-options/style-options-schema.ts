@@ -97,13 +97,13 @@ export const styleOptionsDefaults: StyleOptionsSchema = {
     smallTabaggi: false,
   },
   jabzoor: {
-    jabzour1: "JAB_SHAAB",
-    jabzour2: "JAB_BAIN_MURABBA",
+    jabzour1: "JAB_BAIN_MURABBA",
+    jabzour2: undefined,
     jabzour_thickness: "SINGLE",
   },
   frontPocket: {
     front_pocket_type: "FRO_MUDAWWAR_FRONT_POCKET",
-    front_pocket_thickness: "SINGLE",
+    front_pocket_thickness: "DOUBLE",
   },
   accessories: {
     phone: true,

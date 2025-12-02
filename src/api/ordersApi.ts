@@ -23,7 +23,7 @@ export interface OrderDetails {
 export interface OrderFilters {
   OrderStatus?: "Pending" | "Completed" | "Cancelled";
   OrderID?: string;
-  OrderType?: "work" | "sales";
+  OrderType?: "WORK" | "SALES";
   PaymentType?: "k-net" | "cash" | "link-payment" | "installments" | "others";
   HomeDelivery?: boolean;
   FatouraStages?: string;  // Airtable field name (plural)
@@ -76,7 +76,7 @@ export const getOrderDetails = async (
  *
  * // Get work orders with home delivery
  * const result = await getOrdersList({
- *   OrderType: 'work',
+ *   OrderType: 'WORK',
  *   HomeDelivery: true
  * });
  *
@@ -130,7 +130,7 @@ export const getCompletedOrders = (): Promise<ApiResponse<OrderDetails[]>> => {
  * @returns Promise resolving to array of work order details
  */
 export const getWorkOrders = (): Promise<ApiResponse<OrderDetails[]>> => {
-  return getOrdersList({ OrderType: 'work' });
+  return getOrdersList({ OrderType: 'WORK' });
 };
 
 /**
@@ -140,5 +140,5 @@ export const getWorkOrders = (): Promise<ApiResponse<OrderDetails[]>> => {
  * @returns Promise resolving to array of sales order details
  */
 export const getSalesOrders = (): Promise<ApiResponse<OrderDetails[]>> => {
-  return getOrdersList({ OrderType: 'sales' });
+  return getOrdersList({ OrderType: 'SALES' });
 };

@@ -109,7 +109,7 @@ export const cuffTypes: BaseOption[] = [
 ];
 
 /** Fabric source & style types */
-export const fabricSourceValues = ["In", "Out", ""] as const;
+export const fabricSourceValues = ["IN", "OUT", ""] as const;
 export const styleTypeValues = ["kuwaiti", "design"] as const;
 
 /** Miscellaneous icons */

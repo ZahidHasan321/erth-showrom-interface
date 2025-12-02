@@ -15,7 +15,7 @@ export function mapApiOrderToFormOrder(apiOrder: Order): OrderSchema {
     notes: apiOrder.fields.Notes,
     homeDelivery: apiOrder.fields.HomeDelivery?? false,
     campaigns: apiOrder.fields.Campaigns,
-    orderType: (apiOrder.fields.OrderType as any) || "work",
+    orderType: (apiOrder.fields.OrderType as any) || "WORK",
     paymentType: (apiOrder.fields.PaymentType as any) || undefined,
     paymentRefNo: apiOrder.fields.PaymentRefNo || undefined,
     orderTaker: apiOrder.fields.OrderTaker?.[0] || undefined,
@@ -47,7 +47,7 @@ export function mapFormOrderToApiOrder(
   if (formOrder.customerID !== undefined) fields.CustomerID = formOrder.customerID;
   if (formOrder.orderDate !== undefined) fields.OrderDate = formOrder.orderDate;
   if (formOrder.orderStatus !== undefined) fields.OrderStatus = formOrder.orderStatus;
-  if (formOrder.orderType === "work" && formOrder.fatouraStages !== undefined) {
+  if (formOrder.orderType === "WORK" && formOrder.fatouraStages !== undefined) {
     fields.FatouraStages = formOrder.fatouraStages;
   }
   if (formOrder.homeDelivery !== undefined) fields.HomeDelivery = formOrder.homeDelivery;

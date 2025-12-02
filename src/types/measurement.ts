@@ -6,6 +6,7 @@ export interface Measurement {
     MeasurementType: "Body" | "Dishdasha";
     MeasurementID: string;
     MeasurementReference: string;
+    ReferenceOtherNote?: string;
     Measurer?: string[];
     MeasurementDate?: string; // ISO date string
     Notes?: string;
@@ -17,6 +18,7 @@ export interface Measurement {
     ArmholeProvision?: number;
     ChestUpper?: number;
     ChestFull?: number;
+    ChestBack?:number;
     ChestFront?: number;
     ChestProvision?: number;
     Sleeve?: number;

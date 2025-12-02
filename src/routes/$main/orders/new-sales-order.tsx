@@ -139,7 +139,7 @@ function NewSalesOrder() {
     createOrder: createOrderMutation,
     updateShelf: updateShelfMutation,
   } = useOrderMutations({
-    orderType: "sales",
+    orderType: "SALES",
     onOrderCreated: (id, formattedOrder) => {
       // For sales orders, the ID should always be available immediately
       if (id) {
@@ -184,7 +184,8 @@ function NewSalesOrder() {
   // ORDER & PAYMENT HANDLERS
   // ============================================================================
   const handleOrderFormSubmit = (data: Partial<OrderSchema>) => {
-    setOrder(data);
+    // Preserve orderID and orderType when updating order
+    setOrder({ ...data, orderID: order.orderID, orderType: "SALES" });
   };
 
   const handleOrderFormProceed = () => {
@@ -203,7 +204,12 @@ function NewSalesOrder() {
 
     // Validate the order schema
     const orderData = OrderForm.getValues();
-    const parseResult = orderSchema.safeParse(orderData);
+    console.log("Order data before validation:", orderData);
+    console.log("orderType value:", orderData.orderType);
+
+    // Ensure orderType is set to SALES for validation
+    const orderDataWithType = { ...orderData, orderType: "SALES" as const };
+    const parseResult = orderSchema.safeParse(orderDataWithType);
 
     if (!parseResult.success) {
       const errors = parseResult.error?.issues
@@ -211,6 +217,7 @@ function NewSalesOrder() {
         : "Unknown validation error";
       toast.error(`Order validation failed: ${errors}`);
       console.error("Order validation errors:", parseResult.error);
+      console.error("Full order data:", orderDataWithType);
       return false;
     }
 
@@ -234,6 +241,8 @@ function NewSalesOrder() {
     const formOrder: Partial<OrderSchema> = {
       ...orderValues,
       ...paymentForm.getValues(),
+      orderID: order.orderID, // Preserve orderID
+      orderType: "SALES", // Preserve orderType
       orderStatus: "Completed",
       orderDate: new Date().toISOString(),
       // Explicitly exclude fatouraStages for sales orders

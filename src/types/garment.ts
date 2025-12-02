@@ -10,7 +10,7 @@ export interface Garment {
     GarmentId?: string;
     PieceStages?: PieceStage;
     Brova: boolean;
-    FabricSource: "" | "In" | "Out";
+    FabricSource: "" | "IN" | "OUT";
     FabricId?: string[];
     ShopName?: string;
     FabricLength: string;
@@ -28,7 +28,7 @@ export interface Garment {
     CollarButton: string;
     SmallTabaggi: boolean;
     Jabzour1?: string;
-    Jabzour2: string;
+    Jabzour2?: string;
     JabzourThickness?: string;
     SidePocketType?: string;
     Phone: boolean;

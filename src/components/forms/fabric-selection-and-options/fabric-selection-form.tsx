@@ -158,7 +158,7 @@ export function FabricSelectionForm({
     const usage = new Map<string, number>();
 
     fabricSelections.forEach((selection) => {
-      if (selection.fabricSource === "In" && selection.fabricId) {
+      if (selection.fabricSource === "IN" && selection.fabricId) {
         const length = parseFloat(selection.fabricLength) || 0;
         if (length > 0) {
           const currentUsage = usage.get(selection.fabricId) || 0;
@@ -231,7 +231,7 @@ export function FabricSelectionForm({
 
     // Count valid (non-empty) fabric selections
     const validSelections = fabricSelections.filter((selection) => {
-      return selection.fabricSource === "In" || selection.fabricSource === "Out";
+      return selection.fabricSource === "IN" || selection.fabricSource === "OUT";
     });
 
     // REQUIRE at least one fabric selection
@@ -266,10 +266,10 @@ export function FabricSelectionForm({
         errors.push(`Row ${index + 1}: Valid fabric length is required`);
       }
 
-      // Validate stock for "In" source
-      if (selection.fabricSource === "In") {
+      // Validate stock for "IN" source
+      if (selection.fabricSource === "IN") {
         if (!selection.fabricId) {
-          errors.push(`Row ${index + 1}: Fabric selection is required for "In" source`);
+          errors.push(`Row ${index + 1}: Fabric selection is required for "IN" source`);
         } else {
           const selectedFabric = fabrics.find((f) => f.id === selection.fabricId);
           if (selectedFabric) {
@@ -292,9 +292,9 @@ export function FabricSelectionForm({
         }
       }
 
-      // Validate "Out" source
-      if (selection.fabricSource === "Out" && !selection.color) {
-        errors.push(`Row ${index + 1}: Color is required for "Out" source`);
+      // Validate "OUT" source
+      if (selection.fabricSource === "OUT" && !selection.color) {
+        errors.push(`Row ${index + 1}: Color is required for "OUT" source`);
       }
 
       // Validate delivery date when home delivery is selected
@@ -319,7 +319,7 @@ export function FabricSelectionForm({
       // Filter out empty rows before saving
       const validFabricSelections = data.fabricSelections.filter((selection) => {
         // A row is valid if it has at least a fabric source
-        return selection.fabricSource === "In" || selection.fabricSource === "Out";
+        return selection.fabricSource === "IN" || selection.fabricSource === "OUT";
       });
 
       const promises = validFabricSelections.map(
@@ -337,7 +337,6 @@ export function FabricSelectionForm({
             fabricWithOrderId,
             styleOption
           );
-
 
           // Update if ID exists, otherwise create
           if (fabricSelection.id && fabricSelection.id !== "") {
@@ -372,14 +371,13 @@ export function FabricSelectionForm({
         .map((fabric) => {
           // Find matching response based on fabricSource being filled
           const responseIndex = responses.findIndex((_, i) => {
-            const validSelections = form.getValues("fabricSelections").filter(s => s.fabricSource === "In" || s.fabricSource === "Out");
+            const validSelections = form.getValues("fabricSelections").filter(s => s.fabricSource === "IN" || s.fabricSource === "OUT");
             return validSelections.indexOf(fabric) === i;
           });
 
           return {
             ...fabric,
             id: responses[responseIndex]?.data?.id || fabric.id,
-            orderId: (fabric.fabricSource === "In" || fabric.fabricSource === "Out") ? [orderRecordId!] : fabric.orderId || [],
           };
         });
 
@@ -665,7 +663,7 @@ export function FabricSelectionForm({
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(handleSaveSelections, (errors) => console.log('validation errors: ', errors))}
+      <form onSubmit={form.handleSubmit(handleSaveSelections, (errors) => console.log('validation errors: ', errors, form.getValues()))}
         className="w-full space-y-6">
 
         {/* Title Section */}

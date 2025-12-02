@@ -89,7 +89,7 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
                             >
                                 {brand}
                                 {isAlreadySelected && ' (Already selected)'}
-                                {!hasStock && !isAlreadySelected && ' (Out of stock)'}
+                                {!hasStock && !isAlreadySelected && ' (OUT of stock)'}
                             </SelectItem>
                         )
                     })}
@@ -105,7 +105,7 @@ export const columns: ColumnDef<ShelvedProduct>[] = [
     cell: ({ row }) => {
       const stock = row.original.Stock || 0;
       const getStockColorClass = () => {
-        if (stock <= 0) return "text-red-600 font-semibold"; // Out of stock
+        if (stock <= 0) return "text-red-600 font-semibold"; // OUT of stock
         if (stock < 5) return "text-orange-600 font-semibold"; // Less than 5
         if (stock >= 5 && stock <= 11) return "text-green-600 font-semibold"; // 5-11
         return "text-foreground"; // More than 11

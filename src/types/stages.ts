@@ -177,7 +177,7 @@ export const PieceStageLabels: Record<PieceStage, string> = {
   [PieceStage.TASK2_JABZOUR_FRONT_POCKET]: "Task 2: Jabzour + Front Pocket",
   [PieceStage.TASK3_COLLAR]: "Task 3: Collar",
   [PieceStage.TASK4_SLEEVES_SIDES_HEMMING]: "Task 4: Sleeves + Sides + Hemming",
-  [PieceStage.TASK5_INTERMEDIATE_OUT_MEASURE]: "Task 5: Intermediate Out + Measure",
+  [PieceStage.TASK5_INTERMEDIATE_OUT_MEASURE]: "Task 5: Intermediate OUT + Measure",
   [PieceStage.TASK6_SIDE_POCKET_HEMMING]: "Task 6: Side Pocket + Hemming",
   [PieceStage.FINISHING]: "Finishing",
   [PieceStage.IRONING]: "Ironing",

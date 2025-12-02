@@ -3,7 +3,8 @@ import { z } from "zod";
 export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
   measurementID: "",
   measurementType: "Body",
-  measurementReference: "Other", // fallback
+  measurementReference: "", // fallback
+  measurementOtherNote: "",
   measurer: "",
   measurementDate: new Date(),
   notes: "",
@@ -27,6 +28,7 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
   },
   body: {
     upper_chest: 0,
+    back_chest:0,
     full_chest: {
       value: 0,
       front: 0,
@@ -62,6 +64,7 @@ export const customerMeasurementsSchema = z.object({
   measurementID: z.string(),
   measurementType: z.enum(["Body", "Dishdasha"]),
   measurementReference: z.string().min(1, "Reference is required"),
+  measurementOtherNote: z.string().optional(),
   measurer: z.string().optional(),
   measurementDate: z.date().optional(),
   notes: z.string().optional(),
@@ -96,6 +99,7 @@ export const customerMeasurementsSchema = z.object({
       back: z.number().min(1, "Full waist back is required"),
       provision: z.number().optional(),
     }),
+    back_chest: z.number().min(1, "Back chest is required"),
     bottom: z.number().min(1, "Bottom is required"),
   }),
   topPocket: z.object({

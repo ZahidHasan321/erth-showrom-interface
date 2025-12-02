@@ -97,9 +97,9 @@ Garment,Fatoura,number,Number,No,Invoice number,
 Garment,GarmentId,string,Single line text,No,Unique garment identifier within order,
 Garment,PieceStages,enum,Single select,No,Current production workflow stage of the garment piece,"WAITING CUT, CUTT, POST CUT, TASK1: PREP, TASK2: JABZOUR+FRONT POCKET, TASK3: COLLAR, TASK4: SLEEVES+SIDES+HEMMING SLEEVES, TASK5: INTERMEDIATE OUT1+MEASURE, TASK6: SIDE POCKET+HEMMING, FINISHING, IRONING, QC OK"
 Garment,Brova,boolean,Checkbox,Yes,Whether garment is Brova style,
-Garment,FabricSource,enum,Single line text,Yes,Source of fabric,", In, Out"
-Garment,FabricId,string[],Link to Fabric table,No,Reference to fabric record (if In source),
-Garment,ShopName,string,Single line text,No,Name of external fabric shop (if Out source),
+Garment,FabricSource,enum,Single line text,Yes,Source of fabric,", IN, OUT"
+Garment,FabricId,string[],Link to Fabric table,No,Reference to fabric record (if IN source),
+Garment,ShopName,string,Single line text,No,Name of external fabric shop (if OUT source),
 Garment,FabricLength,string,Single line text,Yes,Length of fabric required in meters,
 Garment,Color,string,Single line text,No,Fabric color,
 Garment,MeasurementId,string[],Link to Measurement table,Yes,Reference to measurement record,

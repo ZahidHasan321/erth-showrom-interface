@@ -9,6 +9,7 @@ export const mapMeasurementToFormValues = (
     measurementID: measurement.fields.MeasurementID || "",
     measurementType: measurement.fields.MeasurementType || "Body",
     measurementReference: measurement.fields.MeasurementReference || "Other",
+    measurementOtherNote: measurement.fields.ReferenceOtherNote || "",
     measurer: measurement.fields.Measurer?.[0] || "",
     measurementDate: measurement.fields.MeasurementDate ? new Date(measurement.fields.MeasurementDate) : new Date(),
     notes: measurement.fields.Notes || "",
@@ -32,6 +33,7 @@ export const mapMeasurementToFormValues = (
     },
     body: {
       upper_chest: measurement.fields.ChestUpper || 0,
+      back_chest: measurement.fields.ChestBack || 0,
       full_chest: {
         value: measurement.fields.ChestFull || 0,
         front: measurement.fields.ChestFront || 0,
@@ -73,6 +75,7 @@ export const mapFormValuesToMeasurement = (
       MeasurementID: formValues.measurementID,
       MeasurementType: formValues.measurementType,
       MeasurementReference: formValues.measurementReference,
+      ReferenceOtherNote: formValues.measurementOtherNote,
       Measurer: formValues.measurer ? [formValues.measurer] : undefined,
       MeasurementDate: formValues.measurementDate?.toISOString(),
       Notes: formValues.notes,
@@ -89,6 +92,7 @@ export const mapFormValuesToMeasurement = (
       ChestUpper: formValues.body.upper_chest,
       ChestFull: formValues.body.full_chest.value,
       ChestFront: formValues.body.full_chest.front,
+      ChestBack: formValues.body.back_chest,
       ChestProvision: formValues.body.full_chest.provision,
       WaistFull: formValues.body.full_waist.value,
       WaistFront: formValues.body.full_waist.front,

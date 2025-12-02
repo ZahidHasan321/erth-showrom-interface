@@ -130,8 +130,8 @@ export const FabricSourceCell = ({
   const previousFabricSource = React.useRef(fabricSource);
 
   React.useEffect(() => {
-    // Only clear color when actively changing from "In" to "Out", not on initial load
-    if (fabricSource === "Out" && previousFabricSource.current === "In") {
+    // Only clear color when actively changing from "IN" to "OUT", not on initial load
+    if (fabricSource === "OUT" && previousFabricSource.current === "IN") {
       setValue(`fabricSelections.${row.index}.color`, "", { shouldValidate: true });
       setValue(`fabricSelections.${row.index}.fabricId`, "", { shouldValidate: true });
     }
@@ -157,8 +157,8 @@ export const FabricSourceCell = ({
                 <SelectValue placeholder="Select source" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="In">In</SelectItem>
-                <SelectItem value="Out">Out</SelectItem>
+                <SelectItem value="IN">IN</SelectItem>
+                <SelectItem value="OUT">OUT</SelectItem>
               </SelectContent>
             </Select>
             {error && (
@@ -185,7 +185,7 @@ export const ShopNameCell = ({
     name: `fabricSelections.${row.index}.fabricSource`,
   });
 
-  const isDisabled = fabricSource !== "Out";
+  const isDisabled = fabricSource !== "OUT";
 
   return (
     <div className="min-w-[150px]">
@@ -230,7 +230,7 @@ export const IfInsideCell = ({
     ],
   });
 
-  const isDisabled = fabricSource === "Out" || !fabricSource;
+  const isDisabled = fabricSource === "OUT" || !fabricSource;
   const [searchQuery, setSearchQuery] = React.useState("");
 
   const { data: fabricsResponse } = useQuery({
@@ -243,7 +243,7 @@ export const IfInsideCell = ({
   const fabrics = fabricsResponse?.data || [];
 
   React.useEffect(() => {
-    if (fabricSource === "In" && fabricId) {
+    if (fabricSource === "IN" && fabricId) {
       const selectedFabric = fabrics.find((f) => f.id === fabricId);
       if (selectedFabric) {
         setValue(
@@ -271,7 +271,7 @@ export const IfInsideCell = ({
   );
 
   const getStockColorClass = (stock: number) => {
-    if (stock <= 0) return "text-red-600 font-semibold"; // Out of stock
+    if (stock <= 0) return "text-red-600 font-semibold"; // OUT of stock
     if (stock < 5) return "text-orange-500 font-semibold"; // Less than 5 - Warning
     if (stock >= 5 && stock <= 11) return "text-green-600 font-semibold"; // 5-11
     return "text-muted-foreground"; // More than 11
@@ -351,7 +351,7 @@ export const ColorCell = ({
     name: `fabricSelections.${row.index}.fabricSource`,
   });
 
-  const isReadOnly = fabricSource === "In";
+  const isReadOnly = fabricSource === "IN";
 
   return (
     <div className="min-w-[120px]">
@@ -407,7 +407,7 @@ export const FabricLengthCell = ({
   });
 
   React.useEffect(() => {
-    if (fabricSource === "In" && fabricId && fabricLength) {
+    if (fabricSource === "IN" && fabricId && fabricLength) {
       const selectedFabric = fabrics.find((f) => f.id === fabricId);
       if (selectedFabric) {
         const realStock = selectedFabric.fields.RealStock || 0;
@@ -430,7 +430,7 @@ export const FabricLengthCell = ({
           clearErrors(`fabricSelections.${row.index}.fabricLength`);
         }
       }
-    } else if (fabricSource === "Out" && fabricLength) {
+    } else if (fabricSource === "OUT" && fabricLength) {
       const requestedLength = parseFloat(fabricLength as string);
       if (isNaN(requestedLength) || requestedLength <= 0) {
         setError(`fabricSelections.${row.index}.fabricLength`, {
@@ -597,12 +597,12 @@ export const FabricAmountCell = ({
   });
 
   React.useEffect(() => {
-    if (fabricSource === "Out") {
+    if (fabricSource === "OUT") {
       setValue(`fabricSelections.${row.index}.fabricAmount`, 0);
       return;
     }
 
-    if (fabricSource === "In" && fabricId && fabricLength) {
+    if (fabricSource === "IN" && fabricId && fabricLength) {
       const selectedFabric = fabrics.find((f) => f.id === fabricId);
       if (selectedFabric) {
         const pricePerMeter = selectedFabric.fields.PricePerMeter || 0;

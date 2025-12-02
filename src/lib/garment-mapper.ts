@@ -33,6 +33,21 @@ export function mapApiGarmentToFormGarment(apiGarment: Garment): { fabricSelecti
     line2: linesValue === "2",
   };
 
+  // Transform Jabzour fields from backend to frontend
+  // Backend ZIPPER → Frontend JAB_SHAAB in jabzour1, jabzour2 stays as is
+  // Backend BUTTON → Frontend shows jabzour2 value in jabzour1, jabzour2 is cleared
+  let frontendJabzour1 = fields.Jabzour1;
+  let frontendJabzour2 = fields.Jabzour2;
+
+  if (fields.Jabzour1 === "ZIPPER") {
+    frontendJabzour1 = "JAB_SHAAB";
+    // jabzour2 stays as is from backend
+  } else if (fields.Jabzour1 === "BUTTON") {
+    // Move jabzour2 to jabzour1, clear jabzour2
+    frontendJabzour1 = fields.Jabzour2;
+    frontendJabzour2 = undefined;
+  }
+
   const styleOptions: StyleOptionsSchema = {
     styleOptionId: fields.StyleOptionId || "",
     garmentId: fields.GarmentId || "",
@@ -44,8 +59,8 @@ export function mapApiGarmentToFormGarment(apiGarment: Garment): { fabricSelecti
       smallTabaggi: fields.SmallTabaggi,
     },
     jabzoor: {
-      jabzour1: fields.Jabzour1,
-      jabzour2: fields.Jabzour2,
+      jabzour1: frontendJabzour1,
+      jabzour2: frontendJabzour2,
       jabzour_thickness: fields.JabzourThickness,
     },
     frontPocket: {
@@ -74,7 +89,22 @@ export function mapFormGarmentToApiGarment(
 ): { id?: string; fields: Partial<Garment["fields"]> } {
   // Convert measurementId (display value like "44-1") to record ID if map is provided
   const measurementRecordId = measurementIdMap?.get(fabricSelection.measurementId) || fabricSelection.measurementId;
-  
+
+  // Transform Jabzour fields from frontend to backend
+  // Frontend JAB_SHAAB in jabzour1 → Backend ZIPPER in jabzour1, jabzour2 as selected
+  // Frontend non-JAB_SHAAB in jabzour1 → Backend BUTTON in jabzour1, jabzour1 value goes to jabzour2
+  let backendJabzour1 = styleOptions.jabzoor?.jabzour1;
+  let backendJabzour2 = styleOptions.jabzoor?.jabzour2;
+
+  if (styleOptions.jabzoor?.jabzour1 === "JAB_SHAAB") {
+    backendJabzour1 = "ZIPPER";
+    // jabzour2 stays as is (user's actual selection)
+  } else if (styleOptions.jabzoor?.jabzour1 && styleOptions.jabzoor?.jabzour1 !== "JAB_SHAAB") {
+    // Non-JAB_SHAAB value in jabzour1
+    backendJabzour1 = "BUTTON";
+    backendJabzour2 = styleOptions.jabzoor.jabzour1; // Move jabzour1 value to jabzour2
+  }
+
   const apiGarment: { id?: string; fields: Partial<Garment["fields"]> } = {
     fields: {
       // from fabricSelection
@@ -103,8 +133,8 @@ export function mapFormGarmentToApiGarment(
       CollarType: styleOptions.collar?.collarType,
       CollarButton: styleOptions.collar?.collarButton,
       SmallTabaggi: styleOptions.collar?.smallTabaggi,
-      Jabzour1: styleOptions.jabzoor?.jabzour1,
-      Jabzour2: styleOptions.jabzoor?.jabzour2 || undefined,
+      Jabzour1: backendJabzour1,
+      Jabzour2: backendJabzour2 || undefined,
       JabzourThickness: styleOptions.jabzoor?.jabzour_thickness,
       FrontPocketType: styleOptions.frontPocket?.front_pocket_type,
       FrontPocketThickness: styleOptions.frontPocket?.front_pocket_thickness,

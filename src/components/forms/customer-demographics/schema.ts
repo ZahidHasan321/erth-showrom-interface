@@ -72,7 +72,7 @@ export const customerDemographicsDefaults: CustomerDemographicsSchema = {
   arabicNickname: "",
   countryCode: "+965",
   mobileNumber: "",
-  alternativeCountryCode: "+965",
+  alternativeCountryCode: "",
   alternativeMobileNumber: "",
   whatsapp: false,
   email: "",

@@ -44,14 +44,14 @@ export const fabricSelectionSchema = z.object({
 })
   .refine(
     (data) => {
-      // If source is "In", fabricId is required
-      if (data.fabricSource === "In") {
+      // If source is "IN", fabricId is required
+      if (data.fabricSource === "IN") {
         return data.fabricId && data.fabricId.length > 0;
       }
       return true;
     },
     {
-      message: "Fabric selection is required when source is 'In'",
+      message: "Fabric selection is required when source is 'IN'",
       path: ["fabricId"],
     }
   )

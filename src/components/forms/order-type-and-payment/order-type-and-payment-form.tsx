@@ -35,7 +35,7 @@ const smoothTransition: Transition = {
 
 // ---------------- Component ----------------
 interface OrderTypeAndPaymentFormProps {
-  onSubmit: (values: z.infer<typeof orderSchema>) => void;
+  onSubmit: (values: Partial<z.infer<typeof orderSchema>>) => void;
   onProceed?: () => void;
   form: UseFormReturn<z.infer<typeof orderSchema>>;
   optional?: boolean;
@@ -169,7 +169,16 @@ export function OrderTypeAndPaymentForm({
 
   const proceedToNextStep = () => {
     const values = form.getValues();
-    onSubmit(values);
+    onSubmit({
+      advance: values.advance,
+      balance: values.balance,
+      discountValue: values.discountValue,
+      discountInKwd: values.discountInKwd,
+      discountPercentage: values.discountPercentage,
+      discountType: values.discountType,
+      charges: values.charges,
+      paid: values.paid,
+    });
     onProceed?.();
   };
 

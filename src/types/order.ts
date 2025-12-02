@@ -16,7 +16,7 @@ export interface Order {
     PaymentRefNo?: string;
     OrderTaker?: string[];
     HomeDelivery?: boolean;
-    OrderType?: "work" | "sales";
+    OrderType?: "WORK" | "SALES";
     DiscountType?: "flat" | "referral" | "loyalty" | "byValue";
     ReferralCode?: string;
     DiscountValue?: number;
