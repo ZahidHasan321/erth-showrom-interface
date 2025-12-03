@@ -5,6 +5,7 @@ interface FabricLabelProps {
     orderId: string;
     customerId: string;
     customerName: string;
+    customerMobile: string;
     garmentId: string;
     fabricSource: string;
     fabricLength: string;
@@ -36,26 +37,29 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
         }}
       >
         <div>
-          {/* Header */}
+          {/* Header - Order ID and Customer Mobile */}
           <div style={{
-            textAlign: 'center',
-            padding: '8px 0',
-            borderBottom: '2px solid black',
-            fontSize: '24px',
-            fontWeight: 'bold'
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            borderBottom: '2px solid black'
           }}>
-            Fabric Information
-          </div>
-
-          {/* Order ID */}
-          <div style={{
-            textAlign: 'center',
-            padding: '10px 4px',
-            borderBottom: '2px solid black',
-            fontSize: '22px',
-            fontWeight: 'bold'
-          }}>
-            Order ID: {fabricData.orderId}
+            <div style={{
+              textAlign: 'center',
+              padding: '10px 4px',
+              borderRight: '1px solid #ccc',
+              fontSize: '18px',
+              fontWeight: 'bold'
+            }}>
+              Order ID: {fabricData.orderId}
+            </div>
+            <div style={{
+              textAlign: 'center',
+              padding: '10px 4px',
+              fontSize: '18px',
+              fontWeight: 'bold'
+            }}>
+              Mobile: {fabricData.customerMobile}
+            </div>
           </div>
 
           {/* Customer Details Row */}
@@ -84,7 +88,7 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
           {/* Garment Details Row */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
+            gridTemplateColumns: '1fr 1fr',
             borderBottom: '2px solid black'
           }}>
             <div style={{
@@ -97,25 +101,19 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
             </div>
             <div style={{
               textAlign: 'center',
-              padding: '8px 4px',
-              borderRight: '1px solid #ccc'
-            }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Source</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.fabricSource || 'N/A'}</div>
-            </div>
-            <div style={{
-              textAlign: 'center',
               padding: '8px 4px'
             }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Length</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.fabricLength || 'N/A'}m</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Source</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>
+                {fabricData.fabricSource === 'IN' ? 'In' : fabricData.fabricSource === 'OUT' ? 'Out' : 'N/A'}
+              </div>
             </div>
           </div>
 
           {/* Measurement Details Row */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
+            gridTemplateColumns: '1fr 1fr',
             borderBottom: '2px solid black'
           }}>
             <div style={{
@@ -123,16 +121,8 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
               padding: '8px 4px',
               borderRight: '1px solid #ccc'
             }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Measurement ID</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.measurementId}</div>
-            </div>
-            <div style={{
-              textAlign: 'center',
-              padding: '8px 4px',
-              borderRight: '1px solid #ccc'
-            }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Brova</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.brova ? 'Yes' : 'No'}</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Status</div>
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.brova ? 'Brova' : 'Final'}</div>
             </div>
             <div style={{
               textAlign: 'center',

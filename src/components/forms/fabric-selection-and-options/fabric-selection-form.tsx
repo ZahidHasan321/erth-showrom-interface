@@ -44,6 +44,7 @@ import { FabricLabel } from "./fabric-selection/fabric-print-component";
 interface FabricSelectionFormProps {
   customerId: string | null;
   customerName?: string;
+  customerMobile?: string;
   orderId: string | null;
   orderRecordId: string | null;
   form: UseFormReturn<{
@@ -69,6 +70,7 @@ interface FabricSelectionFormProps {
 export function FabricSelectionForm({
   customerId,
   customerName,
+  customerMobile,
   orderId,
   orderRecordId,
   form,
@@ -889,6 +891,7 @@ export function FabricSelectionForm({
             orderID={orderId || undefined}
             customerId={customerId || undefined}
             customerName={customerName || undefined}
+            customerMobile={customerMobile || undefined}
             tempStockUsage={tempStockUsage}
           />
 
@@ -919,6 +922,7 @@ export function FabricSelectionForm({
                   orderId: orderId || "N/A",
                   customerId: customerId || "N/A",
                   customerName: customerName || "N/A",
+                  customerMobile: customerMobile || "N/A",
                   garmentId: currentRowData.garmentId || "",
                   fabricSource: currentRowData.fabricSource || "",
                   fabricLength: currentRowData.fabricLength || "",
