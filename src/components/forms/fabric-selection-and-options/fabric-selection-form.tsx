@@ -925,6 +925,7 @@ export function FabricSelectionForm({
                   customerMobile: customerMobile || "N/A",
                   garmentId: currentRowData.garmentId || "",
                   fabricSource: currentRowData.fabricSource || "",
+                  fabricId: currentRowData.fabricId || "",
                   fabricLength: currentRowData.fabricLength || "",
                   measurementId: measurementDisplay,
                   brova: currentRowData.brova || false,

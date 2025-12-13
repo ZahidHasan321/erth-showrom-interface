@@ -21,7 +21,8 @@ export interface Measurement {
     ChestBack?:number;
     ChestFront?: number;
     ChestProvision?: number;
-    Sleeve?: number;
+    SleeveLength?: number;
+    SleeveWidth?: number;
     Elbow?: number;
     TopPocketLength?: number;
     TopPocketWidth?: number;

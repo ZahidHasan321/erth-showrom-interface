@@ -925,6 +925,7 @@ function NewWorkOrder() {
             <FabricSelectionForm
               customerId={customerDemographics.id?.toString() || null}
               customerName={customerDemographics.nickName || customerDemographics.name}
+              customerMobile={customerDemographics.mobileNumber}
               form={fabricSelectionForm}
               isOrderClosed={isOrderClosed}
               onSubmit={handleFabricSelectionSubmit}

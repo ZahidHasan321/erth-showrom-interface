@@ -18,7 +18,8 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
   },
   arm: {
     shoulder: 0,
-    sleeve: 0,
+    sleeveLength: 0,
+    sleeveWidth: 0,
     elbow: 0,
     armhole: {
       value: 0,
@@ -78,7 +79,8 @@ export const customerMeasurementsSchema = z.object({
   }),
   arm: z.object({
     shoulder: z.number().min(1, "Shoulder is required"),
-    sleeve: z.number().min(1, "Sleeve is required"),
+    sleeveLength: z.number().min(1, "Sleeve length is required"),
+    sleeveWidth: z.number().min(1, "Sleeve width is required"),
     elbow: z.number().min(1, "Elbow is required"),
     armhole: z.object({
       value: z.number().min(1, "Armhole value is required"),

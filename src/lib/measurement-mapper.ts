@@ -23,7 +23,8 @@ export const mapMeasurementToFormValues = (
     },
     arm: {
       shoulder: measurement.fields.Shoulder || 0,
-      sleeve: measurement.fields.Sleeve || 0,
+      sleeveLength: measurement.fields.SleeveLength || 0,
+      sleeveWidth: measurement.fields.SleeveWidth || 0,
       elbow: measurement.fields.Elbow || 0,
       armhole: {
         value: measurement.fields.Armhole || 0,
@@ -84,7 +85,8 @@ export const mapFormValuesToMeasurement = (
       LengthFront: formValues.lengths.front,
       LengthBack: formValues.lengths.back,
       Shoulder: formValues.arm.shoulder,
-      Sleeve: formValues.arm.sleeve,
+      SleeveLength: formValues.arm.sleeveLength,
+      SleeveWidth: formValues.arm.sleeveWidth,
       Elbow: formValues.arm.elbow,
       Armhole: formValues.arm.armhole.value,
       ArmholeFront: formValues.arm.armhole.front,

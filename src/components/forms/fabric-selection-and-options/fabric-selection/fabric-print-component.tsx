@@ -1,4 +1,6 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getFabrics } from '@/api/fabrics';
 
 interface FabricLabelProps {
   fabricData: {
@@ -8,6 +10,7 @@ interface FabricLabelProps {
     customerMobile: string;
     garmentId: string;
     fabricSource: string;
+    fabricId: string;
     fabricLength: string;
     measurementId: string;
     brova: boolean;
@@ -18,6 +21,24 @@ interface FabricLabelProps {
 
 export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
   ({ fabricData }, ref) => {
+    const { data: fabricsResponse } = useQuery({
+      queryKey: ["fabrics"],
+      queryFn: getFabrics,
+      staleTime: Infinity,
+      gcTime: Infinity,
+    });
+
+    const fabrics = fabricsResponse?.data || [];
+
+    // Look up the fabric name if source is IN
+    const fabricName = React.useMemo(() => {
+      if (fabricData.fabricSource === 'IN' && fabricData.fabricId) {
+        const fabric = fabrics.find(f => f.id === fabricData.fabricId);
+        return fabric?.fields.Name || 'N/A';
+      }
+      return 'Out';
+    }, [fabricData.fabricSource, fabricData.fabricId, fabrics]);
+
     const formatDate = (date: Date | string | null | undefined) => {
       if (!date) return "N/A";
       const d = new Date(date);
@@ -105,7 +126,7 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
             }}>
               <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Source</div>
               <div style={{ fontWeight: 'bold', fontSize: '18px' }}>
-                {fabricData.fabricSource === 'IN' ? 'In' : fabricData.fabricSource === 'OUT' ? 'Out' : 'N/A'}
+                {fabricName}
               </div>
             </div>
           </div>

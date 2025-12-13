@@ -109,7 +109,7 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
         measurementOptions?: { id: string; MeasurementID: string }[];
       };
 
-      const orderID = meta?.orderID;
+      const orderID = meta?.orderID || "N/A";
       const customerId = meta?.customerId || "N/A";
       const customerName = meta?.customerName || "N/A";
       const customerMobile = meta?.customerMobile || "N/A";
@@ -148,12 +148,13 @@ export const columns: ColumnDef<FabricSelectionSchema>[] = [
       });
 
       const fabricData = {
-        orderId: orderID || "N/A",
+        orderId: orderID,
         customerId: customerId,
         customerName: customerName,
         customerMobile: customerMobile,
         garmentId: currentRowData.garmentId || "",
         fabricSource: currentRowData.fabricSource || "",
+        fabricId: currentRowData.fabricId || "",
         fabricLength: currentRowData.fabricLength || "",
         measurementId: measurementDisplay,
         brova: currentRowData.brova || false,

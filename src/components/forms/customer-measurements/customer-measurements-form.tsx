@@ -609,7 +609,8 @@ export function CustomerMeasurementsForm({
             isDisabled={!isEditing}
             fields={[
               { name: "arm.shoulder", label: "Shoulder" },
-              { name: "arm.sleeve", label: "Sleeve" },
+              { name: "arm.sleeveLength", label: "Sleeve Length" },
+              { name: "arm.sleeveWidth", label: "Sleeve Width" },
               { name: "arm.elbow", label: "Elbow" },
               [
                 { name: "arm.armhole.value", label: "Armhole" },
