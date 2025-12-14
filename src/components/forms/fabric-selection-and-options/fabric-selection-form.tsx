@@ -11,7 +11,7 @@ import {
   FormProvider,
   type UseFormReturn,
   useFieldArray,
-  Controller
+  Controller,
 } from "react-hook-form";
 import { toast } from "sonner";
 import { DataTable } from "./data-table";
@@ -34,12 +34,30 @@ import { Label } from "@/components/ui/label";
 import { mapFormGarmentToApiGarment } from "@/lib/garment-mapper";
 import { getFabricValue } from "@/lib/utils/fabric-utils";
 import { assignMatchingStyleIds } from "@/lib/utils/style-utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, XCircle, Sparkles, Plus, X, Save, Pencil, ArrowRight, Copy, Printer } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertCircle,
+  XCircle,
+  Sparkles,
+  Plus,
+  X,
+  Save,
+  Pencil,
+  ArrowRight,
+  Copy,
+  Printer,
+} from "lucide-react";
 import { SignaturePad } from "../signature-pad";
 import { cn } from "@/lib/utils";
 import { useReactToPrint } from "react-to-print";
 import { FabricLabel } from "./fabric-selection/fabric-print-component";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface FabricSelectionFormProps {
   customerId: string | null;
@@ -64,6 +82,10 @@ interface FabricSelectionFormProps {
   orderStatus?: "Pending" | "Completed" | "Cancelled";
   fatoura?: number;
   orderDate?: Date | string | null;
+  deliveryDate?: string | undefined;
+  setDeliveryDate: (date: string) => void;
+  stichingPrice: number;
+  setStichingPrice: (price: number) => void;
   initialCampaigns?: string[];
 }
 
@@ -82,22 +104,30 @@ export function FabricSelectionForm({
   orderStatus,
   fatoura,
   orderDate,
+  deliveryDate,
+  setDeliveryDate,
+  stichingPrice,
+  setStichingPrice,
   initialCampaigns = [],
 }: FabricSelectionFormProps) {
   const [numRowsToAdd, setNumRowsToAdd] = React.useState(0);
   const [selectedCampaigns, setSelectedCampaigns] = React.useState<string[]>(
-    []
+    [],
   );
   const [isEditing, setIsEditing] = React.useState(true);
   const [isSaved, setIsSaved] = React.useState(false);
   const [validationErrors, setValidationErrors] = React.useState<string[]>([]);
-  const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<string | null>(null);
+  const [selectedMeasurementId, setSelectedMeasurementId] = React.useState<
+    string | null
+  >(null);
   const [fabricMeter, setFabricMeter] = React.useState<number | null>(null);
   const [qallabi, setQallabi] = React.useState<number | null>(null);
   const [cuffs, setCuffs] = React.useState<number | null>(null);
 
   // Temporary stock tracking: Map of fabricId -> total length used
-  const [tempStockUsage, setTempStockUsage] = React.useState<Map<string, number>>(new Map());
+  const [tempStockUsage, setTempStockUsage] = React.useState<
+    Map<string, number>
+  >(new Map());
 
   // Print All Labels ref
   const printAllRef = React.useRef<HTMLDivElement>(null);
@@ -105,7 +135,7 @@ export function FabricSelectionForm({
   // Print All Labels handler
   const handlePrintAll = useReactToPrint({
     contentRef: printAllRef,
-    documentTitle: `Fabric-Labels-${orderId || 'all'}`,
+    documentTitle: `Fabric-Labels-${orderId || "all"}`,
     pageStyle: `
       @page {
         size: 5in 4in;
@@ -132,7 +162,7 @@ export function FabricSelectionForm({
     // This handles both loading campaigns and clearing them
     setSelectedCampaigns(initialCampaigns || []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialCampaigns?.join(',')]);
+  }, [initialCampaigns?.join(",")]);
 
   // Fetch fabrics for validation
   const { data: fabricsResponse } = useQuery({
@@ -194,7 +224,10 @@ export function FabricSelectionForm({
   React.useEffect(() => {
     const subscription = form.watch((_value, { name }) => {
       // Only recalculate if style-related fields change (but NOT styleOptionId itself)
-      if (name?.startsWith("styleOptions") && !name?.includes("styleOptionId")) {
+      if (
+        name?.startsWith("styleOptions") &&
+        !name?.includes("styleOptionId")
+      ) {
         const currentStyleOptions = form.getValues("styleOptions");
 
         // Safety check
@@ -207,17 +240,25 @@ export function FabricSelectionForm({
         // Only update if IDs actually changed to avoid infinite loops
         const needsUpdate = updatedStyleOptions.some((updated, index) => {
           const current = currentStyleOptions[index];
-          return current && updated && updated.styleOptionId !== current.styleOptionId;
+          return (
+            current &&
+            updated &&
+            updated.styleOptionId !== current.styleOptionId
+          );
         });
 
         if (needsUpdate) {
           updatedStyleOptions.forEach((updated, index) => {
             if (updated?.styleOptionId) {
-              form.setValue(`styleOptions.${index}.styleOptionId`, updated.styleOptionId, {
-                shouldValidate: false,
-                shouldDirty: false,
-                shouldTouch: false
-              });
+              form.setValue(
+                `styleOptions.${index}.styleOptionId`,
+                updated.styleOptionId,
+                {
+                  shouldValidate: false,
+                  shouldDirty: false,
+                  shouldTouch: false,
+                },
+              );
             }
           });
         }
@@ -226,6 +267,22 @@ export function FabricSelectionForm({
     return () => subscription.unsubscribe();
   }, [form]);
 
+  React.useEffect(() => {
+    if (!deliveryDate) return;
+
+    fabricSelectionFields.forEach((_, index) => {
+      form.setValue(
+        `fabricSelections.${index}.deliveryDate`,
+        new Date(deliveryDate),
+        {
+          shouldDirty: true,
+          shouldTouch: false,
+          shouldValidate: false,
+        },
+      );
+    });
+  }, [deliveryDate]);
+
   // Validate fabric selections before saving
   const validateFabricSelections = React.useCallback(() => {
     const errors: string[] = [];
@@ -233,7 +290,9 @@ export function FabricSelectionForm({
 
     // Count valid (non-empty) fabric selections
     const validSelections = fabricSelections.filter((selection) => {
-      return selection.fabricSource === "IN" || selection.fabricSource === "OUT";
+      return (
+        selection.fabricSource === "IN" || selection.fabricSource === "OUT"
+      );
     });
 
     // REQUIRE at least one fabric selection
@@ -244,12 +303,13 @@ export function FabricSelectionForm({
 
     fabricSelections.forEach((selection, index) => {
       // Skip validation for completely empty rows (not started)
-      const isRowEmpty = !selection.fabricSource &&
-                         !selection.measurementId &&
-                         !selection.fabricLength &&
-                         !selection.fabricId &&
-                         !selection.shopName &&
-                         !selection.color;
+      const isRowEmpty =
+        !selection.fabricSource &&
+        !selection.measurementId &&
+        !selection.fabricLength &&
+        !selection.fabricId &&
+        !selection.shopName &&
+        !selection.color;
 
       if (isRowEmpty) {
         return; // Skip this row
@@ -271,9 +331,13 @@ export function FabricSelectionForm({
       // Validate stock for "IN" source
       if (selection.fabricSource === "IN") {
         if (!selection.fabricId) {
-          errors.push(`Row ${index + 1}: Fabric selection is required for "IN" source`);
+          errors.push(
+            `Row ${index + 1}: Fabric selection is required for "IN" source`,
+          );
         } else {
-          const selectedFabric = fabrics.find((f) => f.id === selection.fabricId);
+          const selectedFabric = fabrics.find(
+            (f) => f.id === selection.fabricId,
+          );
           if (selectedFabric) {
             const realStock = selectedFabric.fields.RealStock || 0;
             const requestedLength = parseFloat(selection.fabricLength);
@@ -283,7 +347,7 @@ export function FabricSelectionForm({
 
             if (!isNaN(requestedLength) && totalUsage > realStock) {
               errors.push(
-                `Row ${index + 1}: Insufficient stock. Total requested for this fabric: ${totalUsage.toFixed(2)}m, Available: ${realStock}m`
+                `Row ${index + 1}: Insufficient stock. Total requested for this fabric: ${totalUsage.toFixed(2)}m, Available: ${realStock}m`,
               );
             }
           }
@@ -315,39 +379,43 @@ export function FabricSelectionForm({
       styleOptions: StyleOptionsSchema[];
     }) => {
       if (!orderRecordId) {
-        throw new Error("Please create an order first before saving fabric selections");
+        throw new Error(
+          "Please create an order first before saving fabric selections",
+        );
       }
 
       // Filter out empty rows before saving
-      const validFabricSelections = data.fabricSelections.filter((selection) => {
-        // A row is valid if it has at least a fabric source
-        return selection.fabricSource === "IN" || selection.fabricSource === "OUT";
-      });
-
-      const promises = validFabricSelections.map(
-        async (fabricSelection) => {
-          // Get the original index to match with styleOptions
-          const originalIndex = data.fabricSelections.indexOf(fabricSelection);
-          const styleOption = data.styleOptions[originalIndex];
-
-          const fabricWithOrderId = {
-            ...fabricSelection,
-            orderId: [orderRecordId],
-          };
-
-          const garmentData = mapFormGarmentToApiGarment(
-            fabricWithOrderId,
-            styleOption
+      const validFabricSelections = data.fabricSelections.filter(
+        (selection) => {
+          // A row is valid if it has at least a fabric source
+          return (
+            selection.fabricSource === "IN" || selection.fabricSource === "OUT"
           );
-
-          // Update if ID exists, otherwise create
-          if (fabricSelection.id && fabricSelection.id !== "") {
-            return updateGarment(fabricSelection.id, garmentData.fields);
-          } else {
-            return createGarment(garmentData.fields);
-          }
-        }
+        },
       );
+
+      const promises = validFabricSelections.map(async (fabricSelection) => {
+        // Get the original index to match with styleOptions
+        const originalIndex = data.fabricSelections.indexOf(fabricSelection);
+        const styleOption = data.styleOptions[originalIndex];
+
+        const fabricWithOrderId = {
+          ...fabricSelection,
+          orderId: [orderRecordId],
+        };
+
+        const garmentData = mapFormGarmentToApiGarment(
+          fabricWithOrderId,
+          styleOption,
+        );
+
+        // Update if ID exists, otherwise create
+        if (fabricSelection.id && fabricSelection.id !== "") {
+          return updateGarment(fabricSelection.id, garmentData.fields);
+        } else {
+          return createGarment(garmentData.fields);
+        }
+      });
 
       return Promise.all(promises);
     },
@@ -355,12 +423,16 @@ export function FabricSelectionForm({
       console.log("API Response on Save:", responses);
 
       // Check for any errors in the responses
-      const errorResponses = responses.filter(r => r.status === "error");
+      const errorResponses = responses.filter((r) => r.status === "error");
 
       if (errorResponses.length > 0) {
         // If any responses failed, show error
-        const errorMessages = errorResponses.map(r => r.message || "Unknown error").join(", ");
-        toast.error(`Failed to save ${errorResponses.length} garment(s): ${errorMessages}`);
+        const errorMessages = errorResponses
+          .map((r) => r.message || "Unknown error")
+          .join(", ");
+        toast.error(
+          `Failed to save ${errorResponses.length} garment(s): ${errorMessages}`,
+        );
         return;
       }
 
@@ -373,7 +445,11 @@ export function FabricSelectionForm({
         .map((fabric) => {
           // Find matching response based on fabricSource being filled
           const responseIndex = responses.findIndex((_, i) => {
-            const validSelections = form.getValues("fabricSelections").filter(s => s.fabricSource === "IN" || s.fabricSource === "OUT");
+            const validSelections = form
+              .getValues("fabricSelections")
+              .filter(
+                (s) => s.fabricSource === "IN" || s.fabricSource === "OUT",
+              );
             return validSelections.indexOf(fabric) === i;
           });
 
@@ -399,7 +475,10 @@ export function FabricSelectionForm({
     },
     onError: (error) => {
       console.error("Failed to save garments:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to save garments. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save garments. Please try again.";
       toast.error(errorMessage);
     },
   });
@@ -475,7 +554,9 @@ export function FabricSelectionForm({
 
   React.useEffect(() => {
     if (selectedMeasurementId) {
-      const selectedMeasurement = measurements.find(m => m.id === selectedMeasurementId);
+      const selectedMeasurement = measurements.find(
+        (m) => m.id === selectedMeasurementId,
+      );
       if (selectedMeasurement) {
         const length = selectedMeasurement.fields.LengthFront;
         const bottom = selectedMeasurement.fields.Bottom;
@@ -500,11 +581,11 @@ export function FabricSelectionForm({
   const measurementOptions =
     measurementQuery?.data && measurementQuery.data.length > 0
       ? measurementQuery.data
-        .filter((m) => !!m.id)
-        .map((m) => ({
-          id: m.id as string,
-          MeasurementID: m.fields.MeasurementID,
-        }))
+          .filter((m) => !!m.id)
+          .map((m) => ({
+            id: m.id as string,
+            MeasurementID: m.fields.MeasurementID,
+          }))
       : [];
 
   const addFabricRow = (index: number, orderIdParam?: string) => {
@@ -538,13 +619,13 @@ export function FabricSelectionForm({
 
     // Clear validation errors for this row
     setValidationErrors((prev) =>
-      prev.filter((error) => !error.startsWith(`Row ${rowIndex + 1}:`))
+      prev.filter((error) => !error.startsWith(`Row ${rowIndex + 1}:`)),
     );
   };
 
   const addStyleRow = (index: number) => {
     const fabricGarmentId = form.getValues(
-      `fabricSelections.${index}.garmentId`
+      `fabricSelections.${index}.garmentId`,
     );
     appendStyleOption({
       ...styleOptionsDefaults,
@@ -563,7 +644,7 @@ export function FabricSelectionForm({
     handlers: {
       addRow: (index: number, orderId?: string) => void;
       removeRow: (rowIndex: number) => void;
-    }
+    },
   ) {
     const currentCount = fields.length;
 
@@ -581,7 +662,8 @@ export function FabricSelectionForm({
   const isFormDisabled = isSaved && !isEditing;
 
   // Check if there are any form errors AND the form has been submitted
-  const hasFormErrors = Object.keys(form.formState.errors).length > 0 && form.formState.isSubmitted;
+  const hasFormErrors =
+    Object.keys(form.formState.errors).length > 0 && form.formState.isSubmitted;
 
   // Copy first row fabric selections to all other rows
   const copyFabricSelectionsToAll = () => {
@@ -641,36 +723,78 @@ export function FabricSelectionForm({
 
       // Copy nested collar object
       if (firstRow.collar) {
-        form.setValue(`styleOptions.${i}.collar.collarType`, firstRow.collar.collarType);
-        form.setValue(`styleOptions.${i}.collar.collarButton`, firstRow.collar.collarButton);
-        form.setValue(`styleOptions.${i}.collar.smallTabaggi`, firstRow.collar.smallTabaggi);
+        form.setValue(
+          `styleOptions.${i}.collar.collarType`,
+          firstRow.collar.collarType,
+        );
+        form.setValue(
+          `styleOptions.${i}.collar.collarButton`,
+          firstRow.collar.collarButton,
+        );
+        form.setValue(
+          `styleOptions.${i}.collar.smallTabaggi`,
+          firstRow.collar.smallTabaggi,
+        );
       }
 
       // Copy nested jabzoor object
       if (firstRow.jabzoor) {
-        form.setValue(`styleOptions.${i}.jabzoor.jabzour1`, firstRow.jabzoor.jabzour1);
-        form.setValue(`styleOptions.${i}.jabzoor.jabzour2`, firstRow.jabzoor.jabzour2);
-        form.setValue(`styleOptions.${i}.jabzoor.jabzour_thickness`, firstRow.jabzoor.jabzour_thickness);
+        form.setValue(
+          `styleOptions.${i}.jabzoor.jabzour1`,
+          firstRow.jabzoor.jabzour1,
+        );
+        form.setValue(
+          `styleOptions.${i}.jabzoor.jabzour2`,
+          firstRow.jabzoor.jabzour2,
+        );
+        form.setValue(
+          `styleOptions.${i}.jabzoor.jabzour_thickness`,
+          firstRow.jabzoor.jabzour_thickness,
+        );
       }
 
       // Copy nested frontPocket object
       if (firstRow.frontPocket) {
-        form.setValue(`styleOptions.${i}.frontPocket.front_pocket_type`, firstRow.frontPocket.front_pocket_type);
-        form.setValue(`styleOptions.${i}.frontPocket.front_pocket_thickness`, firstRow.frontPocket.front_pocket_thickness);
+        form.setValue(
+          `styleOptions.${i}.frontPocket.front_pocket_type`,
+          firstRow.frontPocket.front_pocket_type,
+        );
+        form.setValue(
+          `styleOptions.${i}.frontPocket.front_pocket_thickness`,
+          firstRow.frontPocket.front_pocket_thickness,
+        );
       }
 
       // Copy nested accessories object
       if (firstRow.accessories) {
-        form.setValue(`styleOptions.${i}.accessories.phone`, firstRow.accessories.phone);
-        form.setValue(`styleOptions.${i}.accessories.wallet`, firstRow.accessories.wallet);
-        form.setValue(`styleOptions.${i}.accessories.pen_holder`, firstRow.accessories.pen_holder);
+        form.setValue(
+          `styleOptions.${i}.accessories.phone`,
+          firstRow.accessories.phone,
+        );
+        form.setValue(
+          `styleOptions.${i}.accessories.wallet`,
+          firstRow.accessories.wallet,
+        );
+        form.setValue(
+          `styleOptions.${i}.accessories.pen_holder`,
+          firstRow.accessories.pen_holder,
+        );
       }
 
       // Copy nested cuffs object
       if (firstRow.cuffs) {
-        form.setValue(`styleOptions.${i}.cuffs.hasCuffs`, firstRow.cuffs.hasCuffs);
-        form.setValue(`styleOptions.${i}.cuffs.cuffs_type`, firstRow.cuffs.cuffs_type);
-        form.setValue(`styleOptions.${i}.cuffs.cuffs_thickness`, firstRow.cuffs.cuffs_thickness);
+        form.setValue(
+          `styleOptions.${i}.cuffs.hasCuffs`,
+          firstRow.cuffs.hasCuffs,
+        );
+        form.setValue(
+          `styleOptions.${i}.cuffs.cuffs_type`,
+          firstRow.cuffs.cuffs_type,
+        );
+        form.setValue(
+          `styleOptions.${i}.cuffs.cuffs_thickness`,
+          firstRow.cuffs.cuffs_thickness,
+        );
       }
     }
 
@@ -679,16 +803,21 @@ export function FabricSelectionForm({
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(handleSaveSelections, (errors) => console.log('validation errors: ', errors, form.getValues()))}
-        className="w-full space-y-6">
-
+      <form
+        onSubmit={form.handleSubmit(handleSaveSelections, (errors) =>
+          console.log("validation errors: ", errors, form.getValues()),
+        )}
+        className="w-full space-y-6"
+      >
         {/* Title Section */}
         <div className="flex justify-between items-start mb-2">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-foreground">
               Fabric Selection & Style Options
             </h1>
-            <p className="text-sm text-muted-foreground">Choose fabrics and customize style options for garments</p>
+            <p className="text-sm text-muted-foreground">
+              Choose fabrics and customize style options for garments
+            </p>
           </div>
         </div>
 
@@ -698,7 +827,8 @@ export function FabricSelectionForm({
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Order Required</AlertTitle>
             <AlertDescription>
-              Please complete the Demographics step and create an order before saving fabric selections.
+              Please complete the Demographics step and create an order before
+              saving fabric selections.
             </AlertDescription>
           </Alert>
         )}
@@ -753,12 +883,19 @@ export function FabricSelectionForm({
             <div className="flex flex-wrap gap-4">
               {/* How many pieces? */}
               <div className="flex flex-col gap-4 items-center border border-border w-fit p-5 rounded-xl bg-accent/5 shadow-sm">
-                <Label htmlFor="num-fabrics" className="text-base font-semibold">How many pieces?</Label>
+                <Label
+                  htmlFor="num-fabrics"
+                  className="text-base font-semibold"
+                >
+                  How many pieces?
+                </Label>
                 <Input
                   id="num-fabrics"
                   type="number"
                   placeholder="e.g., 2"
-                  onChange={(e) => setNumRowsToAdd(parseInt(e.target.value, 10))}
+                  onChange={(e) =>
+                    setNumRowsToAdd(parseInt(e.target.value, 10))
+                  }
                   className="w-24 bg-background border-border/60"
                   disabled={isFormDisabled}
                 />
@@ -788,7 +925,9 @@ export function FabricSelectionForm({
               <div className="flex flex-col gap-3 border-2 border-primary/30 w-fit p-5 rounded-xl bg-linear-to-br from-primary/5 to-secondary/5 shadow-md">
                 <div className="flex items-center gap-2 mb-1">
                   <Sparkles className="w-5 h-5 text-primary" />
-                  <Label className="text-lg font-bold text-primary">Campaign Offers</Label>
+                  <Label className="text-lg font-bold text-primary">
+                    Campaign Offers
+                  </Label>
                 </div>
                 {activeCampaigns.length > 0 ? (
                   <div className="space-y-2">
@@ -800,7 +939,7 @@ export function FabricSelectionForm({
                           "flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer",
                           selectedCampaigns.includes(campaign.id)
                             ? "border-primary bg-primary/10 shadow-sm"
-                            : "border-border/50 bg-background hover:border-primary/50 hover:bg-accent/20"
+                            : "border-border/50 bg-background hover:border-primary/50 hover:bg-accent/20",
                         )}
                       >
                         <Checkbox
@@ -808,33 +947,84 @@ export function FabricSelectionForm({
                           checked={selectedCampaigns.includes(campaign.id)}
                           onCheckedChange={(checked) => {
                             const updatedCampaigns = checked
-                              ? Array.from(new Set([...selectedCampaigns, campaign.id]))
-                              : selectedCampaigns.filter((id) => id !== campaign.id);
+                              ? Array.from(
+                                  new Set([...selectedCampaigns, campaign.id]),
+                                )
+                              : selectedCampaigns.filter(
+                                  (id) => id !== campaign.id,
+                                );
 
                             setSelectedCampaigns(updatedCampaigns);
                             onCampaignsChange(updatedCampaigns);
                           }}
                           disabled={isFormDisabled}
                         />
-                        <span className={cn(
-                          "font-medium text-sm",
-                          selectedCampaigns.includes(campaign.id) ? "text-primary" : "text-foreground"
-                        )}>
+                        <span
+                          className={cn(
+                            "font-medium text-sm",
+                            selectedCampaigns.includes(campaign.id)
+                              ? "text-primary"
+                              : "text-foreground",
+                          )}
+                        >
                           {campaign.fields.Name}
                         </span>
                       </label>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground italic">No active campaigns</p>
+                  <p className="text-sm text-muted-foreground italic">
+                    No active campaigns
+                  </p>
                 )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 border rounded-lg p-2 shadow">
+              <label className="text-lg font-semibold">
+                {" "}
+                Choose Stitching Prices
+              </label>
+              <div className="flex flex-col gap-4 items-baseline pl-4">
+                <div className="flex items-center justify-center gap-2">
+                  <Checkbox
+                    checked={stichingPrice == 9}
+                    onCheckedChange={(checked) =>
+                      checked ? setStichingPrice(9) : null
+                    }
+                  />
+                  <label>9 KWD</label>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <Checkbox
+                    checked={stichingPrice == 8}
+                    onCheckedChange={(checked) =>
+                      checked ? setStichingPrice(8) : null
+                    }
+                  />
+                  <label>8 KWD</label>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                  <Checkbox
+                    checked={stichingPrice == 7}
+                    onCheckedChange={(checked) =>
+                      checked ? setStichingPrice(7) : null
+                    }
+                  />
+                  <label>7 KWD</label>
+                </div>
               </div>
             </div>
 
             {/* Measurement Helper */}
             <div className="flex flex-col gap-3 border border-border w-fit p-5 rounded-xl bg-accent/5 shadow-sm">
-              <Label className="text-base font-semibold">Measurement Helper:</Label>
-              <Select onValueChange={setSelectedMeasurementId} value={selectedMeasurementId || ""}>
+              <Label className="text-base font-semibold">
+                Measurement Helper:
+              </Label>
+              <Select
+                onValueChange={setSelectedMeasurementId}
+                value={selectedMeasurementId || ""}
+              >
                 <SelectTrigger className="w-[180px] bg-background border-border/60">
                   <SelectValue placeholder="Select Measurement ID" />
                 </SelectTrigger>
@@ -848,9 +1038,15 @@ export function FabricSelectionForm({
               </Select>
               {fabricMeter !== null && (
                 <div className="mt-4">
-                  <p><strong>Fabric Meter:</strong> {fabricMeter}</p>
-                  <p><strong>Qallabi:</strong> {qallabi}</p>
-                  <p><strong>Cuffs:</strong> {cuffs}</p>
+                  <p>
+                    <strong>Fabric Meter:</strong> {fabricMeter}
+                  </p>
+                  <p>
+                    <strong>Qallabi:</strong> {qallabi}
+                  </p>
+                  <p>
+                    <strong>Cuffs:</strong> {cuffs}
+                  </p>
                 </div>
               )}
             </div>
@@ -858,8 +1054,22 @@ export function FabricSelectionForm({
 
           <div className="flex justify-between items-end">
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-foreground">Fabric Selections</h2>
-              <p className="text-sm text-muted-foreground">Select fabric source, type, and measurements for each garment</p>
+              <h2 className="text-2xl font-bold text-foreground">
+                Fabric Selections
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Select fabric source, type, and measurements for each garment
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold">Delivery Date</label>
+              <DatePicker
+                placeholder={new Date().toISOString()}
+                value={deliveryDate ? new Date(deliveryDate) : new Date()}
+                onChange={(value) => {
+                  if (value) setDeliveryDate(value.toISOString());
+                }}
+              />
             </div>
             <Button
               type="button"
@@ -881,7 +1091,7 @@ export function FabricSelectionForm({
             updateData={(rowIndex, columnId, value) =>
               form.setValue(
                 `fabricSelections.${rowIndex}.${columnId}` as any,
-                value
+                value,
               )
             }
             isFormDisabled={isFormDisabled}
@@ -913,10 +1123,13 @@ export function FabricSelectionForm({
           <div style={{ display: "none" }}>
             <div ref={printAllRef}>
               {fabricSelectionFields.map((_, index) => {
-                const currentRowData = form.getValues(`fabricSelections.${index}`) as FabricSelectionSchema;
-                const measurementDisplay = measurementOptions.find(
-                  m => m.id === currentRowData.measurementId
-                )?.MeasurementID || currentRowData.measurementId;
+                const currentRowData = form.getValues(
+                  `fabricSelections.${index}`,
+                ) as FabricSelectionSchema;
+                const measurementDisplay =
+                  measurementOptions.find(
+                    (m) => m.id === currentRowData.measurementId,
+                  )?.MeasurementID || currentRowData.measurementId;
 
                 const fabricData = {
                   orderId: orderId || "N/A",
@@ -934,7 +1147,14 @@ export function FabricSelectionForm({
                 };
 
                 return (
-                  <div key={index} className={index < fabricSelectionFields.length - 1 ? "page-break" : ""}>
+                  <div
+                    key={index}
+                    className={
+                      index < fabricSelectionFields.length - 1
+                        ? "page-break"
+                        : ""
+                    }
+                  >
                     <FabricLabel fabricData={fabricData} />
                   </div>
                 );
@@ -944,8 +1164,12 @@ export function FabricSelectionForm({
 
           <div className="flex justify-between items-end pt-4">
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-foreground">Style Options</h2>
-              <p className="text-sm text-muted-foreground">Customize collar, pockets, buttons, and other style details</p>
+              <h2 className="text-2xl font-bold text-foreground">
+                Style Options
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Customize collar, pockets, buttons, and other style details
+              </p>
             </div>
             <Button
               type="button"
@@ -965,10 +1189,14 @@ export function FabricSelectionForm({
             data={styleOptionFields}
             removeRow={removeStyleRow}
             updateData={(rowIndex, columnId, value) =>
-              form.setValue(`styleOptions.${rowIndex}.${columnId}` as any, value)
+              form.setValue(
+                `styleOptions.${rowIndex}.${columnId}` as any,
+                value,
+              )
             }
             isFormDisabled={isFormDisabled}
             styles={styles}
+            stitchingPrice={stichingPrice}
           />
 
           <div className="space-y-2 pt-4">
@@ -985,7 +1213,15 @@ export function FabricSelectionForm({
                     {field.value ? (
                       <div className="space-y-2">
                         <div className="border rounded-lg bg-white/70">
-                          <img src={field.value} alt="Customer signature" style={{ width: '500px', height: '200px', display: 'block' }} />
+                          <img
+                            src={field.value}
+                            alt="Customer signature"
+                            style={{
+                              width: "500px",
+                              height: "200px",
+                              display: "block",
+                            }}
+                          />
                         </div>
                         {!isFormDisabled && (
                           <Button
@@ -1007,13 +1243,24 @@ export function FabricSelectionForm({
                         }}
                       />
                     ) : (
-                      <div className="border rounded-lg bg-muted text-center text-muted-foreground" style={{ width: '500px', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div
+                        className="border rounded-lg bg-muted text-center text-muted-foreground"
+                        style={{
+                          width: "500px",
+                          height: "200px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
                         No signature provided
                       </div>
                     )}
                   </div>
                   {fieldState.error && (
-                    <p className="text-sm text-destructive">{fieldState.error.message}</p>
+                    <p className="text-sm text-destructive">
+                      {fieldState.error.message}
+                    </p>
                   )}
                 </div>
               )}
@@ -1041,10 +1288,18 @@ export function FabricSelectionForm({
               <Button
                 type="submit"
                 disabled={isSaving || !orderRecordId}
-                title={!orderRecordId ? "Please create an order first (Demographics step)" : ""}
+                title={
+                  !orderRecordId
+                    ? "Please create an order first (Demographics step)"
+                    : ""
+                }
               >
                 <Save className="w-4 h-4 mr-2" />
-                {isSaving ? "Saving..." : !orderRecordId ? "Order Required" : "Save Selections"}
+                {isSaving
+                  ? "Saving..."
+                  : !orderRecordId
+                    ? "Order Required"
+                    : "Save Selections"}
               </Button>
             </>
           ) : (
@@ -1077,3 +1332,4 @@ export function FabricSelectionForm({
     </FormProvider>
   );
 }
+

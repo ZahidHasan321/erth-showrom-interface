@@ -3,20 +3,25 @@ import { FatouraStage } from "../types/stages";
 
 export const orderSchema = z.object({
   // Fields from Order['fields']
-  orderID: z.union([z.string(), z.number()]).optional().transform(val => val?.toString()),
+  orderID: z
+    .union([z.string(), z.number()])
+    .optional()
+    .transform((val) => val?.toString()),
   fatoura: z.coerce.number().optional(),
-  fatouraStages: z.enum([
-    FatouraStage.FATOURA_RECEIVED,
-    FatouraStage.WATER,
-    FatouraStage.BROVA_ON_PRODUCTION,
-    FatouraStage.BROVA_AT_SHOP_WAITING_APPROVAL,
-    FatouraStage.BROVA_OK,
-    FatouraStage.BROVA_OK_ALT,
-    FatouraStage.FINAL_ON_PRODUCTION,
-    FatouraStage.FINAL_BROVA_AT_SHOP,
-    FatouraStage.ALTERATION,
-    FatouraStage.CANCELLED,
-  ]).optional(),
+  fatouraStages: z
+    .enum([
+      FatouraStage.FATOURA_RECEIVED,
+      FatouraStage.WATER,
+      FatouraStage.BROVA_ON_PRODUCTION,
+      FatouraStage.BROVA_AT_SHOP_WAITING_APPROVAL,
+      FatouraStage.BROVA_OK,
+      FatouraStage.BROVA_OK_ALT,
+      FatouraStage.FINAL_ON_PRODUCTION,
+      FatouraStage.FINAL_BROVA_AT_SHOP,
+      FatouraStage.ALTERATION,
+      FatouraStage.CANCELLED,
+    ])
+    .optional(),
   customerID: z.array(z.string()).optional(),
   orderDate: z.string().optional(),
   orderStatus: z.enum(["Pending", "Completed", "Cancelled"]),
@@ -24,6 +29,7 @@ export const orderSchema = z.object({
   notes: z.string().optional(),
   campaigns: z.array(z.string()).optional(),
   homeDelivery: z.boolean(),
+  deliveryDate: z.string().optional(),
   orderType: z.enum(["WORK", "SALES"]),
   paymentType: z
     .enum(["k-net", "cash", "link-payment", "installments", "others"])
@@ -35,6 +41,7 @@ export const orderSchema = z.object({
   discountInKwd: z.string().optional(),
   referralCode: z.string().optional(),
   discountValue: z.number().optional(),
+  stitchingPrice: z.number().optional(),
   charges: z.object({
     fabric: z.number(),
     stitching: z.number(),
@@ -52,12 +59,14 @@ export const orderDefaults: OrderSchema = {
   orderID: undefined,
   orderStatus: "Pending",
   orderDate: new Date().toISOString(),
+  deliveryDate: new Date().toISOString(),
   fatouraStages: FatouraStage.FATOURA_RECEIVED,
   // orderTotal: 0,
   paymentType: "cash",
   orderType: "WORK",
   homeDelivery: false,
   discountValue: 0,
+  stitchingPrice: 9,
   charges: {
     fabric: 0,
     stitching: 0,

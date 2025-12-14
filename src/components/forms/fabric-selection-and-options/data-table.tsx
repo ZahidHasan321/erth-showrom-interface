@@ -39,6 +39,7 @@ interface DataTableProps<TData, TValue> {
   customerName?: string;
   customerMobile?: string;
   tempStockUsage?: Map<string, number>;
+  stitchingPrice?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -57,6 +58,7 @@ export function DataTable<TData, TValue>({
   customerName,
   customerMobile,
   tempStockUsage,
+  stitchingPrice,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -76,6 +78,7 @@ export function DataTable<TData, TValue>({
       customerName,
       customerMobile,
       tempStockUsage,
+      stitchingPrice,
     } as {
       measurementOptions?: { id: string; MeasurementID: string }[];
       removeRow: (rowIndex: number) => void;
@@ -90,6 +93,7 @@ export function DataTable<TData, TValue>({
       customerName?: string;
       customerMobile?: string;
       tempStockUsage?: Map<string, number>;
+      stitchingPrice?: number;
     },
   });
 
@@ -116,7 +120,7 @@ export function DataTable<TData, TValue>({
                     ? null
                     : flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                 </TableHead>
               ))}

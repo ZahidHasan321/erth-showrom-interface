@@ -1,4 +1,4 @@
-import { FatouraStage } from './stages';
+import { FatouraStage } from "./stages";
 
 export interface Order {
   id: string;
@@ -9,6 +9,7 @@ export interface Order {
     FatouraStages?: FatouraStage;
     CustomerID?: string[];
     OrderDate?: string;
+    DeliveryDate?: string;
     OrderStatus: "Pending" | "Completed" | "Cancelled";
     Notes?: string;
     Campaigns?: string[];
@@ -19,6 +20,7 @@ export interface Order {
     OrderType?: "WORK" | "SALES";
     DiscountType?: "flat" | "referral" | "loyalty" | "byValue";
     ReferralCode?: string;
+    StitchingPrice?: number;
     DiscountValue?: number;
     FabricCharge?: number;
     StitchingCharge?: number;

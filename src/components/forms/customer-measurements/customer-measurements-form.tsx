@@ -58,7 +58,7 @@ interface CustomerMeasurementsFormProps {
   isOrderClosed: Boolean;
 }
 
-const unit = "mt";
+const unit = "inch";
 
 // ---------------------------------------
 // Custom hook for auto provision updates
@@ -118,7 +118,7 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
     ) {
       const newProvision = Math.max(
         0,
-        fullWaistFront + fullWaistBack - fullWaistValue
+        fullWaistFront + fullWaistBack - fullWaistValue,
       );
       if (fullWaistProvision !== newProvision) {
         form.setValue("body.full_waist.provision", newProvision);
@@ -157,17 +157,11 @@ export function CustomerMeasurementsForm({
     isOpen: false,
     title: "",
     description: "",
-    onConfirm: () => { },
+    onConfirm: () => {},
   });
-
 
   const selectedReference = form.watch("measurementReference");
   useAutoProvision(form);
-
-  // Debug: Log selected reference
-  React.useEffect(() => {
-    console.log("Selected Reference:", selectedReference);
-  }, [selectedReference]);
 
   // Fetch employees data
   const { data: employeesResponse } = useQuery({
@@ -275,7 +269,7 @@ export function CustomerMeasurementsForm({
         });
         setMeasurements(newMap);
         setSelectedMeasurementId(
-          measurementQuery.data[0]?.fields.MeasurementID ?? null
+          measurementQuery.data[0]?.fields.MeasurementID ?? null,
         );
       } else {
         // No measurements for this customer, so reset everything.
@@ -302,7 +296,7 @@ export function CustomerMeasurementsForm({
   // Handlers
   // ---------------------------------------
   const handleFormSubmit = (
-    values: z.infer<typeof customerMeasurementsSchema>
+    values: z.infer<typeof customerMeasurementsSchema>,
   ) => {
     const onConfirm = () => {
       if (!customerId || !customerRecordId) {
@@ -321,7 +315,7 @@ export function CustomerMeasurementsForm({
         }
 
         const recordId = measurements.get(
-          selectedMeasurementId
+          selectedMeasurementId,
         )?.measurementRecord;
         if (!recordId) {
           toast.error("No measurement selected for updating.");
@@ -640,7 +634,7 @@ export function CustomerMeasurementsForm({
                   isDisabled: true,
                 },
               ],
-              {name: "body.back_chest", label:"Back Chest"},
+              { name: "body.back_chest", label: "Back Chest" },
               [
                 { name: "body.full_waist.value", label: "Full Waist" },
                 { name: "body.full_waist.front", label: "Front" },

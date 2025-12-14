@@ -242,12 +242,10 @@ export const CollarCell = ({
               {collarButton ? (
                 <img
                   src={
-                    collarButtons.find((b) => b.value === collarButton)?.image ||
-                    undefined
+                    collarButtons.find((b) => b.value === collarButton)
+                      ?.image || undefined
                   }
-                  alt={
-                    collarButtons.find((b) => b.value === collarButton)?.alt
-                  }
+                  alt={collarButtons.find((b) => b.value === collarButton)?.alt}
                   className="min-w-10 h-10 object-contain"
                 />
               ) : (
@@ -316,7 +314,10 @@ export const JabzoorCell = ({
     if (jabzour1 === "JAB_SHAAB") {
       // Auto-set jabzour2 to Magfi Murabba and hashwa to DOUBLE when Shaab is selected
       if (!jabzour2) {
-        setValue(`styleOptions.${row.index}.jabzoor.jabzour2`, "JAB_MAGFI_MURABBA");
+        setValue(
+          `styleOptions.${row.index}.jabzoor.jabzour2`,
+          "JAB_MAGFI_MURABBA",
+        );
       }
       setValue(`styleOptions.${row.index}.jabzoor.jabzour_thickness`, "DOUBLE");
     } else {
@@ -337,7 +338,12 @@ export const JabzoorCell = ({
               value={field.value as string}
               disabled={isFormDisabled}
             >
-              <SelectTrigger className={cn("bg-background border-border/60 min-w-[120px]", fieldState.error && "border-destructive")}>
+              <SelectTrigger
+                className={cn(
+                  "bg-background border-border/60 min-w-[120px]",
+                  fieldState.error && "border-destructive",
+                )}
+              >
                 {jabzour1 ? (
                   <img
                     src={
@@ -353,10 +359,7 @@ export const JabzoorCell = ({
               </SelectTrigger>
               <SelectContent>
                 {jabzourTypes.map((jabzourType) => (
-                  <SelectItem
-                    key={jabzourType.value}
-                    value={jabzourType.value}
-                  >
+                  <SelectItem key={jabzourType.value} value={jabzourType.value}>
                     <div className="flex items-center space-x-2">
                       <img
                         src={jabzourType.image || undefined}
@@ -369,7 +372,11 @@ export const JabzoorCell = ({
                 ))}
               </SelectContent>
             </Select>
-            {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+            {fieldState.error && (
+              <p className="text-xs text-destructive">
+                {fieldState.error.message}
+              </p>
+            )}
           </div>
         )}
       />
@@ -384,16 +391,19 @@ export const JabzoorCell = ({
               value={field.value as string}
               disabled={isFormDisabled || jabzour1 !== "JAB_SHAAB"}
             >
-              <SelectTrigger className={cn("bg-background border-border/60 min-w-[120px]", fieldState.error && "border-destructive")}>
+              <SelectTrigger
+                className={cn(
+                  "bg-background border-border/60 min-w-[120px]",
+                  fieldState.error && "border-destructive",
+                )}
+              >
                 {jabzour2 ? (
                   <img
                     src={
                       jabzourTypes.find((j) => j.value === jabzour2)?.image ||
                       undefined
                     }
-                    alt={
-                      jabzourTypes.find((j) => j.value === jabzour2)?.alt
-                    }
+                    alt={jabzourTypes.find((j) => j.value === jabzour2)?.alt}
                     className="min-w-10 h-10 object-contain"
                   />
                 ) : (
@@ -420,7 +430,11 @@ export const JabzoorCell = ({
                   ))}
               </SelectContent>
             </Select>
-            {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+            {fieldState.error && (
+              <p className="text-xs text-destructive">
+                {fieldState.error.message}
+              </p>
+            )}
           </div>
         )}
       />
@@ -434,7 +448,12 @@ export const JabzoorCell = ({
               value={field.value as string}
               disabled={isFormDisabled}
             >
-              <SelectTrigger className={cn("bg-background border-border/60 min-w-[60px]", fieldState.error && "border-destructive")}>
+              <SelectTrigger
+                className={cn(
+                  "bg-background border-border/60 min-w-[60px]",
+                  fieldState.error && "border-destructive",
+                )}
+              >
                 <SelectValue placeholder="Select Thickness" />
               </SelectTrigger>
               <SelectContent>
@@ -449,7 +468,11 @@ export const JabzoorCell = ({
                 ))}
               </SelectContent>
             </Select>
-            {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+            {fieldState.error && (
+              <p className="text-xs text-destructive">
+                {fieldState.error.message}
+              </p>
+            )}
           </div>
         )}
       />
@@ -474,9 +497,14 @@ export const FrontPocketCell = ({
   React.useEffect(() => {
     const isMudawwar = frontPocketType === "FRO_MUDAWWAR_FRONT_POCKET";
     if (isMudawwar) {
-      const currentThickness = getValues(`styleOptions.${row.index}.frontPocket.front_pocket_thickness`);
+      const currentThickness = getValues(
+        `styleOptions.${row.index}.frontPocket.front_pocket_thickness`,
+      );
       if (currentThickness === "NO HASHWA") {
-        setValue(`styleOptions.${row.index}.frontPocket.front_pocket_thickness`, "DOUBLE");
+        setValue(
+          `styleOptions.${row.index}.frontPocket.front_pocket_thickness`,
+          "DOUBLE",
+        );
       }
     }
   }, [frontPocketType, setValue, getValues, row.index]);
@@ -577,7 +605,7 @@ export const AccessoriesCell = ({
   const handleAccessoryChange = (field: string, value: boolean) => {
     if (row.index === 0) {
       // Get all style options to determine how many rows exist
-      const allStyleOptions = getValues('styleOptions') as StyleOptionsSchema[];
+      const allStyleOptions = getValues("styleOptions") as StyleOptionsSchema[];
 
       // Update all rows with the new value
       allStyleOptions.forEach((_, index) => {
@@ -598,7 +626,7 @@ export const AccessoriesCell = ({
               checked={field.value as boolean}
               onCheckedChange={(value) => {
                 if (row.index === 0) {
-                  handleAccessoryChange('accessories.phone', value as boolean);
+                  handleAccessoryChange("accessories.phone", value as boolean);
                 } else {
                   field.onChange(value);
                 }
@@ -625,7 +653,7 @@ export const AccessoriesCell = ({
               checked={field.value as boolean}
               onCheckedChange={(value) => {
                 if (row.index === 0) {
-                  handleAccessoryChange('accessories.wallet', value as boolean);
+                  handleAccessoryChange("accessories.wallet", value as boolean);
                 } else {
                   field.onChange(value);
                 }
@@ -652,7 +680,10 @@ export const AccessoriesCell = ({
               checked={field.value as boolean}
               onCheckedChange={(value) => {
                 if (row.index === 0) {
-                  handleAccessoryChange('accessories.pen_holder', value as boolean);
+                  handleAccessoryChange(
+                    "accessories.pen_holder",
+                    value as boolean,
+                  );
                 } else {
                   field.onChange(value);
                 }
@@ -750,10 +781,7 @@ export const CuffsCell = ({
                   />
                 ) : (
                   <span>
-                    {
-                      cuffTypes.find((c) => c.value === cuffsType)
-                        ?.displayText
-                    }
+                    {cuffTypes.find((c) => c.value === cuffsType)?.displayText}
                   </span>
                 )
               ) : (
@@ -816,8 +844,10 @@ export const ExtraAmountCell = ({
   const { control, setValue } = useFormContext();
   const meta = table.options.meta as {
     styles?: Style[];
+    stitchingPrice?: number;
   };
   const styles = meta?.styles || [];
+  const stitchingPrice = meta?.stitchingPrice || 9;
 
   // Watch all the style option fields to recalculate when they change
   const styleOptions = useWatch({
@@ -832,7 +862,7 @@ export const ExtraAmountCell = ({
   }, [styleOptions, styles]);
 
   // Total price including stitching (9 KWD standard stitching)
-  const totalPrice = stylePrice + 9;
+  const totalPrice = stylePrice + stitchingPrice;
 
   // Update the extraAmount field with total price (including stitching)
   React.useEffect(() => {

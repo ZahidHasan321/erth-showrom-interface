@@ -24,7 +24,7 @@ export function useConfirmationDialog() {
         onConfirm,
       });
     },
-    []
+    [],
   );
 
   const closeDialog = React.useCallback(() => {

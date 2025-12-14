@@ -61,10 +61,12 @@ export const MeasurementIdCell = ({
               value={field.value}
               disabled={isFormDisabled}
             >
-              <SelectTrigger className={cn(
-                "w-[150px] min-w-[150px] bg-background border-border/60",
-                error && "border-destructive"
-              )}>
+              <SelectTrigger
+                className={cn(
+                  "w-[150px] min-w-[150px] bg-background border-border/60",
+                  error && "border-destructive",
+                )}
+              >
                 <SelectValue placeholder="Select ID" />
               </SelectTrigger>
               <SelectContent>
@@ -73,7 +75,7 @@ export const MeasurementIdCell = ({
                     <SelectItem key={m.id} value={m.id}>
                       {m.MeasurementID}
                     </SelectItem>
-                  )
+                  ),
                 )}
               </SelectContent>
             </Select>
@@ -132,8 +134,12 @@ export const FabricSourceCell = ({
   React.useEffect(() => {
     // Only clear color when actively changing from "IN" to "OUT", not on initial load
     if (fabricSource === "OUT" && previousFabricSource.current === "IN") {
-      setValue(`fabricSelections.${row.index}.color`, "", { shouldValidate: true });
-      setValue(`fabricSelections.${row.index}.fabricId`, "", { shouldValidate: true });
+      setValue(`fabricSelections.${row.index}.color`, "", {
+        shouldValidate: true,
+      });
+      setValue(`fabricSelections.${row.index}.fabricId`, "", {
+        shouldValidate: true,
+      });
     }
     previousFabricSource.current = fabricSource;
   }, [fabricSource, row.index, setValue]);
@@ -150,10 +156,12 @@ export const FabricSourceCell = ({
               value={field.value}
               disabled={isFormDisabled}
             >
-              <SelectTrigger className={cn(
-                "bg-background border-border/60",
-                error && "border-destructive"
-              )}>
+              <SelectTrigger
+                className={cn(
+                  "bg-background border-border/60",
+                  error && "border-destructive",
+                )}
+              >
                 <SelectValue placeholder="Select source" />
               </SelectTrigger>
               <SelectContent>
@@ -197,7 +205,7 @@ export const ShopNameCell = ({
             <Input
               className={cn(
                 "min-w-[150px] bg-background border-border/60",
-                error && "border-destructive"
+                error && "border-destructive",
               )}
               placeholder="Enter shop name"
               {...field}
@@ -249,7 +257,7 @@ export const IfInsideCell = ({
         setValue(
           `fabricSelections.${row.index}.color`,
           selectedFabric.fields.Color,
-          { shouldValidate: true, shouldDirty: true }
+          { shouldValidate: true, shouldDirty: true },
         );
       }
     }
@@ -267,7 +275,7 @@ export const IfInsideCell = ({
         ],
         includeScore: true,
       }),
-    [fabrics]
+    [fabrics],
   );
 
   const getStockColorClass = (stock: number) => {
@@ -287,10 +295,14 @@ export const IfInsideCell = ({
       label: `${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color} - ${fabric.fields.PricePerMeter} - ${fabric.fields.RealStock}`,
       node: (
         <div className="flex justify-between w-full">
-          <span className={getStockColorClass(fabric.fields.RealStock || 0)}>{`${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color}`}</span>
+          <span
+            className={getStockColorClass(fabric.fields.RealStock || 0)}
+          >{`${fabric.fields.Name} - ${fabric.fields.Code} - ${fabric.fields.Color}`}</span>
           <div className="flex gap-1">
             <span className="text-muted-foreground">{`Price: ${fabric.fields.PricePerMeter}`}</span>
-            <span className={getStockColorClass(fabric.fields.RealStock || 0)}>{`Stock: ${fabric.fields.RealStock}`}</span>
+            <span
+              className={getStockColorClass(fabric.fields.RealStock || 0)}
+            >{`Stock: ${fabric.fields.RealStock}`}</span>
           </div>
         </div>
       ),
@@ -323,11 +335,13 @@ export const IfInsideCell = ({
                 disabled={isFormDisabled}
                 className={cn(
                   "bg-background border-border/60",
-                  error && "border-destructive"
+                  error && "border-destructive",
                 )}
               />
               {error && (
-                <span className="text-xs text-destructive">{error.message}</span>
+                <span className="text-xs text-destructive">
+                  {error.message}
+                </span>
               )}
             </div>
           )}
@@ -363,8 +377,10 @@ export const ColorCell = ({
             <Input
               className={cn(
                 "min-w-[120px]",
-                isReadOnly ? "bg-muted border-border/60" : "bg-background border-border/60",
-                error && "border-destructive"
+                isReadOnly
+                  ? "bg-muted border-border/60"
+                  : "bg-background border-border/60",
+                error && "border-destructive",
               )}
               {...field}
               readOnly={isReadOnly || isFormDisabled}
@@ -465,7 +481,7 @@ export const FabricLengthCell = ({
               step="0.01"
               className={cn(
                 "min-w-[120px] bg-background border-border/60",
-                error && "border-destructive"
+                error && "border-destructive",
               )}
               readOnly={isFormDisabled}
             />
@@ -512,7 +528,7 @@ export const DeliveryDateCell = ({
   row,
   table,
 }: CellContext<FabricSelectionSchema, unknown>) => {
-  const { control, setValue, getValues, setError, clearErrors } = useFormContext();
+  const { control, setValue, setError, clearErrors } = useFormContext();
   const meta = table.options.meta as {
     isFormDisabled?: boolean;
   };
@@ -537,14 +553,6 @@ export const DeliveryDateCell = ({
   const handleDateChange = (date: Date | null) => {
     // Update current row
     setValue(`fabricSelections.${row.index}.deliveryDate`, date);
-
-    if (row.index === 0) {
-      const fabricSelections = getValues("fabricSelections") || [];
-      // Loop through all rows and update delivery date
-      for (let index = 1; index < fabricSelections.length; index++) {
-        setValue(`fabricSelections.${index}.deliveryDate`, date);
-      }
-    }
   };
 
   return (
@@ -560,11 +568,13 @@ export const DeliveryDateCell = ({
               disabled={isFormDisabled}
               className={cn(
                 "bg-background border-border/60",
-                error && "border-destructive"
+                error && "border-destructive",
               )}
             />
             {error && (
-              <span className="text-xs text-destructive whitespace-nowrap">{error.message}</span>
+              <span className="text-xs text-destructive whitespace-nowrap">
+                {error.message}
+              </span>
             )}
           </div>
         )}
@@ -580,8 +590,7 @@ export const FabricAmountCell = ({
   const { data: fabricsResponse } = useQuery({
     queryKey: ["fabrics"],
     queryFn: getFabrics,
-    staleTime: Infinity
-    
+    staleTime: Infinity,
   });
   const fabrics = fabricsResponse?.data || [];
 
@@ -604,7 +613,10 @@ export const FabricAmountCell = ({
       if (selectedFabric) {
         const pricePerMeter = selectedFabric.fields.PricePerMeter || 0;
         const amount = parseFloat(fabricLength as string) * pricePerMeter;
-        setValue(`fabricSelections.${row.index}.fabricAmount`, parseFloat(amount.toFixed(2)));
+        setValue(
+          `fabricSelections.${row.index}.fabricAmount`,
+          parseFloat(amount.toFixed(2)),
+        );
       }
     } else {
       setValue(`fabricSelections.${row.index}.fabricAmount`, 0);
@@ -620,7 +632,9 @@ export const FabricAmountCell = ({
           <Input
             type="text"
             {...field}
-            value={typeof field.value === 'number' ? field.value.toFixed(2) : '0.00'}
+            value={
+              typeof field.value === "number" ? field.value.toFixed(2) : "0.00"
+            }
             readOnly
             className="w-40 min-w-40 bg-muted border-border/60"
           />
@@ -682,3 +696,4 @@ export const HomeDeliveryCell = ({
     </div>
   );
 };
+

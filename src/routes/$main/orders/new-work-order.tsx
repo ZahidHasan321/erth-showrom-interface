@@ -110,20 +110,26 @@ function NewWorkOrder() {
   const savedSteps = useCurrentWorkOrderStore((s) => s.savedSteps);
   const addSavedStep = useCurrentWorkOrderStore((s) => s.addSavedStep);
   const removeSavedStep = useCurrentWorkOrderStore((s) => s.removeSavedStep);
-  const customerDemographics = useCurrentWorkOrderStore((s) => s.customerDemographics);
-  const setCustomerDemographics = useCurrentWorkOrderStore((s) => s.setCustomerDemographics);
+  const customerDemographics = useCurrentWorkOrderStore(
+    (s) => s.customerDemographics,
+  );
+  const setCustomerDemographics = useCurrentWorkOrderStore(
+    (s) => s.setCustomerDemographics,
+  );
   const fabricSelections = useCurrentWorkOrderStore((s) => s.fabricSelections);
-  const setFabricSelections = useCurrentWorkOrderStore((s) => s.setFabricSelections);
+  const setFabricSelections = useCurrentWorkOrderStore(
+    (s) => s.setFabricSelections,
+  );
   const setStyleOptions = useCurrentWorkOrderStore((s) => s.setStyleOptions);
   const orderId = useCurrentWorkOrderStore((s) => s.orderId);
   const setOrderId = useCurrentWorkOrderStore((s) => s.setOrderId);
   const order = useCurrentWorkOrderStore((s) => s.order);
   const setOrder = useCurrentWorkOrderStore((s) => s.setOrder);
+  const stitchingPrice = useCurrentWorkOrderStore((s) => s.stitchingPrice);
+  const setStitchPrice = useCurrentWorkOrderStore((s) => s.setStitchingPrice);
   const resetWorkOrder = useCurrentWorkOrderStore((s) => s.resetWorkOrder);
-
   // Track the Airtable record ID for polling
   const [orderRecordId, setOrderRecordId] = React.useState<string | null>(null);
-
   // ============================================================================
   // FORMS SETUP
   // ============================================================================
@@ -150,7 +156,7 @@ function NewWorkOrder() {
         fabricSelections: z.array(fabricSelectionSchema),
         styleOptions: z.array(styleOptionsSchema),
         signature: z.string().min(1, "Customer signature is required"),
-      })
+      }),
     ),
     defaultValues: { fabricSelections: [], styleOptions: [], signature: "" },
   });
@@ -181,10 +187,14 @@ function NewWorkOrder() {
     name: "products",
   });
 
-  const isOrderClosed = orderStatus === "Completed" || orderStatus === "Cancelled";
+  const isOrderClosed =
+    orderStatus === "Completed" || orderStatus === "Cancelled";
 
   const totalShelveAmount =
-    products?.reduce((acc, p) => acc + (p.quantity ?? 0) * (p.unitPrice ?? 0), 0) ?? 0;
+    products?.reduce(
+      (acc, p) => acc + (p.quantity ?? 0) * (p.unitPrice ?? 0),
+      0,
+    ) ?? 0;
 
   // ============================================================================
   // NAVIGATION & UI HOOKS
@@ -202,10 +212,8 @@ function NewWorkOrder() {
   // ============================================================================
   const { fatoura } = useFatouraPolling(
     orderRecordId,
-    orderStatus === "Completed"
+    orderStatus === "Completed",
   );
-
-
 
   // ============================================================================
   // ORDER MUTATIONS
@@ -215,7 +223,7 @@ function NewWorkOrder() {
     updateOrder: updateOrderMutation,
     updateShelf: updateShelfMutation,
     updateFabricStock: updateFabricStockMutation,
-    deleteOrder: deleteOrderMutation,
+    // deleteOrder: deleteOrderMutation,
   } = useOrderMutations({
     orderType: "WORK",
     onOrderCreated: (id, formattedOrder, recordId) => {
@@ -258,18 +266,17 @@ function NewWorkOrder() {
         ...customerMeasurementsDefaults,
         measurementDate: new Date(), // Set to today for new measurements
       });
-      fabricSelectionForm.reset({ fabricSelections: [], styleOptions: [], signature: "" });
+      fabricSelectionForm.reset({
+        fabricSelections: [],
+        styleOptions: [],
+        signature: "",
+      });
       ShelvesForm.reset({ products: [] });
       OrderForm.reset(orderDefaults);
       paymentForm.reset({ paymentType: "cash" });
 
       // Clear saved steps
-      savedSteps.forEach(step => removeSavedStep(step));
-
-      // Delete the current empty order that was just created
-      if (orderId) {
-        await deleteOrderMutation.mutateAsync(orderId);
-      }
+      savedSteps.forEach((step) => removeSavedStep(step));
 
       // Fetch complete order details from API
       const response = await getCompleteOrderDetails(order.fields.OrderID);
@@ -279,7 +286,8 @@ function NewWorkOrder() {
 
         // Set the order record ID (Airtable record ID) in store
         if (orderData.order) {
-          setOrderId(orderData.order.id);
+          setOrderId(orderData.order.fields.OrderID);
+          setOrderRecordId(orderData.order.id);
         }
 
         // Populate customer demographics
@@ -309,8 +317,14 @@ function NewWorkOrder() {
           const orderFields = orderData.order.fields;
           OrderForm.setValue("customerID", orderFields.CustomerID);
           OrderForm.setValue("orderID", orderFields.OrderID);
-          OrderForm.setValue("orderDate", orderFields.OrderDate || new Date().toISOString());
-          OrderForm.setValue("orderStatus", orderFields.OrderStatus || "Pending");
+          OrderForm.setValue(
+            "orderDate",
+            orderFields.OrderDate || new Date().toISOString(),
+          );
+          OrderForm.setValue(
+            "orderStatus",
+            orderFields.OrderStatus || "Pending",
+          );
           OrderForm.setValue("homeDelivery", orderFields.HomeDelivery ?? false);
           OrderForm.setValue("notes", orderFields.Notes || "");
 
@@ -318,6 +332,7 @@ function NewWorkOrder() {
             OrderForm.setValue("campaigns", orderFields.Campaigns);
           }
 
+          setStitchPrice(orderFields.StitchingPrice || 9);
           // Set charges
           OrderForm.setValue("charges", {
             fabric: orderFields.FabricCharge ?? 0,
@@ -362,10 +377,12 @@ function NewWorkOrder() {
         if (orderData.garments && orderData.garments.length > 0) {
           // Use the garment mapper to properly transform API data to form data
           const mappedGarments = orderData.garments.map((garment: any) =>
-            mapApiGarmentToFormGarment(garment)
+            mapApiGarmentToFormGarment(garment),
           );
 
-          const fabricSelections = mappedGarments.map((g: any) => g.fabricSelection);
+          const fabricSelections = mappedGarments.map(
+            (g: any) => g.fabricSelection,
+          );
           const styleOptions = mappedGarments.map((g: any) => g.styleOptions);
 
           fabricSelectionForm.setValue("fabricSelections", fabricSelections);
@@ -378,9 +395,18 @@ function NewWorkOrder() {
 
         // Populate payment form
         if (orderData.order?.fields.PaymentType) {
-          paymentForm.setValue("paymentType", orderData.order.fields.PaymentType as any);
-          paymentForm.setValue("paymentRefNo", orderData.order.fields.PaymentRefNo || "");
-          paymentForm.setValue("orderTaker", orderData.order.fields.OrderTaker?.[0] || "");
+          paymentForm.setValue(
+            "paymentType",
+            orderData.order.fields.PaymentType as any,
+          );
+          paymentForm.setValue(
+            "paymentRefNo",
+            orderData.order.fields.PaymentRefNo || "",
+          );
+          paymentForm.setValue(
+            "orderTaker",
+            orderData.order.fields.OrderTaker?.[0] || "",
+          );
         }
 
         // Navigate to first incomplete step or measurements
@@ -402,7 +428,6 @@ function NewWorkOrder() {
   const handleDemographicsProceed = () => {
     const recordID = demographicsForm.getValues("customerRecordId");
     const customerData = demographicsForm.getValues();
-
 
     if (!recordID) {
       toast.error("Please save customer information first");
@@ -441,12 +466,13 @@ function NewWorkOrder() {
    * Calculate stitching price from styles data
    * Uses the Stitch field from styles table for each selected style code
    */
-  const calculateStitchingPrice = (styleOptions: StyleOptionsSchema[]) => {
-
+  const calculateStitchingPrice = (
+    styleOptions: StyleOptionsSchema[],
+    stitchingPrice: number = 9.0,
+  ) => {
     let totalStitching = 0;
-    const stitchingPrice = 9;
 
-      totalStitching += (stitchingPrice * styleOptions.length);
+    totalStitching += stitchingPrice * styleOptions.length;
 
     return totalStitching;
   };
@@ -456,7 +482,6 @@ function NewWorkOrder() {
    * Uses the RatePerItem field from styles table for each selected style code
    */
   const calculateStylesPrices = (styleOptions: StyleOptionsSchema[]) => {
-
     let totalStyle = 0;
 
     styleOptions.forEach((styleOption) => {
@@ -489,13 +514,16 @@ function NewWorkOrder() {
     setOrder({ ...order, numOfFabrics: numFabrics });
 
     // Calculate prices using styles data
-    const stitchingPrice = calculateStitchingPrice(data.styleOptions);
+    const stitchingPrices = calculateStitchingPrice(
+      data.styleOptions,
+      stitchingPrice,
+    );
     const stylePrice = calculateStylesPrices(data.styleOptions);
     const fabricPrice = calculateFabricPrice(data.fabricSelections);
 
     // Update order form with calculated prices
     OrderForm.setValue("charges.fabric", fabricPrice);
-    OrderForm.setValue("charges.stitching", stitchingPrice);
+    OrderForm.setValue("charges.stitching", stitchingPrices);
     OrderForm.setValue("charges.style", stylePrice);
   };
 
@@ -540,7 +568,9 @@ function NewWorkOrder() {
 
     if (!parseResult.success) {
       const errors = parseResult.error?.issues
-        ? parseResult.error.issues.map((err: any) => `${err.path.join('.')}: ${err.message}`).join("; ")
+        ? parseResult.error.issues
+            .map((err: any) => `${err.path.join(".")}: ${err.message}`)
+            .join("; ")
         : "Unknown validation error";
       toast.error(`Order validation failed: ${errors}`);
       console.error("Order validation errors:", parseResult.error);
@@ -559,7 +589,7 @@ function NewWorkOrder() {
     ];
 
     const isAddressDefined = requiredFields.every(
-      (key) => typeof address[key] === "string" && address[key]!.trim() !== ""
+      (key) => typeof address[key] === "string" && address[key]!.trim() !== "",
     );
 
     if (OrderForm.getValues().homeDelivery && !isAddressDefined) {
@@ -578,7 +608,9 @@ function NewWorkOrder() {
       orderType: "WORK", // Preserve orderType
       orderStatus: "Completed",
       orderDate: new Date().toISOString(),
-      numOfFabrics: fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
+      numOfFabrics:
+        fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
+      stitchingPrice: stitchingPrice,
     };
 
     OrderForm.setValue("orderStatus", "Completed");
@@ -595,7 +627,8 @@ function NewWorkOrder() {
     // Update stocks
     updateShelfMutation.mutate(ShelvesForm.getValues());
 
-    const fabricSelectionsData = fabricSelectionForm.getValues().fabricSelections;
+    const fabricSelectionsData =
+      fabricSelectionForm.getValues().fabricSelections;
     if (fabricSelectionsData && fabricSelectionsData.length > 0) {
       updateFabricStockMutation.mutate({
         fabricSelections: fabricSelectionsData,
@@ -620,7 +653,7 @@ function NewWorkOrder() {
         () => {
           confirmOrderCompletion();
           closeDialog();
-        }
+        },
       );
     } else {
       confirmOrderCompletion();
@@ -635,7 +668,8 @@ function NewWorkOrder() {
       orderType: "WORK", // Preserve orderType
       orderDate: new Date().toISOString(),
       orderStatus: "Cancelled",
-      numOfFabrics: fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
+      numOfFabrics:
+        fabricSelectionForm.getValues()?.fabricSelections?.length ?? undefined,
     };
 
     OrderForm.setValue("orderStatus", "Cancelled");
@@ -677,7 +711,7 @@ function NewWorkOrder() {
         () => {
           createOrderMutation.mutate(undefined);
           closeDialog();
-        }
+        },
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -700,13 +734,19 @@ function NewWorkOrder() {
   React.useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       // Allow navigation if order is completed or cancelled, or if no order exists yet
-      if (orderStatus === "Completed" || orderStatus === "Cancelled" || !orderId || allowNavigation) {
+      if (
+        orderStatus === "Completed" ||
+        orderStatus === "Cancelled" ||
+        !orderId ||
+        allowNavigation
+      ) {
         return;
       }
 
       // Show confirmation dialog
       e.preventDefault();
-      e.returnValue = "You have an order in progress. Are you sure you want to leave?";
+      e.returnValue =
+        "You have an order in progress. Are you sure you want to leave?";
       return e.returnValue;
     };
 
@@ -721,24 +761,29 @@ function NewWorkOrder() {
   React.useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       // Don't block if order is completed/cancelled or no order exists
-      if (orderStatus === "Completed" || orderStatus === "Cancelled" || !orderId || allowNavigation) {
+      if (
+        orderStatus === "Completed" ||
+        orderStatus === "Cancelled" ||
+        !orderId ||
+        allowNavigation
+      ) {
         return;
       }
 
       // Check if click target is a link
       const target = e.target as HTMLElement;
-      const link = target.closest('a[href]');
+      const link = target.closest("a[href]");
 
       if (link && link instanceof HTMLAnchorElement) {
-        const href = link.getAttribute('href');
+        const href = link.getAttribute("href");
 
         // Only intercept internal navigation (not external links)
-        if (href && href.startsWith('/')) {
+        if (href && href.startsWith("/")) {
           e.preventDefault();
           e.stopPropagation();
 
           const confirmLeave = window.confirm(
-            "You have an order in progress. Leaving this page will not save your changes. Are you sure you want to leave?"
+            "You have an order in progress. Leaving this page will not save your changes. Are you sure you want to leave?",
           );
 
           if (confirmLeave) {
@@ -752,10 +797,10 @@ function NewWorkOrder() {
       }
     };
 
-    document.addEventListener('click', handleClick, true);
+    document.addEventListener("click", handleClick, true);
 
     return () => {
-      document.removeEventListener('click', handleClick, true);
+      document.removeEventListener("click", handleClick, true);
     };
   }, [orderStatus, orderId, allowNavigation]);
 
@@ -772,7 +817,7 @@ function NewWorkOrder() {
 
     // Find employee name
     const orderTakerEmployee = employees.find(
-      (emp) => emp.id === paymentData.orderTaker
+      (emp) => emp.id === paymentData.orderTaker,
     );
 
     return {
@@ -823,11 +868,11 @@ function NewWorkOrder() {
         onCreateOrder={() => {
           openDialog(
             "Create New Work Order",
-            "Do you want to create a new work order? This will initialize a new order entry.",
+            "Do you want to create a new work order or Open existing? This will initialize a new order entry.",
             () => {
               createOrderMutation.mutate(undefined);
               closeDialog();
-            }
+            },
           );
         }}
         dialogState={dialog}
@@ -861,12 +906,20 @@ function NewWorkOrder() {
           orderID={order.orderID}
           fatoura={fatoura}
           orderStatus={order.orderStatus ?? "Pending"}
-          customerName={customerDemographics.nickName || customerDemographics.name || undefined}
+          customerName={
+            customerDemographics.nickName ||
+            customerDemographics.name ||
+            undefined
+          }
           orderType="Work Order"
           homeDelivery={order.homeDelivery}
           paymentType={order.paymentType}
           numOfFabrics={order.numOfFabrics}
-          totalAmount={order.charges ? Object.values(order.charges).reduce((a, b) => a + b, 0) : 0}
+          totalAmount={
+            order.charges
+              ? Object.values(order.charges).reduce((a, b) => a + b, 0)
+              : 0
+          }
           advance={order.advance}
           balance={order.balance}
         />
@@ -924,7 +977,9 @@ function NewWorkOrder() {
           <ErrorBoundary fallback={<div>Fabric Selection crashed</div>}>
             <FabricSelectionForm
               customerId={customerDemographics.id?.toString() || null}
-              customerName={customerDemographics.nickName || customerDemographics.name}
+              customerName={
+                customerDemographics.nickName || customerDemographics.name
+              }
               customerMobile={customerDemographics.mobileNumber}
               form={fabricSelectionForm}
               isOrderClosed={isOrderClosed}
@@ -939,8 +994,14 @@ function NewWorkOrder() {
               }}
               isProceedDisabled={fabricSelections.length === 0}
               orderStatus={orderStatus}
+              deliveryDate={order.deliveryDate}
+              setDeliveryDate={(date: string) =>
+                setOrder({ deliveryDate: date })
+              }
               fatoura={fatoura}
               orderDate={order.orderDate}
+              stichingPrice={stitchingPrice}
+              setStichingPrice={setStitchPrice}
               initialCampaigns={order.campaigns || []}
             />
           </ErrorBoundary>
@@ -1005,7 +1066,7 @@ function NewWorkOrder() {
                   () => {
                     handleOrderConfirmation();
                     closeDialog();
-                  }
+                  },
                 );
               }}
               onCancel={() => {
@@ -1015,7 +1076,7 @@ function NewWorkOrder() {
                   () => {
                     handleOrderCancellation();
                     closeDialog();
-                  }
+                  },
                 );
               }}
             />

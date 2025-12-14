@@ -25,7 +25,7 @@ export function SearchCustomer({
   onCustomerFound,
   onHandleClear,
   onPendingOrderSelected,
-  checkPendingOrders = false
+  checkPendingOrders = false,
 }: SearchCustomerProps) {
   const [searchMobile, setSearchMobile] = useState("");
   const [submittedSearch, setSubmittedSearch] = useState<string | null>(null);
@@ -33,7 +33,9 @@ export function SearchCustomer({
   const [customerOptions, setCustomerOptions] = useState<Customer[]>([]);
   const [showPendingOrders, setShowPendingOrders] = useState(false);
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null,
+  );
 
   const { data, isFetching, isSuccess, isError, error } = useQuery({
     queryKey: ["customerSearch", submittedSearch],
@@ -46,34 +48,40 @@ export function SearchCustomer({
     retry: false,
   });
 
-  const handleSelectCustomer = useCallback(async (customer: Customer) => {
-    setShowDialog(false);
-    setCustomerOptions([]);
-    setSubmittedSearch(null);
-    setSelectedCustomer(customer);
+  const handleSelectCustomer = useCallback(
+    async (customer: Customer) => {
+      setShowDialog(false);
+      setCustomerOptions([]);
+      setSubmittedSearch(null);
+      setSelectedCustomer(customer);
 
-    // Check for pending orders if enabled (only for new work orders)
-    if (checkPendingOrders && customer.fields.id) {
-      try {
-        const response = await getPendingOrdersByCustomer(customer.fields.id, 5);
-        if (response.data && response.data.length > 0) {
-          setPendingOrders(response.data);
-          setShowPendingOrders(true);
-        } else {
-          // No pending orders, proceed with customer
+      // Check for pending orders if enabled (only for new work orders)
+      if (checkPendingOrders && customer.fields.id) {
+        try {
+          const response = await getPendingOrdersByCustomer(
+            customer.fields.id,
+            5,
+          );
+          if (response.data && response.data.length > 0) {
+            setPendingOrders(response.data);
+            setShowPendingOrders(true);
+          } else {
+            // No pending orders, proceed with customer
+            onCustomerFound(customer);
+          }
+        } catch (error) {
+          console.error("Error fetching pending orders:", error);
+          toast.error("Failed to check for pending orders");
+          // Proceed with customer selection anyway
           onCustomerFound(customer);
         }
-      } catch (error) {
-        console.error("Error fetching pending orders:", error);
-        toast.error("Failed to check for pending orders");
-        // Proceed with customer selection anyway
+      } else {
+        // No need to check pending orders, proceed directly
         onCustomerFound(customer);
       }
-    } else {
-      // No need to check pending orders, proceed directly
-      onCustomerFound(customer);
-    }
-  }, [checkPendingOrders, onCustomerFound]);
+    },
+    [checkPendingOrders, onCustomerFound],
+  );
 
   useEffect(() => {
     if (isSuccess && data) {
@@ -134,8 +142,7 @@ export function SearchCustomer({
   };
 
   return (
-    <div
-      className="bg-muted p-4 rounded-lg space-y-4">
+    <div className="bg-muted p-4 rounded-lg space-y-4">
       <h2 className="text-xl font-semibold">Search Customer</h2>
 
       <div className="flex justify-between gap-4 items-end">

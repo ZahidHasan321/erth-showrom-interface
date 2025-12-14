@@ -18,6 +18,7 @@ interface CurrentWorkOrderState {
   orderId: string | null;
   order: Partial<OrderSchema>;
   customerDemographics: Partial<CustomerDemographics>;
+  stitchingPrice: number;
   // customerMeasurements: Partial<CustomerMeasurements>;
   fabricSelections: FabricSelection[];
   styleOptions: StyleOption[];
@@ -35,7 +36,7 @@ interface CurrentWorkOrderState {
   setOrder: (order: Partial<OrderSchema>) => void;
   removeFabricSelection: (id: string) => void;
   setCurrentStep: (step: number) => void;
-
+  setStitchingPrice: (price: number) => void;
   // mark step complete
   addSavedStep: (step: number) => void;
   removeSavedStep: (step: number) => void;
@@ -50,8 +51,8 @@ export const createWorkOrderStore = (name: string) =>
       (set) => ({
         orderId: null,
         order: {},
+        stitchingPrice: 9,
         customerDemographics: {},
-        // customerMeasurements: {},
         fabricSelections: [],
         styleOptions: [],
         shelvedProducts: [],
@@ -84,26 +85,26 @@ export const createWorkOrderStore = (name: string) =>
         updateFabricSelection: (data) =>
           set((state) => ({
             fabricSelections: state.fabricSelections.map((item) =>
-              item.id === data.id ? data : item
+              item.id === data.id ? data : item,
             ),
           })),
 
         removeFabricSelection: (id) =>
           set((state) => ({
             fabricSelections: state.fabricSelections.filter(
-              (item) => item.id !== id
+              (item) => item.id !== id,
             ),
           })),
 
         setCurrentStep: (step) => set({ currentStep: step }),
-
+        setStitchingPrice: (price) => set({ stitchingPrice: price }),
         addSavedStep: (step) =>
           set((state) =>
             state.savedSteps.includes(step)
               ? state
               : {
                   savedSteps: [...state.savedSteps, step].sort((a, b) => a - b),
-                }
+                },
           ),
 
         removeSavedStep: (step) =>
@@ -123,6 +124,6 @@ export const createWorkOrderStore = (name: string) =>
             savedSteps: [],
           }),
       }),
-      { name: `work-order-${name}` }
-    )
+      { name: `work-order-${name}` },
+    ),
   );
