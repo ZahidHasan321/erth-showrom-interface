@@ -1,15 +1,16 @@
-import type { ApiResponse, UpsertApiResponse } from '../types/api';
-import type { Customer } from '../types/customer';
+import type { ApiResponse, UpsertApiResponse } from "../types/api";
+import type { Customer } from "../types/customer";
 import {
   createRecord,
+  getRecordById,
   getRecords,
   searchAllRecords,
   searchRecords,
   updateRecord,
   upsertRecords,
-} from './baseApi';
+} from "./baseApi";
 
-const TABLE_NAME = 'CUSTOMERS';
+const TABLE_NAME = "CUSTOMERS";
 
 export const getCustomers = () => getRecords<Customer>(TABLE_NAME);
 
@@ -24,36 +25,41 @@ export const searchPrimaryAccountByPhone = (
 ): Promise<ApiResponse<Customer[]>> => {
   return searchAllRecords<Customer[]>(TABLE_NAME, {
     Phone: phone,
-    accountType: 'Primary',
+    accountType: "Primary",
   });
+};
+
+export const getCustomerByRecordId = (
+  id: string,
+): Promise<ApiResponse<Customer>> => {
+  return getRecordById<Customer>(TABLE_NAME, id);
 };
 
 export const getCustomerById = (id: string): Promise<ApiResponse<Customer>> => {
   return searchRecords<Customer>(TABLE_NAME, { id: id });
 };
+
 export const createCustomer = (
-  customer: Partial<Customer['fields']>,
+  customer: Partial<Customer["fields"]>,
 ): Promise<ApiResponse<Customer>> => {
-  return createRecord<Customer>(
-    TABLE_NAME,
-    { fields: customer } as Partial<Customer>,
-  );
+  return createRecord<Customer>(TABLE_NAME, {
+    fields: customer,
+  } as Partial<Customer>);
 };
 
 export const updateCustomer = (
   recordId: string,
-  customer: Partial<Customer['fields']>,
+  customer: Partial<Customer["fields"]>,
 ): Promise<ApiResponse<Customer>> => {
   return updateRecord<Customer>(TABLE_NAME, recordId, customer);
 };
 
 export const upsertCustomer = (
-  customers: Array<{ id?: string; fields: Partial<Customer['fields']> }>,
-  keyFields: string[] = ['Phone'],
+  customers: Array<{ id?: string; fields: Partial<Customer["fields"]> }>,
+  keyFields: string[] = ["Phone"],
 ): Promise<UpsertApiResponse<Customer>> => {
-  return upsertRecords<Customer>(
-    TABLE_NAME,
-    customers,
-    keyFields,
-  ) as Promise<UpsertApiResponse<Customer>>;
+  return upsertRecords<Customer>(TABLE_NAME, customers, keyFields) as Promise<
+    UpsertApiResponse<Customer>
+  >;
 };
+

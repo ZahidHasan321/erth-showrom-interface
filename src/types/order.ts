@@ -31,5 +31,10 @@ export interface Order {
     Paid?: number;
     Balance?: number;
     NumOfFabrics?: number;
+    LinkedOrder?: boolean;
+    UnlinkedOrder?: boolean;
+    LinkedDate?: string;
+    UnlinkedDate?: string;
+    LinkedTo?: string[];
   };
 }

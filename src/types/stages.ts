@@ -7,6 +7,7 @@ export const FatouraStage = {
   /** FATOURA RECEIVED, NOTHING DONE YET */
   FATOURA_RECEIVED: "FATOURA RECEIVED",
 
+  SENT_TO_PRODUCTION: "SENT TO PRODUCTION",
   /** PIECES IN WATER */
   WATER: "WATER",
 
@@ -35,7 +36,7 @@ export const FatouraStage = {
   CANCELLED: "CANCELLED",
 } as const;
 
-export type FatouraStage = typeof FatouraStage[keyof typeof FatouraStage];
+export type FatouraStage = (typeof FatouraStage)[keyof typeof FatouraStage];
 
 /**
  * Piece (Garment) Stages
@@ -80,7 +81,7 @@ export const PieceStage = {
   QC_OK: "QC OK",
 } as const;
 
-export type PieceStage = typeof PieceStage[keyof typeof PieceStage];
+export type PieceStage = (typeof PieceStage)[keyof typeof PieceStage];
 
 /**
  * Mapping from Fatoura stage codes to enum values
@@ -103,16 +104,16 @@ export const FatouraStageCodeMap: Record<string, FatouraStage> = {
  */
 export const PieceStageCodeMap: Record<string, PieceStage> = {
   "020": PieceStage.WAITING_CUT,
-  "CUTT": PieceStage.CUTT,
+  CUTT: PieceStage.CUTT,
   "POST CUT": PieceStage.POST_CUT,
-  "TASK1": PieceStage.TASK1_PREP,
-  "TASK2": PieceStage.TASK2_JABZOUR_FRONT_POCKET,
-  "TASK3": PieceStage.TASK3_COLLAR,
-  "TASK4": PieceStage.TASK4_SLEEVES_SIDES_HEMMING,
-  "TASK5": PieceStage.TASK5_INTERMEDIATE_OUT_MEASURE,
-  "TASK6": PieceStage.TASK6_SIDE_POCKET_HEMMING,
-  "FINISHING": PieceStage.FINISHING,
-  "IRONING": PieceStage.IRONING,
+  TASK1: PieceStage.TASK1_PREP,
+  TASK2: PieceStage.TASK2_JABZOUR_FRONT_POCKET,
+  TASK3: PieceStage.TASK3_COLLAR,
+  TASK4: PieceStage.TASK4_SLEEVES_SIDES_HEMMING,
+  TASK5: PieceStage.TASK5_INTERMEDIATE_OUT_MEASURE,
+  TASK6: PieceStage.TASK6_SIDE_POCKET_HEMMING,
+  FINISHING: PieceStage.FINISHING,
+  IRONING: PieceStage.IRONING,
   "QC OK": PieceStage.QC_OK,
 };
 
@@ -121,6 +122,7 @@ export const PieceStageCodeMap: Record<string, PieceStage> = {
  */
 export const FatouraStageToCode: Record<FatouraStage, string> = {
   [FatouraStage.FATOURA_RECEIVED]: "000",
+  [FatouraStage.SENT_TO_PRODUCTION]: "001",
   [FatouraStage.WATER]: "002",
   [FatouraStage.BROVA_ON_PRODUCTION]: "003",
   [FatouraStage.BROVA_AT_SHOP_WAITING_APPROVAL]: "004",
@@ -155,9 +157,11 @@ export const PieceStageToCode: Record<PieceStage, string> = {
  */
 export const FatouraStageLabels: Record<FatouraStage, string> = {
   [FatouraStage.FATOURA_RECEIVED]: "Fatoura Received",
+  [FatouraStage.SENT_TO_PRODUCTION]: "Sent to production",
   [FatouraStage.WATER]: "Water",
   [FatouraStage.BROVA_ON_PRODUCTION]: "Brova on Production",
-  [FatouraStage.BROVA_AT_SHOP_WAITING_APPROVAL]: "Brova at Shop Waiting Approval",
+  [FatouraStage.BROVA_AT_SHOP_WAITING_APPROVAL]:
+    "Brova at Shop Waiting Approval",
   [FatouraStage.BROVA_OK]: "Brova OK",
   [FatouraStage.BROVA_OK_ALT]: "Brova OK + Alt",
   [FatouraStage.FINAL_ON_PRODUCTION]: "Final on Production",
@@ -177,7 +181,8 @@ export const PieceStageLabels: Record<PieceStage, string> = {
   [PieceStage.TASK2_JABZOUR_FRONT_POCKET]: "Task 2: Jabzour + Front Pocket",
   [PieceStage.TASK3_COLLAR]: "Task 3: Collar",
   [PieceStage.TASK4_SLEEVES_SIDES_HEMMING]: "Task 4: Sleeves + Sides + Hemming",
-  [PieceStage.TASK5_INTERMEDIATE_OUT_MEASURE]: "Task 5: Intermediate OUT + Measure",
+  [PieceStage.TASK5_INTERMEDIATE_OUT_MEASURE]:
+    "Task 5: Intermediate OUT + Measure",
   [PieceStage.TASK6_SIDE_POCKET_HEMMING]: "Task 6: Side Pocket + Hemming",
   [PieceStage.FINISHING]: "Finishing",
   [PieceStage.IRONING]: "Ironing",

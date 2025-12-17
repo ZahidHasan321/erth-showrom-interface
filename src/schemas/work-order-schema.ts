@@ -11,6 +11,7 @@ export const orderSchema = z.object({
   fatouraStages: z
     .enum([
       FatouraStage.FATOURA_RECEIVED,
+      FatouraStage.SENT_TO_PRODUCTION,
       FatouraStage.WATER,
       FatouraStage.BROVA_ON_PRODUCTION,
       FatouraStage.BROVA_AT_SHOP_WAITING_APPROVAL,

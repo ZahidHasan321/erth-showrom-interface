@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/sidebar";
 import { BRAND_NAMES } from "@/lib/constants";
 
-
 // This is sample data.
 const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
@@ -39,8 +38,8 @@ const data = {
           url: "orders/new-sales-order",
         },
         {
-          title: "Update an Order",
-          url: "orders/update-an-order",
+          title: "Order Management",
+          url: "orders/order-management",
         },
         {
           title: "New Alternation Order",
@@ -53,7 +52,7 @@ const data = {
         {
           title: "Orders at Showroom",
           url: "orders/orders-at-showroom",
-        }
+        },
       ],
     },
     {
@@ -79,10 +78,16 @@ const data = {
       ],
     },
   ],
-}
+};
 
-export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentProps<typeof Sidebar> & { brandName: string, brandLogo: string }) {
-
+export function AppSidebar({
+  brandLogo,
+  brandName,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & {
+  brandName: string;
+  brandLogo: string;
+}) {
   type SidebarLinkProps = {
     to: string;
     title: string;
@@ -115,23 +120,27 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
           style={disabled ? { pointerEvents: "none", opacity: 0.5 } : {}}
           className={`
             block w-full
-            ${match
-              ? "text-primary font-semibold"
-              : "text-muted-foreground hover:text-foreground"
+            ${
+              match
+                ? "text-primary font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             }
             transition-colors duration-200
           `}
           // When on new-order page, open in a new tab:
-          {...(isNewOrderPage ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+          {...(isNewOrderPage
+            ? { target: "_blank", rel: "noopener noreferrer" }
+            : {})}
         >
           <SidebarMenuButton
             isActive={!!match}
             disabled={disabled}
             className={`
               w-full justify-start
-              ${match
-                ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
-                : "hover:bg-accent/50 hover:text-foreground"
+              ${
+                match
+                  ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
+                  : "hover:bg-accent/50 hover:text-foreground"
               }
               transition-all duration-200
             `}
@@ -142,7 +151,6 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
       </SidebarMenuItem>
     );
   };
-
 
   const { main } = useParams({ strict: false }); // Get the dynamic 'main' parameter
   const mainSegment = main ? `/${main}` : BRAND_NAMES.showroom; // Construct the main segment
@@ -166,7 +174,9 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
             />
           </div>
           <div className="grid flex-1 text-left leading-tight">
-            <span className="truncate font-bold text-xl text-foreground">{brandName}</span>
+            <span className="truncate font-bold text-xl text-foreground">
+              {brandName}
+            </span>
             <span className="text-xs text-muted-foreground">Clothing</span>
           </div>
         </Link>
@@ -176,7 +186,12 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
         <SidebarGroup key="top" className="mb-4">
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarLink key="Homepage" to={mainSegment || "/"} title="Homepage" exactMatch={true} />
+              <SidebarLink
+                key="Homepage"
+                to={mainSegment || "/"}
+                title="Homepage"
+                exactMatch={true}
+              />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -192,7 +207,7 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
                 {item.items.map((subItem) => (
                   <SidebarLink
                     key={subItem.title}
-                    to={`${mainSegment}/${item.url ? `${item.url}/` : ''}${subItem.url}`}
+                    to={`${mainSegment}/${item.url ? `${item.url}/` : ""}${subItem.url}`}
                     title={subItem.title}
                     disabled={false}
                   />
@@ -204,5 +219,6 @@ export function AppSidebar({ brandLogo, brandName, ...props }: React.ComponentPr
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
+
