@@ -1,5 +1,6 @@
 import { Link, useMatchRoute, useParams } from "@tanstack/react-router";
 import * as React from "react";
+import { ChevronDown } from "lucide-react";
 
 import {
   Sidebar,
@@ -11,6 +12,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { BRAND_NAMES } from "@/lib/constants";
@@ -38,10 +42,6 @@ const data = {
           url: "orders/new-sales-order",
         },
         {
-          title: "Order Management",
-          url: "orders/order-management",
-        },
-        {
           title: "New Alternation Order",
           url: "orders/new-alteration-order",
         },
@@ -52,6 +52,48 @@ const data = {
         {
           title: "Orders at Showroom",
           url: "orders/orders-at-showroom",
+        },
+        {
+          title: "Order Management",
+          isCollapsible: true,
+          items: [
+            {
+              title: "Dispatch Orders",
+              url: "orders/order-management/dispatch",
+            },
+            {
+              title: "Link Orders",
+              url: "orders/order-management/link",
+            },
+            {
+              title: "Unlink Orders",
+              url: "orders/order-management/unlink",
+            },
+            {
+              title: "Receiving Brova / Final",
+              url: "orders/order-management/receiving-brova-final",
+            },
+            {
+              title: "Change Options",
+              url: "orders/order-management/change-options",
+            },
+            {
+              title: "Brova Feedback",
+              url: "orders/order-management/brova-feedback",
+            },
+            {
+              title: "Final Feedback",
+              url: "orders/order-management/final-feedback",
+            },
+            {
+              title: "Alterations",
+              url: "orders/order-management/alterations",
+            },
+            {
+              title: "Cancel Order",
+              url: "orders/order-management/cancel-order",
+            },
+          ],
         },
       ],
     },
@@ -152,6 +194,105 @@ export function AppSidebar({
     );
   };
 
+  type CollapsibleMenuItemProps = {
+    title: string;
+    items: Array<{ title: string; url: string }>;
+    mainSegment: string;
+  };
+
+  const CollapsibleMenuItem: React.FC<CollapsibleMenuItemProps> = ({
+    title,
+    items,
+    mainSegment,
+  }) => {
+    const [isOpen, setIsOpen] = React.useState(false);
+    const matchRoute = useMatchRoute();
+
+    // Check if any sub-item is active
+    const hasActiveChild = items.some((item) =>
+      matchRoute({ to: `${mainSegment}/${item.url}`, fuzzy: true })
+    );
+
+    // Auto-expand if a child is active
+    React.useEffect(() => {
+      if (hasActiveChild) {
+        setIsOpen(true);
+      }
+    }, [hasActiveChild]);
+
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          onClick={() => setIsOpen(!isOpen)}
+          className={`
+            w-full justify-between
+            ${
+              hasActiveChild
+                ? "bg-primary/10 text-primary font-semibold"
+                : "hover:bg-accent/50 hover:text-foreground"
+            }
+            transition-all duration-200
+          `}
+        >
+          <span>{title}</span>
+          <ChevronDown
+            className={`ml-auto h-4 w-4 transition-transform duration-200 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
+        </SidebarMenuButton>
+        {isOpen && (
+          <SidebarMenuSub className="ml-4 mt-1 space-y-1">
+            {items.map((subItem) => {
+              const match = matchRoute({
+                to: `${mainSegment}/${subItem.url}`,
+                fuzzy: true,
+              });
+              const isNewOrderPage =
+                typeof window !== "undefined" &&
+                /^\/orders\/new-/.test(window.location.pathname);
+
+              return (
+                <SidebarMenuSubItem key={subItem.title}>
+                  <Link
+                    to={`${mainSegment}/${subItem.url}`}
+                    className={`
+                      block w-full
+                      ${
+                        match
+                          ? "text-primary font-semibold"
+                          : "text-muted-foreground hover:text-foreground"
+                      }
+                      transition-colors duration-200
+                    `}
+                    {...(isNewOrderPage
+                      ? { target: "_blank", rel: "noopener noreferrer" }
+                      : {})}
+                  >
+                    <SidebarMenuSubButton
+                      isActive={!!match}
+                      className={`
+                        w-full justify-start
+                        ${
+                          match
+                            ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
+                            : "hover:bg-accent/50 hover:text-foreground"
+                        }
+                        transition-all duration-200
+                      `}
+                    >
+                      {subItem.title}
+                    </SidebarMenuSubButton>
+                  </Link>
+                </SidebarMenuSubItem>
+              );
+            })}
+          </SidebarMenuSub>
+        )}
+      </SidebarMenuItem>
+    );
+  };
+
   const { main } = useParams({ strict: false }); // Get the dynamic 'main' parameter
   const mainSegment = main ? `/${main}` : BRAND_NAMES.showroom; // Construct the main segment
 
@@ -204,14 +345,29 @@ export function AppSidebar({
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
-                {item.items.map((subItem) => (
-                  <SidebarLink
-                    key={subItem.title}
-                    to={`${mainSegment}/${item.url ? `${item.url}/` : ""}${subItem.url}`}
-                    title={subItem.title}
-                    disabled={false}
-                  />
-                ))}
+                {item.items.map((subItem: any) => {
+                  // Check if this is a collapsible item
+                  if (subItem.isCollapsible && subItem.items) {
+                    return (
+                      <CollapsibleMenuItem
+                        key={subItem.title}
+                        title={subItem.title}
+                        items={subItem.items}
+                        mainSegment={mainSegment}
+                      />
+                    );
+                  }
+
+                  // Regular menu item
+                  return (
+                    <SidebarLink
+                      key={subItem.title}
+                      to={`${mainSegment}/${item.url ? `${item.url}/` : ""}${subItem.url}`}
+                      title={subItem.title}
+                      disabled={false}
+                    />
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

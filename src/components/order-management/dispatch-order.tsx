@@ -102,9 +102,9 @@ function OrderCard({ order, onDispatch, isUpdating }: OrderCardProps) {
           )}
         </div>
         <Button
+          className="justify-end"
           onClick={handleDispatch}
           disabled={!allChecked || isUpdating}
-          className="w-full"
           variant={allChecked ? "default" : "secondary"}
         >
           {isUpdating ? "Dispatching..." : "Dispatch"}
