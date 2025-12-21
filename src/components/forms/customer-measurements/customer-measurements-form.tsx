@@ -29,6 +29,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { GroupedMeasurementFields } from "./GroupedMeasurementFields";
 
 import {
+  customerMeasurementsDefaults,
   customerMeasurementsSchema,
   type CustomerMeasurementsSchema,
 } from "./schema";
@@ -160,7 +161,10 @@ export function CustomerMeasurementsForm({
     onConfirm: () => {},
   });
 
-  const selectedReference = form.watch("measurementReference");
+  const [selectedReference, setSelectedReference] = React.useState<
+    string | undefined
+  >(form.getValues("measurementReference"));
+  // const selectedReference = form.watch("measurementReference");
   useAutoProvision(form);
 
   // Fetch employees data
@@ -367,6 +371,13 @@ export function CustomerMeasurementsForm({
     });
   };
 
+  const handleClear = () => {
+    const measurementIDTemp = selectedMeasurementId;
+    form.reset(customerMeasurementsDefaults); // wipe the form
+    form.setValue("measurementID", measurementIDTemp || "");
+    setSelectedMeasurementId(measurementIDTemp);
+  };
+
   const handleCancel = () => {
     setIsEditing(false);
     setIsCreatingNew(false);
@@ -405,6 +416,68 @@ export function CustomerMeasurementsForm({
             <p className="text-sm text-muted-foreground">
               Customer body measurements and details
             </p>
+          </div>
+
+          {/* right: action buttons (ALL except “Continue to Fabric Selection”) */}
+          <div className="flex flex-wrap justify-end gap-4">
+            {!isOrderClosed && !isEditing && !isCreatingNew && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setIsEditing(true)}
+                disabled={!selectedMeasurementId}
+              >
+                <Pencil className="w-4 h-4 mr-2" />
+                Edit Measurement
+              </Button>
+            )}
+
+            {(isEditing || isCreatingNew) && !isOrderClosed && (
+              <>
+                <Button type="button" variant="outline" onClick={handleCancel}>
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <SmallSpinner />
+                      <span className="ml-2">Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Measurement
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+
+            {!isEditing && !isOrderClosed && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleNewMeasurement}
+                  disabled={!customerId}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Measurement
+                </Button>
+              </>
+            )}
+            {/* =====  CLEAR BUTTON  ===== */}
+            {isCreatingNew && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClear}
+                className="border-border/40 text-muted-foreground hover:bg-muted"
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </div>
 
@@ -480,6 +553,7 @@ export function CustomerMeasurementsForm({
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);
+                        setSelectedReference(value);
                       }}
                       value={field.value}
                       disabled={!isEditing}
@@ -707,61 +781,17 @@ export function CustomerMeasurementsForm({
             )}
           />
         </div>
-
-        {/* ---- Buttons ---- */}
+        {/* ---- Continue to Fabric Selection (kept at bottom) ---- */}
         <div className="flex flex-wrap justify-end gap-4 pt-4">
-          {!isOrderClosed && !isEditing && !isCreatingNew && (
+          {!isEditing && !isOrderClosed && (
             <Button
               type="button"
-              variant="secondary"
-              onClick={() => setIsEditing(true)}
-              disabled={!selectedMeasurementId}
+              onClick={onProceed}
+              disabled={measurements.size === 0}
             >
-              <Pencil className="w-4 h-4 mr-2" />
-              Edit Measurement
+              Continue to Fabric Selection
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
-          )}
-          {(isEditing || isCreatingNew) && !isOrderClosed && (
-            <>
-              <Button type="button" variant="outline" onClick={handleCancel}>
-                <X className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? (
-                  <>
-                    <SmallSpinner />
-                    <span className="ml-2">Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Measurement
-                  </>
-                )}
-              </Button>
-            </>
-          )}
-          {!isEditing && !isOrderClosed && (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleNewMeasurement}
-                disabled={!customerId}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Measurement
-              </Button>
-              <Button
-                type="button"
-                onClick={onProceed}
-                disabled={measurements.size === 0}
-              >
-                Continue to Fabric Selection
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </>
           )}
         </div>
       </form>

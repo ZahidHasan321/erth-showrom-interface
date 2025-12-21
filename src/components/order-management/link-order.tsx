@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import type { Order } from "@/types/order";
 import type { Customer } from "@/types/customer";
 import type { ApiResponse } from "@/types/api";
+import type { FatouraStage } from "@/types/stages";
 
 type SelectedOrder = {
   id: string;
@@ -39,6 +40,7 @@ type SelectedOrder = {
   customerId?: string;
   customerName?: string;
   customerPhone?: string;
+  fatouraStage?: FatouraStage;
 };
 
 export default function LinkOrder() {
@@ -167,6 +169,7 @@ export default function LinkOrder() {
           reviseDate: reviseDate ? reviseDate.toISOString() : undefined,
           fatoura: order.fields.Fatoura,
           customerId: order.fields.CustomerID?.[0],
+          fatouraStage: order.fields.FatouraStages,
         }));
       return [...prev, ...newOrders];
     });
@@ -429,6 +432,7 @@ export default function LinkOrder() {
               <th className="p-3 text-left w-10">Primary</th>
               <th className="p-3 text-left">Order ID</th>
               <th className="p-3 text-left">Fatoura</th>
+              <th className="p-3 text-left">Fatoura Stage</th>
               <th className="p-3 text-left">Customer</th>
               <th className="p-3 text-left">Delivery Date</th>
               <th className="p-3 text-left">Revise Date</th>
@@ -439,7 +443,7 @@ export default function LinkOrder() {
             {!hasOrders ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="p-8 text-center text-muted-foreground"
                 >
                   No orders selected. Search to add orders.
@@ -469,6 +473,7 @@ export default function LinkOrder() {
                     </td>
                     <td className="p-3 font-medium">{order.orderId ?? "-"}</td>
                     <td className="p-3">{order.fatoura ?? "-"}</td>
+                    <td className="p-3">{order.fatouraStage ?? "-"}</td>
                     <td className="p-3">
                       {order.customerId ? (
                         customerInfoMap[order.id] ? (

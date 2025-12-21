@@ -50,7 +50,7 @@ function OrderCard({ order, onDispatch, isUpdating }: OrderCardProps) {
   };
 
   return (
-    <Card className="w-full transition-all hover:shadow-md">
+    <Card className="w-full h-full flex flex-col transition-all hover:shadow-md">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div>
@@ -66,43 +66,47 @@ function OrderCard({ order, onDispatch, isUpdating }: OrderCardProps) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-3">
-          <p className="text-sm font-medium text-muted-foreground">
+
+      {/* uniform body: grows and scrolls if needed */}
+      <CardContent className="flex-1 flex flex-col space-y-4">
+        <div className="flex-1 flex flex-col space-y-3 min-h-0">
+          <p className="text-sm font-medium text-muted-foreground shrink-0">
             Piece Check ({numFabrics} {numFabrics === 1 ? "piece" : "pieces"})
           </p>
+
           {numFabrics > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {Array.from({ length: numFabrics }).map((_, index) => (
-                <div
-                  key={index}
-                  className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50"
-                >
-                  <Checkbox
-                    id={`${order.id}-piece-${index}`}
-                    checked={checkedStates[index]}
-                    onCheckedChange={(checked) =>
-                      handleCheckboxChange(index, checked as boolean)
-                    }
-                    disabled={isUpdating}
-                  />
-                  <label
-                    htmlFor={`${order.id}-piece-${index}`}
-                    className="text-sm font-medium cursor-pointer select-none"
+            <div className="flex-1 overflow-y-auto pr-1">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {Array.from({ length: numFabrics }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50"
                   >
-                    Piece {index + 1}
-                  </label>
-                </div>
-              ))}
+                    <Checkbox
+                      id={`${order.id}-piece-${index}`}
+                      checked={checkedStates[index]}
+                      onCheckedChange={(checked) =>
+                        handleCheckboxChange(index, checked as boolean)
+                      }
+                      disabled={isUpdating}
+                    />
+                    <label
+                      htmlFor={`${order.id}-piece-${index}`}
+                      className="text-sm font-medium cursor-pointer select-none"
+                    >
+                      Piece {index + 1}
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No pieces to check (0 fabrics)
-            </p>
+            <p className="text-sm text-muted-foreground">No pieces to check (0 fabrics)</p>
           )}
         </div>
+
         <Button
-          className="justify-end"
+          className="self-end"
           onClick={handleDispatch}
           disabled={!allChecked || isUpdating}
           variant={allChecked ? "default" : "secondary"}
@@ -114,6 +118,7 @@ function OrderCard({ order, onDispatch, isUpdating }: OrderCardProps) {
   );
 }
 
+/* ----------  Page remains untouched  ---------- */
 export default function DispatchOrderPage() {
   const queryClient = useQueryClient();
   const [updatingOrderIds, setUpdatingOrderIds] = useState<Set<string>>(
@@ -146,7 +151,6 @@ export default function DispatchOrderPage() {
         orderId,
       );
       toast.success(`Order dispatched successfully!`);
-      // Refresh the list
       await queryClient.invalidateQueries({ queryKey: ["dispatchOrders"] });
     } catch (error) {
       console.error("Failed to dispatch order:", error);

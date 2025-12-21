@@ -22,7 +22,7 @@ export const Route = createFileRoute("/")({
 
 function LandingPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-8">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-br from-gray-50 to-gray-200 p-8">
       <div className="max-w-4xl w-full text-center mb-16">
         <h1 className="text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
           Welcome to Our Platform
@@ -45,7 +45,7 @@ function LandingPage() {
               <CardHeader className="flex flex-col items-center p-0 mb-6">
                 <CardTitle className="text-3xl font-bold text-gray-800 mb-2">{BRAND_NAMES.showroom}</CardTitle>
               </CardHeader>
-              <CardContent className="p-0 text-center flex-grow">
+              <CardContent className="p-0 text-center grow">
                 <CardDescription className="text-lg text-gray-600 mb-8">
                   Access from Showroom and comprehensive management tools.
                 </CardDescription>
@@ -69,7 +69,7 @@ function LandingPage() {
               <CardHeader className="flex flex-col items-center p-0 mb-6">
                 <CardTitle className="text-3xl font-bold text-gray-800 mb-2">{BRAND_NAMES.fromHome}</CardTitle>
               </CardHeader>
-              <CardContent className="p-0 text-center flex-grow">
+              <CardContent className="p-0 text-center grow">
                 <CardDescription className="text-lg text-gray-600 mb-8">
                     Access from homes to manage orders.
                 </CardDescription>
