@@ -130,6 +130,8 @@ function NewWorkOrder() {
   const resetWorkOrder = useCurrentWorkOrderStore((s) => s.resetWorkOrder);
   // Track the Airtable record ID for polling
   const [orderRecordId, setOrderRecordId] = React.useState<string | null>(null);
+  // Track if user wants to load an existing order instead of creating new
+  const [isLoadingExistingOrder, setIsLoadingExistingOrder] = React.useState(false);
   // ============================================================================
   // FORMS SETUP
   // ============================================================================
@@ -251,9 +253,20 @@ function NewWorkOrder() {
   });
 
   // ============================================================================
+  // LOAD EXISTING ORDER HANDLER
+  // ============================================================================
+  const handleLoadExistingOrder = () => {
+    setIsLoadingExistingOrder(true);
+    setOrderId("LOADING"); // Temporary ID to show the form
+    closeDialog();
+  };
+
+  // ============================================================================
   // PENDING ORDER LOADING
   // ============================================================================
   const handlePendingOrderSelected = async (order: Order) => {
+    // Clear loading flag when actual order is selected
+    setIsLoadingExistingOrder(false);
     try {
       if (!order.fields.OrderID) {
         toast.error("Invalid order ID");
@@ -439,6 +452,13 @@ function NewWorkOrder() {
 
     // Update store with customer demographics
     setCustomerDemographics(customerData);
+
+    // Skip order update if we're in "loading existing order" mode
+    // (the order will be loaded when user selects a pending order)
+    if (isLoadingExistingOrder) {
+      toast.info("Please select a pending order to continue");
+      return;
+    }
 
     // Update order in backend (use orderRecordId which is the Airtable record ID)
     if (orderRecordId) {
@@ -702,20 +722,8 @@ function NewWorkOrder() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerDemographics.id]);
 
-  // Prompt for order creation on mount
-  React.useEffect(() => {
-    if (!orderId) {
-      openDialog(
-        "Create New Work Order",
-        "Do you want to create a new work order?",
-        () => {
-          createOrderMutation.mutate(undefined);
-          closeDialog();
-        },
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orderId]);
+  // Note: Auto-dialog on mount removed - users now choose via OrderCreationPrompt buttons
+  // This prevents confusion between auto-dialog and the two-button interface
 
   // Cleanup on unmount
   React.useEffect(() => {
@@ -860,7 +868,7 @@ function NewWorkOrder() {
   // ============================================================================
   // RENDER: NO ORDER STATE
   // ============================================================================
-  if (!orderId) {
+  if (!orderId && !isLoadingExistingOrder) {
     return (
       <OrderCreationPrompt
         orderType="Work Order"
@@ -868,13 +876,14 @@ function NewWorkOrder() {
         onCreateOrder={() => {
           openDialog(
             "Create New Work Order",
-            "Do you want to create a new work order or Open existing? This will initialize a new order entry.",
+            "This will initialize a new order entry.",
             () => {
               createOrderMutation.mutate(undefined);
               closeDialog();
             },
           );
         }}
+        onLoadExisting={handleLoadExistingOrder}
         dialogState={dialog}
         onCloseDialog={closeDialog}
       />
