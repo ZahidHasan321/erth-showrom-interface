@@ -881,24 +881,47 @@ export function FabricSelectionForm({
 
           <div className="flex flex-wrap justify-between gap-4">
             <div className="flex flex-wrap gap-4">
-              {/* How many pieces? */}
-              <div className="flex flex-col gap-4 items-center border border-border w-fit p-5 rounded-xl bg-accent/5 shadow-sm">
-                <Label
-                  htmlFor="num-fabrics"
-                  className="text-base font-semibold"
-                >
-                  How many pieces?
-                </Label>
-                <Input
-                  id="num-fabrics"
-                  type="number"
-                  placeholder="e.g., 2"
-                  onChange={(e) =>
-                    setNumRowsToAdd(parseInt(e.target.value, 10))
-                  }
-                  className="w-24 bg-background border-border/60"
-                  disabled={isFormDisabled}
-                />
+              {/* How many pieces? + Dummy Delivery Date */}
+              <div className="flex flex-col gap-4 items-start border border-border w-fit p-5 rounded-xl bg-accent/5 shadow-sm">
+                <div className="flex items-end gap-4">
+                  {/* Left: pieces input */}
+                  <div className="flex flex-col gap-2">
+                    <Label
+                      htmlFor="num-fabrics"
+                      className="text-base font-semibold"
+                    >
+                      How many pieces?
+                    </Label>
+                    <Input
+                      id="num-fabrics"
+                      type="number"
+                      placeholder="e.g., 2"
+                      onChange={(e) =>
+                        setNumRowsToAdd(parseInt(e.target.value, 10))
+                      }
+                      className="w-24 bg-background border-border/60"
+                      disabled={isFormDisabled}
+                    />
+                  </div>
+
+                  {/* Right: dummy delivery-date picker */}
+                  <div className="flex flex-col gap-2">
+                    <Label
+                      htmlFor="dummy-delivery"
+                      className="text-base font-semibold"
+                    >
+                      Delivery Date
+                    </Label>
+                    <DatePicker
+                      id="dummy-delivery"
+                      placeholder="Pick a date"
+                      value={undefined} // dummy – not wired to state
+                      onChange={() => {}} // dummy – no-op
+                      disabled={isFormDisabled}
+                    />
+                  </div>
+                </div>
+
                 <Button
                   type="button"
                   onClick={() => {
@@ -920,7 +943,6 @@ export function FabricSelectionForm({
                   Add / Sync
                 </Button>
               </div>
-
               {/* Campaign Offers */}
               <div className="flex flex-col gap-3 border-2 border-primary/30 w-fit p-5 rounded-xl bg-linear-to-br from-primary/5 to-secondary/5 shadow-md">
                 <div className="flex items-center gap-2 mb-1">
@@ -1052,17 +1074,35 @@ export function FabricSelectionForm({
             </div>
           </div>
 
-          <div className="flex justify-between items-end">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-foreground">
-                Fabric Selections
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Select fabric source, type, and measurements for each garment
-              </p>
+          <div className="space-y-3">
+            {/* Header row */}
+            <div className="flex justify-between items-end">
+              <div className="space-y-1">
+                <h2 className="text-2xl font-bold text-foreground">
+                  Fabric Selections
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Select fabric source, type, and measurements for each garment
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={copyFabricSelectionsToAll}
+                disabled={isFormDisabled || fabricSelectionFields.length < 2}
+                title="Copy first row's fabric selections to all other rows"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copy First Row
+              </Button>
             </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold">Delivery Date</label>
+
+            {/* Delivery date row – compact */}
+            <div className="flex items-center gap-2 w-60">
+              <label className="text-sm font-semibold whitespace-nowrap">
+                Delivery Date
+              </label>
               <DatePicker
                 placeholder={new Date().toISOString()}
                 value={deliveryDate ? new Date(deliveryDate) : new Date()}
@@ -1071,18 +1111,8 @@ export function FabricSelectionForm({
                 }}
               />
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={copyFabricSelectionsToAll}
-              disabled={isFormDisabled || fabricSelectionFields.length < 2}
-              title="Copy first row's fabric selections to all other rows"
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Copy First Row
-            </Button>
           </div>
+
           <DataTable
             columns={fabricSelectionColumns}
             data={fabricSelectionFields}
@@ -1332,4 +1362,3 @@ export function FabricSelectionForm({
     </FormProvider>
   );
 }
-

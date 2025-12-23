@@ -580,7 +580,7 @@ function NewWorkOrder() {
     // Validate the order schema
     const orderData = OrderForm.getValues();
     console.log("Order data before validation:", orderData);
-    console.log("orderType value:", orderData.orderType);
+    // console.log("orderType value:", orderData.orderType);
 
     // Ensure orderType is set to WORK for validation
     const orderDataWithType = { ...orderData, orderType: "WORK" as const };
@@ -663,21 +663,7 @@ function NewWorkOrder() {
   const handleOrderConfirmation = () => {
     if (!validateOrderCompletion()) return;
 
-    const paid = OrderForm.getValues().paid ?? 0;
-
-    // Show confirmation dialog if no payment has been made
-    if (paid === 0) {
-      openDialog(
-        "Zero Payment Confirmation",
-        "No payment has been received for this order. Are you sure you want to confirm the order with zero payment?",
-        () => {
-          confirmOrderCompletion();
-          closeDialog();
-        },
-      );
-    } else {
-      confirmOrderCompletion();
-    }
+    confirmOrderCompletion();
   };
 
   const handleOrderCancellation = () => {

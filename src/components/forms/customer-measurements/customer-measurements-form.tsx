@@ -407,7 +407,6 @@ export function CustomerMeasurementsForm({
           title={confirmationDialog.title}
           description={confirmationDialog.description}
         />
-
         <div className="flex justify-between items-start mb-6">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold text-foreground bg-linear-to-r from-primary to-secondary bg-clip-text">
@@ -417,136 +416,77 @@ export function CustomerMeasurementsForm({
               Customer body measurements and details
             </p>
           </div>
-
-          {/* right: action buttons (ALL except “Continue to Fabric Selection”) */}
-          <div className="flex flex-wrap justify-end gap-4">
-            {!isOrderClosed && !isEditing && !isCreatingNew && (
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setIsEditing(true)}
-                disabled={!selectedMeasurementId}
-              >
-                <Pencil className="w-4 h-4 mr-2" />
-                Edit Measurement
-              </Button>
-            )}
-
-            {(isEditing || isCreatingNew) && !isOrderClosed && (
-              <>
-                <Button type="button" variant="outline" onClick={handleCancel}>
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSaving}>
-                  {isSaving ? (
-                    <>
-                      <SmallSpinner />
-                      <span className="ml-2">Saving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Measurement
-                    </>
-                  )}
-                </Button>
-              </>
-            )}
-
-            {!isEditing && !isOrderClosed && (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleNewMeasurement}
-                  disabled={!customerId}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Measurement
-                </Button>
-              </>
-            )}
-            {/* =====  CLEAR BUTTON  ===== */}
-            {isCreatingNew && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClear}
-                className="border-border/40 text-muted-foreground hover:bg-muted"
-              >
-                Clear
-              </Button>
-            )}
-          </div>
         </div>
-
         {/* ---- Top Controls ---- */}
-        <div className="flex flex-wrap justify-start gap-6 bg-card p-6 rounded-xl border border-border shadow-sm">
-          <FormField
-            control={form.control}
-            name="measurementType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-medium">Measurement Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!isEditing}
-                >
-                  <FormControl>
-                    <SelectTrigger className="bg-background border-border/60 w-auto min-w-24">
-                      <SelectValue placeholder="Select Type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Body">Body</SelectItem>
-                    <SelectItem value="Dishdasha">Dishdasha</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="measurementID"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-medium">Measurement ID</FormLabel>
-                <div className="flex items-center gap-2">
+        {/* ---- Top Controls ---- */}
+        <div className="flex flex-wrap justify-between items-start gap-6 bg-card p-6 rounded-xl border border-border shadow-sm">
+          {/* Left side: all existing fields wrapped in one flex row */}
+          <div className="flex flex-wrap justify-start gap-6">
+            <FormField
+              control={form.control}
+              name="measurementType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-medium">
+                    Measurement Type
+                  </FormLabel>
                   <Select
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      if (value) setSelectedMeasurementId(value);
-                    }}
+                    onValueChange={field.onChange}
                     value={field.value}
-                    disabled={!customerId || isCreatingNew || isFetching}
+                    disabled={!isEditing}
                   >
                     <FormControl>
                       <SelectTrigger className="bg-background border-border/60 w-auto min-w-24">
-                        <SelectValue placeholder="Select ID" />
+                        <SelectValue placeholder="Select Type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Array.from(measurements.keys()).map((id) => (
-                        <SelectItem key={id} value={id}>
-                          {id}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="Body">Body</SelectItem>
+                      <SelectItem value="Dishdasha">Dishdasha</SelectItem>
                     </SelectContent>
                   </Select>
-                  {isFetching && <SmallSpinner />}
-                </div>
-              </FormItem>
-            )}
-          />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="measurementReference"
-            render={({ field }) => {
-              return (
+            <FormField
+              control={form.control}
+              name="measurementID"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-medium">Measurement ID</FormLabel>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        if (value) setSelectedMeasurementId(value);
+                      }}
+                      value={field.value}
+                      disabled={!customerId || isCreatingNew || isFetching}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-background border-border/60 w-auto min-w-24">
+                          <SelectValue placeholder="Select ID" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Array.from(measurements.keys()).map((id) => (
+                          <SelectItem key={id} value={id}>
+                            {id}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isFetching && <SmallSpinner />}
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="measurementReference"
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel className="font-medium">Reference</FormLabel>
                   <div className="flex gap-2 items-center">
@@ -574,77 +514,140 @@ export function CustomerMeasurementsForm({
                   </div>
                   <FormMessage />
                 </FormItem>
-              );
-            }}
-          />
+              )}
+            />
 
-          {selectedReference === "Other" && (
+            {selectedReference === "Other" && (
+              <FormField
+                control={form.control}
+                name="measurementOtherNote"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-medium">
+                      Reference Note
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter custom reference"
+                        className="bg-background border-border/60 w-auto min-w-48"
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        disabled={!isEditing}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
-              name="measurementOtherNote"
+              name="measurer"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-medium">Reference Note</FormLabel>
+                  <FormLabel className="font-medium">Measurer</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Enter custom reference"
-                      className="bg-background border-border/60 w-auto min-w-48"
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value)}
+                    <Combobox
+                      options={employees.map((emp) => ({
+                        value: emp.id,
+                        label: emp.fields.Name,
+                      }))}
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
+                      placeholder="Select measurer"
                       disabled={!isEditing}
+                      className="w-auto min-w-48"
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          )}
 
-          <FormField
-            control={form.control}
-            name="measurer"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-medium">Measurer</FormLabel>
-                <FormControl>
-                  <Combobox
-                    options={employees.map((emp) => ({
-                      value: emp.id,
-                      label: emp.fields.Name,
-                    }))}
-                    value={field.value ?? ""}
-                    onChange={field.onChange}
-                    placeholder="Select measurer"
-                    disabled={!isEditing}
-                    className="w-auto min-w-48"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="measurementDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-medium">
+                    Measurement Date
+                  </FormLabel>
+                  <FormControl>
+                    <DatePicker
+                      value={field.value ?? null}
+                      onChange={field.onChange}
+                      placeholder="Select date"
+                      disabled={!isEditing}
+                      className="w-auto min-w-48"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="measurementDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="font-medium">Measurement Date</FormLabel>
-                <FormControl>
-                  <DatePicker
-                    value={field.value ?? null}
-                    onChange={field.onChange}
-                    placeholder="Select date"
-                    disabled={!isEditing}
-                    className="w-auto min-w-48"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+          {/* Right edge: action buttons (moved from bottom) */}
+          <div className="flex items-center gap-3 self-end">
+            {!isOrderClosed && !isEditing && !isCreatingNew && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setIsEditing(true)}
+                disabled={!selectedMeasurementId}
+              >
+                <Pencil className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
             )}
-          />
+
+            {(isEditing || isCreatingNew) && !isOrderClosed && (
+              <>
+                <Button type="button" variant="outline" onClick={handleCancel}>
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <SmallSpinner />
+                      <span className="ml-2">Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+
+            {!isEditing && !isOrderClosed && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleNewMeasurement}
+                disabled={!customerId}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New
+              </Button>
+            )}
+
+            {isCreatingNew && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClear}
+                className="border-border/40 text-muted-foreground hover:bg-muted"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
         </div>
-
         {/* ---- Measurement Groups ---- */}
         <div className="flex flex-col 2xl:flex-row  2xl:flex-wrap gap-4 items-start pt-8">
           <div className="flex flex-row gap-6 flex-wrap">
@@ -723,7 +726,6 @@ export function CustomerMeasurementsForm({
             ]}
           />
         </div>
-
         <div className="flex flex-row gap-6 flex-wrap">
           <GroupedMeasurementFields
             form={form}
@@ -759,7 +761,6 @@ export function CustomerMeasurementsForm({
             ]}
           />
         </div>
-
         <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
           <FormField
             control={form.control}
@@ -781,8 +782,9 @@ export function CustomerMeasurementsForm({
             )}
           />
         </div>
-        {/* ---- Continue to Fabric Selection (kept at bottom) ---- */}
+        {/* ---- Continue to Fabric Selection ---- */}
         <div className="flex flex-wrap justify-end gap-4 pt-4">
+          {/* Continue to Fabric Selection */}
           {!isEditing && !isOrderClosed && (
             <Button
               type="button"
