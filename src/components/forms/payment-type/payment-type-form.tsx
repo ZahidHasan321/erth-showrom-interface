@@ -100,7 +100,7 @@ export function PaymentTypeForm({
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 w-full">
+        <div className="flex flex-col gap-6 w-full">
           {/* Left Section — Payment Types */}
           <motion.div
             layout
@@ -250,11 +250,12 @@ export function PaymentTypeForm({
           {/* Right Section — Actions */}
           <motion.div
             layout
-            className="flex flex-col justify-between bg-card p-6 rounded-xl border border-border shadow-sm w-full lg:w-80 space-y-4"
+            className="flex flex-row justify-between bg-card p-6 rounded-xl border border-border shadow-sm w-full space-y-4 gap-x-12"
             transition={{
               layout: { type: "spring", stiffness: 220, damping: 28 },
             }}
           >
+            <div className="flex-1 flex flex-col justify-between space-y-4">
             <h3 className="text-lg font-semibold mb-2">Order Details</h3>
             <FormField
               control={form.control}
@@ -302,8 +303,9 @@ export function PaymentTypeForm({
                 </FormItem>
               )}
             />
+            </div>
 
-            <motion.div layout className="flex flex-col gap-3 pt-4 border-t border-border">
+            <motion.div layout className="flex-1 flex flex-col gap-3 pt-4">
               {!isOrderClosed && (
                 <Button type="submit">
                   <Check className="w-4 h-4 mr-2" />

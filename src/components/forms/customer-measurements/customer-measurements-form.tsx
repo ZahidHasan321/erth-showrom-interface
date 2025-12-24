@@ -649,8 +649,8 @@ export function CustomerMeasurementsForm({
           </div>
         </div>
         {/* ---- Measurement Groups ---- */}
-        <div className="flex flex-col 2xl:flex-row  2xl:flex-wrap gap-4 items-start pt-8">
-          <div className="flex flex-row gap-6 flex-wrap">
+        <div className="flex flex-col 2xl:flex-row 2xl:flex-wrap gap-4 items-stretch pt-8">
+          <div className="flex flex-row gap-6 flex-wrap w-full">
             <GroupedMeasurementFields
               form={form}
               title="Collar"
@@ -660,6 +660,7 @@ export function CustomerMeasurementsForm({
                 { name: "collar.width", label: "Length" },
                 { name: "collar.height", label: "Height" },
               ]}
+              wrapperClassName="flex-1"
             />
             <GroupedMeasurementFields
               form={form}
@@ -670,6 +671,7 @@ export function CustomerMeasurementsForm({
                 { name: "lengths.front", label: "Front" },
                 { name: "lengths.back", label: "Back" },
               ]}
+              wrapperClassName="flex-1"
             />
           </div>
 
@@ -693,6 +695,7 @@ export function CustomerMeasurementsForm({
                 },
               ],
             ]}
+            wrapperClassName="w-full"
           />
 
           <GroupedMeasurementFields
@@ -724,6 +727,7 @@ export function CustomerMeasurementsForm({
               ],
               { name: "body.bottom", label: "Bottom" },
             ]}
+            wrapperClassName="w-full gap-y-12"
           />
         </div>
         <div className="flex flex-row gap-6 flex-wrap">

@@ -131,7 +131,8 @@ function NewWorkOrder() {
   // Track the Airtable record ID for polling
   const [orderRecordId, setOrderRecordId] = React.useState<string | null>(null);
   // Track if user wants to load an existing order instead of creating new
-  const [isLoadingExistingOrder, setIsLoadingExistingOrder] = React.useState(false);
+  const [isLoadingExistingOrder, setIsLoadingExistingOrder] =
+    React.useState(false);
   // ============================================================================
   // FORMS SETUP
   // ============================================================================
@@ -876,9 +877,6 @@ function NewWorkOrder() {
     );
   }
 
-  // ============================================================================
-  // RENDER: MAIN ORDER FLOW
-  // ============================================================================
   return (
     <div className="mb-64">
       <ConfirmationDialog
@@ -921,7 +919,7 @@ function NewWorkOrder() {
       </div>
 
       {/* Step Content */}
-      <div className="flex flex-col flex-1 items-center gap-16 py-10 mx-[10%]">
+      <div className="flex flex-col flex-1 items-center gap-10 md:gap-16 py-10 mx-[5%] md:mx-[10%] 2xl:grid 2xl:grid-cols-2 2xl:items-stretch 2xl:gap-x-10 2xl:gap-y-12 2xl:max-w-screen-2xl 2xl:mx-auto">
         {/* STEP 0: Demographics */}
         <div
           id={steps[0].id}
@@ -967,7 +965,7 @@ function NewWorkOrder() {
           ref={(el) => {
             sectionRefs.current[2] = el;
           }}
-          className="w-full flex flex-col items-center"
+          className="w-full flex flex-col items-center 2xl:col-span-2"
         >
           <ErrorBoundary fallback={<div>Fabric Selection crashed</div>}>
             <FabricSelectionForm
@@ -1008,7 +1006,7 @@ function NewWorkOrder() {
           ref={(el) => {
             sectionRefs.current[3] = el;
           }}
-          className="w-full flex flex-col items-center"
+          className="w-full flex flex-col items-center 2xl:col-span-2"
         >
           <ErrorBoundary fallback={<div>Shelved Products crashed</div>}>
             <ShelvedProductsForm
