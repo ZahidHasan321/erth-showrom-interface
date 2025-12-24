@@ -44,7 +44,7 @@ export function GroupedMeasurementFields({
         {fields.map((fieldOrFieldGroup, index) => {
           if (Array.isArray(fieldOrFieldGroup)) {
             return (
-              <div key={index} className="flex flex-wrap w-fit gap-x-12 border border-border p-3 rounded-lg bg-card">
+              <div key={index} className="flex flex-wrap gap-y-6 w-fit gap-x-12 border border-border p-3 rounded-lg bg-card">
                 {fieldOrFieldGroup.map((fieldConfig) => (
                   <MeasurementInput
                     key={fieldConfig.name}
