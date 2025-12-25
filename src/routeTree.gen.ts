@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as MainRouteRouteImport } from './routes/$main/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -33,6 +34,11 @@ import { Route as MainOrdersOrderManagementCancelOrderRouteImport } from './rout
 import { Route as MainOrdersOrderManagementBrovaFeedbackRouteImport } from './routes/$main/orders/order-management/brova-feedback'
 import { Route as MainOrdersOrderManagementAlterationsRouteImport } from './routes/$main/orders/order-management/alterations'
 
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$main': typeof MainRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/home': typeof HomeRoute
   '/login': typeof authLoginRoute
   '/$main/': typeof MainIndexRoute
   '/$main/orders/customer-profiles-orders': typeof MainOrdersCustomerProfilesOrdersRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/home': typeof HomeRoute
   '/login': typeof authLoginRoute
   '/$main': typeof MainIndexRoute
   '/$main/orders/customer-profiles-orders': typeof MainOrdersCustomerProfilesOrdersRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$main': typeof MainRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/home': typeof HomeRoute
   '/(auth)/login': typeof authLoginRoute
   '/$main/': typeof MainIndexRoute
   '/$main/orders/customer-profiles-orders': typeof MainOrdersCustomerProfilesOrdersRoute
@@ -244,6 +253,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$main'
     | '/about'
+    | '/home'
     | '/login'
     | '/$main/'
     | '/$main/orders/customer-profiles-orders'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/home'
     | '/login'
     | '/$main'
     | '/$main/orders/customer-profiles-orders'
@@ -293,6 +304,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$main'
     | '/about'
+    | '/home'
     | '/(auth)/login'
     | '/$main/'
     | '/$main/orders/customer-profiles-orders'
@@ -319,11 +331,19 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MainRouteRoute: typeof MainRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
+  HomeRoute: typeof HomeRoute
   authLoginRoute: typeof authLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -547,6 +567,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MainRouteRoute: MainRouteRouteWithChildren,
   AboutRoute: AboutRoute,
+  HomeRoute: HomeRoute,
   authLoginRoute: authLoginRoute,
 }
 export const routeTree = rootRouteImport

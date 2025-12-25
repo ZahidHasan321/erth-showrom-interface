@@ -143,6 +143,7 @@ function NewWorkOrder() {
 
   const measurementsForm = useForm<z.infer<typeof customerMeasurementsSchema>>({
     resolver: zodResolver(customerMeasurementsSchema),
+    mode: "onSubmit",
     defaultValues: {
       ...customerMeasurementsDefaults,
       measurementDate: new Date(), // Set to today for new measurements

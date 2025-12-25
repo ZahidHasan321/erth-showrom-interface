@@ -113,6 +113,26 @@
   --sidebar-ring: oklch(0.60 0.08 165);
 }
 
+/* Erth Brand Theme - Deep Green */
+.erth {
+  --primary: oklch(0.25 0.12 155);
+  /* deep forest green ~950 */
+  --primary-foreground: oklch(0.98 0.01 155);
+  --ring: oklch(0.35 0.10 155);
+  --sidebar-primary: oklch(0.30 0.12 155);
+  --sidebar-ring: oklch(0.35 0.10 155);
+}
+
+/* Sakkba Brand Theme - Deep Blue */
+.sakkba {
+  --primary: oklch(0.25 0.12 240);
+  /* deep blue ~950 */
+  --primary-foreground: oklch(0.98 0.01 240);
+  --ring: oklch(0.35 0.10 240);
+  --sidebar-primary: oklch(0.30 0.12 240);
+  --sidebar-ring: oklch(0.35 0.10 240);
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

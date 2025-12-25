@@ -27,6 +27,8 @@ interface GroupedMeasurementFieldsProps {
       }>
   >;
   wrapperClassName?: string;
+  getFieldRef?: (fieldName: Path<CustomerMeasurementsSchema>) => (element: HTMLInputElement | null) => void;
+  getEnterHandler?: (fieldName: Path<CustomerMeasurementsSchema>) => (() => void) | undefined;
 }
 
 export function GroupedMeasurementFields({
@@ -36,6 +38,8 @@ export function GroupedMeasurementFields({
   isDisabled,
   fields,
   wrapperClassName,
+  getFieldRef,
+  getEnterHandler,
 }: GroupedMeasurementFieldsProps) {
   return (
     <div key={title} className={cn("bg-card border border-border rounded-xl p-6 shadow-sm", wrapperClassName)}>
@@ -45,34 +49,42 @@ export function GroupedMeasurementFields({
           if (Array.isArray(fieldOrFieldGroup)) {
             return (
               <div key={index} className="flex flex-wrap gap-y-6 w-fit gap-x-12 border border-border p-3 rounded-lg bg-card">
-                {fieldOrFieldGroup.map((fieldConfig) => (
-                  <MeasurementInput
-                    key={fieldConfig.name}
-                    form={form}
-                    name={fieldConfig.name as Path<CustomerMeasurementsSchema>}
-                    label={fieldConfig.label}
-                    unit={unit}
-                    isDisabled={isDisabled || (fieldConfig.isDisabled ?? false)}
-                    className={cn( fieldConfig.className )}
-                    labelClassName={fieldConfig.labelClassName}
-                  />
-                ))}
+                {fieldOrFieldGroup.map((fieldConfig) => {
+                  const fieldPath = fieldConfig.name as Path<CustomerMeasurementsSchema>;
+                  return (
+                    <MeasurementInput
+                      key={fieldConfig.name}
+                      ref={getFieldRef?.(fieldPath)}
+                      form={form}
+                      name={fieldPath}
+                      label={fieldConfig.label}
+                      unit={unit}
+                      isDisabled={isDisabled || (fieldConfig.isDisabled ?? false)}
+                      className={cn( fieldConfig.className )}
+                      labelClassName={fieldConfig.labelClassName}
+                      onEnterPress={getEnterHandler?.(fieldPath)}
+                    />
+                  );
+                })}
               </div>
             );
           }
 
           const fieldConfig = fieldOrFieldGroup;
+          const fieldPath = fieldConfig.name as Path<CustomerMeasurementsSchema>;
 
           return (
             <MeasurementInput
               key={fieldConfig.name}
+              ref={getFieldRef?.(fieldPath)}
               form={form}
-              name={fieldConfig.name as Path<CustomerMeasurementsSchema>}
+              name={fieldPath}
               label={fieldConfig.label}
               unit={unit}
               isDisabled={isDisabled || (fieldConfig.isDisabled ?? false)}
               className={cn( fieldConfig.className, "border border-border p-3 rounded-lg w-fit bg-card" )}
               labelClassName={fieldConfig.labelClassName}
+              onEnterPress={getEnterHandler?.(fieldPath)}
             />
           );
         })}

@@ -667,6 +667,12 @@ export function OrderTypeAndPaymentForm({
                             e.target.value === "" ? undefined : e.target.valueAsNumber
                           )
                         }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !isOrderClosed && !showAddressWarning) {
+                            e.preventDefault();
+                            handleProceed();
+                          }
+                        }}
                         disabled={isOrderClosed}
                       />
                       <span className="absolute right-2 text-muted-foreground pointer-events-none">KWD</span>

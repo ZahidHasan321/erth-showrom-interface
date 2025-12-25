@@ -27,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Combobox } from "@/components/ui/combobox";
 import { DatePicker } from "@/components/ui/date-picker";
 import { GroupedMeasurementFields } from "./GroupedMeasurementFields";
+import { useAutoNavigation } from "./useAutoNavigation";
 
 import {
   customerMeasurementsDefaults,
@@ -166,6 +167,16 @@ export function CustomerMeasurementsForm({
   >(form.getValues("measurementReference"));
   // const selectedReference = form.watch("measurementReference");
   useAutoProvision(form);
+
+  // Auto-navigation for electric tape
+  const { getFieldRef, getEnterHandler, focusFirstField } = useAutoNavigation();
+
+  // Auto-focus on first field when entering edit or create mode
+  React.useEffect(() => {
+    if (isEditing || isCreatingNew) {
+      focusFirstField();
+    }
+  }, [isEditing, isCreatingNew, focusFirstField]);
 
   // Fetch employees data
   const { data: employeesResponse } = useQuery({
@@ -661,6 +672,8 @@ export function CustomerMeasurementsForm({
                 { name: "collar.height", label: "Height" },
               ]}
               wrapperClassName="flex-1"
+              getFieldRef={getFieldRef}
+              getEnterHandler={getEnterHandler}
             />
             <GroupedMeasurementFields
               form={form}
@@ -672,6 +685,8 @@ export function CustomerMeasurementsForm({
                 { name: "lengths.back", label: "Back" },
               ]}
               wrapperClassName="flex-1"
+              getFieldRef={getFieldRef}
+              getEnterHandler={getEnterHandler}
             />
           </div>
 
@@ -696,6 +711,8 @@ export function CustomerMeasurementsForm({
               ],
             ]}
             wrapperClassName="w-full"
+            getFieldRef={getFieldRef}
+            getEnterHandler={getEnterHandler}
           />
 
           <GroupedMeasurementFields
@@ -728,6 +745,8 @@ export function CustomerMeasurementsForm({
               { name: "body.bottom", label: "Bottom" },
             ]}
             wrapperClassName="w-full gap-y-12"
+            getFieldRef={getFieldRef}
+            getEnterHandler={getEnterHandler}
           />
         </div>
         <div className="flex flex-row gap-6 flex-wrap">
@@ -741,6 +760,8 @@ export function CustomerMeasurementsForm({
               { name: "topPocket.length", label: "Length" },
               { name: "topPocket.width", label: "Width" },
             ]}
+            getFieldRef={getFieldRef}
+            getEnterHandler={getEnterHandler}
           />
           <GroupedMeasurementFields
             form={form}
@@ -751,6 +772,8 @@ export function CustomerMeasurementsForm({
               { name: "jabzoor.length", label: "Length" },
               { name: "jabzoor.width", label: "Width" },
             ]}
+            getFieldRef={getFieldRef}
+            getEnterHandler={getEnterHandler}
           />
           <GroupedMeasurementFields
             form={form}
@@ -763,6 +786,8 @@ export function CustomerMeasurementsForm({
               { name: "sidePocket.distance", label: "Distance" },
               { name: "sidePocket.opening", label: "Opening" },
             ]}
+            getFieldRef={getFieldRef}
+            getEnterHandler={getEnterHandler}
           />
         </div>
         <div className="bg-card p-6 rounded-xl border border-border shadow-sm">

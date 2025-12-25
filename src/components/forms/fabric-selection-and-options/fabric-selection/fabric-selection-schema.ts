@@ -56,6 +56,19 @@ export const fabricSelectionSchema = z.object({
       message: "Fabric selection is required when source is 'IN'",
       path: ["fabricId"],
     }
+  )
+  .refine(
+    (data) => {
+      // If brova is true, homeDelivery must be false
+      if (data.brova) {
+        return !data.homeDelivery;
+      }
+      return true;
+    },
+    {
+      message: "Home delivery is not available for brova fabrics",
+      path: ["homeDelivery"],
+    }
   );
 
 export type FabricSelectionSchema = z.infer<typeof fabricSelectionSchema>;

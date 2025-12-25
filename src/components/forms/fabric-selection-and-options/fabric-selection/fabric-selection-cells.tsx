@@ -99,16 +99,24 @@ export const BrovaCell = ({
   };
   const isFormDisabled = meta?.isFormDisabled || false;
   return (
-    <div className="w-full flex justify-center items-center min-w-20">
+    <div className="w-full flex flex-col items-center min-w-20">
       <Controller
         name={`fabricSelections.${row.index}.brova`}
         control={control}
-        render={({ field }) => (
-          <Checkbox
-            checked={field.value}
-            onCheckedChange={field.onChange}
-            disabled={isFormDisabled}
-          />
+        render={({ field, fieldState: { error } }) => (
+          <div className="flex flex-col gap-1 items-center">
+            <Checkbox
+              checked={field.value}
+              onCheckedChange={field.onChange}
+              disabled={isFormDisabled}
+              className={cn(error && "border-destructive")}
+            />
+            {error && (
+              <span className="text-xs text-destructive text-center">
+                {error.message}
+              </span>
+            )}
+          </div>
         )}
       />
     </div>
@@ -302,7 +310,7 @@ export const IfInsideCell = ({
             <span className="text-muted-foreground">{`Price: ${fabric.fields.PricePerMeter}`}</span>
             <span
               className={getStockColorClass(fabric.fields.RealStock || 0)}
-            >{`Stock: ${fabric.fields.RealStock}`}</span>
+            >{`Stock: ${fabric.fields.RealStock.toFixed(2)}`}</span>
           </div>
         </div>
       ),
@@ -440,7 +448,7 @@ export const FabricLengthCell = ({
         } else if (totalUsage > realStock) {
           setError(`fabricSelections.${row.index}.fabricLength`, {
             type: "manual",
-            message: `Insufficient stock (Total used: ${totalUsage.toFixed(2)}m, Available: ${realStock}m)`,
+            message: `Insufficient stock (Total used: ${totalUsage.toFixed(2)}m, Available: ${realStock.toFixed(2)}m)`,
           });
         } else {
           clearErrors(`fabricSelections.${row.index}.fabricLength`);
@@ -681,19 +689,26 @@ export const HomeDeliveryCell = ({
   const isFormDisabled = meta?.isFormDisabled || false;
 
   return (
-    <div className="w-full flex justify-center items-center min-w-20">
+    <div className="w-full flex flex-col items-center min-w-20">
       <Controller
         name={`fabricSelections.${row.index}.homeDelivery`}
         control={control}
-        render={({ field }) => (
-          <Checkbox
-            checked={field.value as boolean}
-            onCheckedChange={field.onChange}
-            disabled={isFormDisabled}
-          />
+        render={({ field, fieldState: { error } }) => (
+          <div className="flex flex-col gap-1 items-center">
+            <Checkbox
+              checked={field.value as boolean}
+              onCheckedChange={field.onChange}
+              disabled={isFormDisabled}
+              className={cn(error && "border-destructive")}
+            />
+            {error && (
+              <span className="text-xs text-destructive text-center">
+                {error.message}
+              </span>
+            )}
+          </div>
         )}
       />
     </div>
   );
 };
-

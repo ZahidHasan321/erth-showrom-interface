@@ -283,6 +283,27 @@ export function FabricSelectionForm({
     });
   }, [deliveryDate]);
 
+  // Trigger validation when brova or homeDelivery changes
+  React.useEffect(() => {
+    const subscription = form.watch((_value, { name }) => {
+      // Only trigger validation if brova or homeDelivery changed
+      if (
+        name?.includes(".brova") ||
+        name?.includes(".homeDelivery")
+      ) {
+        // Extract row index from the field name (e.g., "fabricSelections.0.brova" -> 0)
+        const match = name?.match(/fabricSelections\.(\d+)\./);
+        if (match) {
+          const rowIndex = parseInt(match[1], 10);
+          // Trigger validation for both brova and homeDelivery fields in this row
+          form.trigger(`fabricSelections.${rowIndex}.brova`);
+          form.trigger(`fabricSelections.${rowIndex}.homeDelivery`);
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   // Validate fabric selections before saving
   const validateFabricSelections = React.useCallback(() => {
     const errors: string[] = [];
@@ -366,6 +387,13 @@ export function FabricSelectionForm({
       // Validate delivery date is always required
       if (!selection.deliveryDate) {
         errors.push(`Row ${index + 1}: Delivery date is required`);
+      }
+
+      // Validate brova and home delivery cannot both be true
+      if (selection.brova && selection.homeDelivery) {
+        errors.push(
+          `Row ${index + 1}: Brova and home delivery cannot be selected together`,
+        );
       }
     });
 
@@ -917,7 +945,7 @@ export function FabricSelectionForm({
                       placeholder="Pick a date"
                       value={undefined} // dummy – not wired to state
                       onChange={() => {}} // dummy – no-op
-                      disabled={isFormDisabled}
+                      disabled
                     />
                   </div>
                 </div>
@@ -1017,15 +1045,17 @@ export function FabricSelectionForm({
                   />
                   <label>9 KWD</label>
                 </div>
-                <div className="flex items-center justify-center gap-2">
-                  <Checkbox
-                    checked={stichingPrice == 8}
-                    onCheckedChange={(checked) =>
-                      checked ? setStichingPrice(8) : null
-                    }
-                  />
-                  <label>8 KWD</label>
-                </div>
+
+                {/* <div className="flex items-center justify-center gap-2"> */}
+                {/*   <Checkbox */}
+                {/*     checked={stichingPrice == 8} */}
+                {/*     onCheckedChange={(checked) => */}
+                {/*       checked ? setStichingPrice(8) : null */}
+                {/*     } */}
+                {/*   /> */}
+                {/*   <label>8 KWD</label> */}
+                {/* </div> */}
+
                 <div className="flex items-center justify-center gap-2">
                   <Checkbox
                     checked={stichingPrice == 7}

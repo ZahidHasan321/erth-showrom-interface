@@ -1,164 +1,306 @@
-import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
-import * as React from 'react'
-import { z } from 'zod'
-import sleep, { useAuth } from '@/context/auth'
-import { BRAND_NAMES } from '@/lib/constants'
+import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
+import * as React from "react";
+import { z } from "zod";
+import sleep, { useAuth } from "@/context/auth";
+import { BRAND_NAMES } from "@/lib/constants";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { AlertCircle, LogIn } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import ErthLogoDark from "@/assets/erth-dark.svg";
+import ErthLogoLight from "@/assets/erth-light.svg";
+import SakktbaLogo from "@/assets/Sakkba.png";
 
-const fallback = '/' as const
+const fallback = "/" as const;
 
-export const Route = createFileRoute('/(auth)/login')({
+export const Route = createFileRoute("/(auth)/login")({
   validateSearch: z.object({
-    redirect: z.string().optional().catch(''),
+    redirect: z.string().optional().catch(""),
   }),
   beforeLoad: ({ context, search }) => {
     if (context.auth.isAuthenticated) {
-      throw redirect({ to: search.redirect || fallback })
+      throw redirect({ to: search.redirect || fallback });
     }
   },
   component: LoginComponent,
   head: () => ({
-    meta: [{
-      title: "Login",
-    }]
+    meta: [
+      {
+        title: "Login",
+      },
+    ],
   }),
-})
+});
 
 function LoginComponent() {
-  const auth = useAuth()
-  const router = useRouter()
-  const navigate = Route.useNavigate()
-  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const auth = useAuth();
+  const router = useRouter();
+  const navigate = Route.useNavigate();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const search = Route.useSearch()
+  const search = Route.useSearch();
 
   // Detect userType from redirect if exists
-  const initialUserType: typeof BRAND_NAMES[keyof typeof BRAND_NAMES] =
+  const initialUserType: (typeof BRAND_NAMES)[keyof typeof BRAND_NAMES] =
     search.redirect?.startsWith(`/${BRAND_NAMES.fromHome}`)
       ? BRAND_NAMES.fromHome
       : search.redirect?.startsWith(`/${BRAND_NAMES.showroom}`)
-      ? BRAND_NAMES.showroom
-      : BRAND_NAMES.showroom // default if no redirect
+        ? BRAND_NAMES.showroom
+        : BRAND_NAMES.showroom; // default if no redirect
 
-  const [userType, setUserType] = React.useState<typeof BRAND_NAMES[keyof typeof BRAND_NAMES]>(
-    initialUserType,
-  )
+  const [userType, setUserType] =
+    React.useState<(typeof BRAND_NAMES)[keyof typeof BRAND_NAMES]>(
+      initialUserType,
+    );
 
   const onFormSubmit = async (evt: React.FormEvent<HTMLFormElement>) => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      evt.preventDefault()
-      const data = new FormData(evt.currentTarget)
-      const identifier = data.get('username')?.toString()
-      const password = data.get('password')?.toString()
+      evt.preventDefault();
+      const data = new FormData(evt.currentTarget);
+      const identifier = data.get("username")?.toString();
+      const password = data.get("password")?.toString();
 
-      if (!identifier || !password) return
+      if (!identifier || !password) return;
 
       await auth.login({
         username: identifier,
         password,
         userType,
-      })
+      });
 
-      await router.invalidate()
-      await sleep(1) // hack for auth state update
+      await router.invalidate();
+      await sleep(1); // hack for auth state update
 
       // Redirect logic
       if (userType === initialUserType && search.redirect) {
         // User kept the inferred type → follow redirect
-        await navigate({ to: search.redirect })
+        await navigate({ to: search.redirect });
       } else {
         // User changed type OR no redirect → send to type root
-        await navigate({ to: `/${userType}` })
+        await navigate({ to: `/${userType}` });
       }
     } catch (error) {
-      console.error('Error logging in: ', error)
+      console.error("Error logging in: ", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, staggerChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 },
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center">
-      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
-        <div className="flex justify-center mb-6">
-          <img
-            src={userType === BRAND_NAMES.showroom ? '/erth-light.svg' : '/Sakkba.png'}
-            alt={userType === BRAND_NAMES.showroom ? 'Erth Logo' : 'Sakkba Logo'}
-            className="h-20 w-auto"
-          />
-        </div>
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
-          {userType === BRAND_NAMES.showroom ? 'Erth Login' : 'Sakkba Login'}
-        </h2>
-
-        {search.redirect ? (
-          <p className="text-red-500 text-center mb-4">
-            You need to login to access this page.
-          </p>
-        ) : (
-          <p className="text-gray-600 text-center mb-6">
-            Welcome back! Please login to your account.
-          </p>
-        )}
-
-        <form onSubmit={onFormSubmit}>
-          <fieldset disabled={isSubmitting} className="space-y-6">
-            <div className="grid gap-2 items-center min-w-[300px]">
-              <label htmlFor="username-input" className="text-sm font-medium text-gray-700">
-                Username or User ID
-              </label>
-              <input
-                id="username-input"
-                name="username"
-                placeholder="Enter your username or ID"
-                type="text"
-                className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-
-            <div className="grid gap-2 items-center min-w-[300px]">
-              <label htmlFor="password-input" className="text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password-input"
-                name="password"
-                placeholder="Enter your password"
-                type="password"
-                className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-              <p className="text-xs text-gray-500">Hint: password is 123</p>
-            </div>
-
-            <div className="grid gap-2 items-center min-w-[300px]">
-              <label htmlFor="userType" className="text-sm font-medium text-gray-700">
-                Brand
-              </label>
-              <select
-                id="userType"
-                name="userType"
-                className="border rounded-md p-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                value={userType}
-                onChange={(e) =>
-                  setUserType(e.target.value as typeof BRAND_NAMES[keyof typeof BRAND_NAMES])
-                }
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="w-full max-w-md"
+      >
+        <Card className="bg-card border-2 border-border shadow-2xl overflow-hidden">
+          {/* Logo Section */}
+          <motion.div
+            variants={itemVariants}
+            className={`px-8 pt-6 pb-6 ${
+              userType === BRAND_NAMES.showroom
+                ? "bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent"
+                : "bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent"
+            }`}
+          >
+            <div className="flex justify-center mb-4">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="bg-background rounded-2xl p-4 shadow-lg w-32 h-24 flex items-center justify-center"
               >
-                <option value={BRAND_NAMES.showroom}>erth</option>
-                <option value={BRAND_NAMES.fromHome}>sakkba</option>
-              </select>
+                <img
+                  src={
+                    userType === BRAND_NAMES.showroom
+                      ? ErthLogoLight
+                      : SakktbaLogo
+                  }
+                  alt={
+                    userType === BRAND_NAMES.showroom
+                      ? "Erth Logo"
+                      : "Sakkba Logo"
+                  }
+                  className="max-w-full max-h-full object-contain"
+                />
+              </motion.div>
             </div>
+            <h1 className="text-3xl font-bold text-center text-foreground mb-2">
+              {userType === BRAND_NAMES.showroom ? "Erth" : "Sakkba"}
+            </h1>
+            <p className="text-sm text-center text-muted-foreground">
+              Welcome Back
+            </p>
+          </motion.div>
 
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
-              {isSubmitting ? 'Logging in...' : 'Login'}
-            </button>
-          </fieldset>
-        </form>
-      </div>
+          {/* Form Section */}
+          <div className="p-8 pt-6">
+            {search.redirect && (
+              <motion.div variants={itemVariants}>
+                <Alert
+                  className={`mb-6 ${
+                    userType === BRAND_NAMES.showroom
+                      ? "border-green-500/50 bg-green-500/5"
+                      : "border-blue-500/50 bg-blue-500/5"
+                  }`}
+                >
+                  <AlertCircle
+                    className={`h-4 w-4 ${
+                      userType === BRAND_NAMES.showroom
+                        ? "text-green-600"
+                        : "text-blue-600"
+                    }`}
+                  />
+                  <AlertDescription className="text-foreground">
+                    Please login to continue
+                  </AlertDescription>
+                </Alert>
+              </motion.div>
+            )}
+
+            <form onSubmit={onFormSubmit}>
+              <fieldset disabled={isSubmitting} className="space-y-5">
+                {/* Username Field */}
+                <motion.div variants={itemVariants} className="space-y-2">
+                  <Label
+                    htmlFor="username-input"
+                    className="text-sm font-semibold"
+                  >
+                    Username or User ID
+                  </Label>
+                  <Input
+                    id="username-input"
+                    name="username"
+                    placeholder="Enter your username or ID"
+                    type="text"
+                    className={`bg-background ${
+                      userType === BRAND_NAMES.showroom
+                        ? "!border-green-500/30 focus:!border-green-500 focus:!ring-green-500/20"
+                        : "!border-blue-500/30 focus:!border-blue-500 focus:!ring-blue-500/20"
+                    }`}
+                    required
+                  />
+                </motion.div>
+
+                {/* Password Field */}
+                <motion.div variants={itemVariants} className="space-y-2">
+                  <Label
+                    htmlFor="password-input"
+                    className="text-sm font-semibold"
+                  >
+                    Password
+                  </Label>
+                  <Input
+                    id="password-input"
+                    name="password"
+                    placeholder="Enter your password"
+                    type="password"
+                    className={`bg-background ${
+                      userType === BRAND_NAMES.showroom
+                        ? "!border-green-500/30 focus:!border-green-500 focus:!ring-green-500/20"
+                        : "!border-blue-500/30 focus:!border-blue-500 focus:!ring-blue-500/20"
+                    }`}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Hint: password is 123
+                  </p>
+                </motion.div>
+
+                {/* Brand Selection */}
+                <motion.div variants={itemVariants} className="space-y-3">
+                  <Label className="text-sm font-semibold">Select Brand</Label>
+                  <Tabs
+                    value={userType}
+                    onValueChange={(value) =>
+                      setUserType(
+                        value as (typeof BRAND_NAMES)[keyof typeof BRAND_NAMES],
+                      )
+                    }
+                    className="w-full"
+                  >
+                    <TabsList className="grid w-full grid-cols-2 h-auto p-1">
+                      <TabsTrigger
+                        value={BRAND_NAMES.showroom}
+                        className="group flex items-center gap-2 py-3 data-[state=active]:bg-green-950 data-[state=active]:text-white"
+                      >
+                        <img
+                          src={ErthLogoLight}
+                          alt="Erth"
+                          className="h-5 w-auto group-data-[state=active]:hidden"
+                        />
+                        <img
+                          src={ErthLogoDark}
+                          alt="Erth"
+                          className="h-5 w-auto hidden group-data-[state=active]:block"
+                        />
+                        <span className="font-semibold">Erth</span>
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value={BRAND_NAMES.fromHome}
+                        className="group flex items-center gap-2 py-3 data-[state=active]:bg-blue-950 data-[state=active]:text-white"
+                      >
+                        <img
+                          src={SakktbaLogo}
+                          alt="Sakkba"
+                          className="h-4 w-auto group-data-[state=active]:brightness-0 group-data-[state=active]:invert"
+                        />
+                        <span className="font-semibold">Sakkba</span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </motion.div>
+
+                {/* Submit Button */}
+                <motion.div variants={itemVariants} className="pt-2">
+                  <Button
+                    type="submit"
+                    className={`w-full !text-white ${
+                      userType === BRAND_NAMES.showroom
+                        ? "!bg-green-950 hover:!bg-green-900"
+                        : "!bg-blue-950 hover:!bg-blue-900"
+                    }`}
+                    size="lg"
+                    disabled={isSubmitting}
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    {isSubmitting ? "Logging in..." : "Login"}
+                  </Button>
+                </motion.div>
+              </fieldset>
+            </form>
+          </div>
+        </Card>
+
+        {/* Footer */}
+        <motion.p
+          variants={itemVariants}
+          className="text-center text-sm text-muted-foreground mt-6"
+        >
+          Secure tailoring management system
+        </motion.p>
+      </motion.div>
     </div>
   );
 }
+

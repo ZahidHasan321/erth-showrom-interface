@@ -160,15 +160,7 @@ export function AppSidebar({
           tabIndex={disabled ? -1 : 0}
           aria-disabled={disabled}
           style={disabled ? { pointerEvents: "none", opacity: 0.5 } : {}}
-          className={`
-            block w-full
-            ${
-              match
-                ? "text-primary font-semibold"
-                : "text-muted-foreground hover:text-foreground"
-            }
-            transition-colors duration-200
-          `}
+          className="block w-full"
           // When on new-order page, open in a new tab:
           {...(isNewOrderPage
             ? { target: "_blank", rel: "noopener noreferrer" }
@@ -178,13 +170,13 @@ export function AppSidebar({
             isActive={!!match}
             disabled={disabled}
             className={`
-              w-full justify-start
+              w-full justify-start rounded-lg px-3 py-2.5
               ${
                 match
-                  ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
-                  : "hover:bg-accent/50 hover:text-foreground"
+                  ? "bg-primary text-primary-foreground font-semibold shadow-sm"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
               }
-              transition-all duration-200
+              transition-all duration-200 ease-in-out
             `}
           >
             {title}
@@ -225,24 +217,24 @@ export function AppSidebar({
         <SidebarMenuButton
           onClick={() => setIsOpen(!isOpen)}
           className={`
-            w-full justify-between
+            w-full justify-between rounded-lg px-3 py-2.5
             ${
               hasActiveChild
-                ? "bg-primary/10 text-primary font-semibold"
-                : "hover:bg-accent/50 hover:text-foreground"
+                ? "bg-primary/15 text-primary font-semibold"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
             }
-            transition-all duration-200
+            transition-all duration-200 ease-in-out
           `}
         >
           <span>{title}</span>
           <ChevronDown
-            className={`ml-auto h-4 w-4 transition-transform duration-200 ${
+            className={`ml-auto h-4 w-4 transition-transform duration-300 ease-out ${
               isOpen ? "rotate-180" : ""
             }`}
           />
         </SidebarMenuButton>
         {isOpen && (
-          <SidebarMenuSub className="ml-4 mt-1 space-y-1">
+          <SidebarMenuSub className="ml-3 mt-1 space-y-1 border-l-2 border-border/40 pl-3">
             {items.map((subItem) => {
               const match = matchRoute({
                 to: `${mainSegment}/${subItem.url}`,
@@ -256,15 +248,7 @@ export function AppSidebar({
                 <SidebarMenuSubItem key={subItem.title}>
                   <Link
                     to={`${mainSegment}/${subItem.url}`}
-                    className={`
-                      block w-full
-                      ${
-                        match
-                          ? "text-primary font-semibold"
-                          : "text-muted-foreground hover:text-foreground"
-                      }
-                      transition-colors duration-200
-                    `}
+                    className="block w-full"
                     {...(isNewOrderPage
                       ? { target: "_blank", rel: "noopener noreferrer" }
                       : {})}
@@ -272,13 +256,13 @@ export function AppSidebar({
                     <SidebarMenuSubButton
                       isActive={!!match}
                       className={`
-                        w-full justify-start
+                        w-full justify-start rounded-md px-3 py-2 text-sm
                         ${
                           match
-                            ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
-                            : "hover:bg-accent/50 hover:text-foreground"
+                            ? "bg-primary text-primary-foreground font-semibold shadow-sm"
+                            : "text-muted-foreground hover:bg-accent hover:text-foreground"
                         }
-                        transition-all duration-200
+                        transition-all duration-200 ease-in-out
                       `}
                     >
                       {subItem.title}
@@ -298,14 +282,14 @@ export function AppSidebar({
 
   return (
     <Sidebar {...props}>
-      <SidebarHeader className="border-b border-border/60">
+      <SidebarHeader className="border-b border-border/40 pb-4">
         <Link
           to="/$main"
           params={{ main: main ?? BRAND_NAMES.showroom }}
-          className="flex flex-row items-center gap-3 px-4 py-4 transition-all duration-200 hover:bg-accent/30 rounded-lg mx-2"
+          className="flex flex-row items-center gap-3 px-4 py-3 mx-2 mt-2 transition-all duration-200 hover:bg-accent rounded-xl group"
         >
           <div
-            className="flex aspect-square items-center justify-center rounded-lg bg-primary/10 p-2"
+            className="flex aspect-square items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 p-2 group-hover:scale-105 transition-transform duration-200"
             style={{ width: "3.5rem", height: "3.5rem" }}
           >
             <img
@@ -318,7 +302,7 @@ export function AppSidebar({
             <span className="truncate font-bold text-xl text-foreground">
               {brandName}
             </span>
-            <span className="text-xs text-muted-foreground">Clothing</span>
+            <span className="text-xs text-muted-foreground font-medium">Clothing</span>
           </div>
         </Link>
       </SidebarHeader>
@@ -340,11 +324,11 @@ export function AppSidebar({
         {/* We create a SidebarGroup for each parent. */}
         {data.navMain.map((item) => (
           <SidebarGroup key={item.title} className="mb-6">
-            <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">
+            <SidebarGroupLabel className="text-xs font-bold text-muted-foreground/80 uppercase tracking-wider px-3 mb-3">
               {item.title}
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-1">
+              <SidebarMenu className="space-y-0.5">
                 {item.items.map((subItem: any) => {
                   // Check if this is a collapsible item
                   if (subItem.isCollapsible && subItem.items) {

@@ -1,6 +1,11 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getFabrics } from '@/api/fabrics';
+import Barcode from 'react-barcode';
+import { BRAND_NAMES } from '@/lib/constants';
+import { useParams } from '@tanstack/react-router';
+import erthLogo from '@/assets/erth-light.svg';
+import sakkbaLogo from '@/assets/Sakkba.png';
 
 interface FabricLabelProps {
   fabricData: {
@@ -21,6 +26,9 @@ interface FabricLabelProps {
 
 export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
   ({ fabricData }, ref) => {
+    const { main } = useParams({ strict: false }) as { main?: string };
+    const logo = main === BRAND_NAMES.showroom ? erthLogo : sakkbaLogo;
+
     const { data: fabricsResponse } = useQuery({
       queryKey: ["fabrics"],
       queryFn: getFabrics,
@@ -52,12 +60,30 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
         style={{
           width: '450px',
           fontFamily: 'Arial, sans-serif',
-          fontSize: '18px',
+          fontSize: '16px',
           padding: '0',
           margin: '0 auto'
         }}
       >
         <div>
+          {/* Logo */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            padding: '8px 4px',
+            borderBottom: '2px solid black'
+          }}>
+            <img
+              src={logo}
+              alt={main === BRAND_NAMES.showroom ? 'ERTH Logo' : 'Sakkba Logo'}
+              style={{
+                height: '50px',
+                width: 'auto',
+                objectFit: 'contain'
+              }}
+            />
+          </div>
+
           {/* Header - Order ID and Customer Mobile */}
           <div style={{
             display: 'grid',
@@ -66,17 +92,17 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
           }}>
             <div style={{
               textAlign: 'center',
-              padding: '10px 4px',
+              padding: '6px 4px',
               borderRight: '1px solid #ccc',
-              fontSize: '18px',
+              fontSize: '16px',
               fontWeight: 'bold'
             }}>
               Order ID: {fabricData.orderId}
             </div>
             <div style={{
               textAlign: 'center',
-              padding: '10px 4px',
-              fontSize: '18px',
+              padding: '6px 4px',
+              fontSize: '16px',
               fontWeight: 'bold'
             }}>
               Mobile: {fabricData.customerMobile}
@@ -91,18 +117,18 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
           }}>
             <div style={{
               textAlign: 'center',
-              padding: '8px 4px',
+              padding: '5px 4px',
               borderRight: '1px solid #ccc'
             }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Customer ID</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.customerId}</div>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>Customer ID</div>
+              <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{fabricData.customerId}</div>
             </div>
             <div style={{
               textAlign: 'center',
-              padding: '8px 4px'
+              padding: '5px 4px'
             }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Customer Name</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.customerName}</div>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>Customer Name</div>
+              <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{fabricData.customerName}</div>
             </div>
           </div>
 
@@ -114,18 +140,18 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
           }}>
             <div style={{
               textAlign: 'center',
-              padding: '8px 4px',
+              padding: '5px 4px',
               borderRight: '1px solid #ccc'
             }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Garment ID</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.garmentId}</div>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>Garment ID</div>
+              <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{fabricData.garmentId}</div>
             </div>
             <div style={{
               textAlign: 'center',
-              padding: '8px 4px'
+              padding: '5px 4px'
             }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Source</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>Source</div>
+              <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
                 {fabricName}
               </div>
             </div>
@@ -139,29 +165,49 @@ export const FabricLabel = React.forwardRef<HTMLDivElement, FabricLabelProps>(
           }}>
             <div style={{
               textAlign: 'center',
-              padding: '8px 4px',
+              padding: '5px 4px',
               borderRight: '1px solid #ccc'
             }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Status</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.brova ? 'Brova' : 'Final'}</div>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>Status</div>
+              <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{fabricData.brova ? 'Brova' : 'Final'}</div>
             </div>
             <div style={{
               textAlign: 'center',
-              padding: '8px 4px'
+              padding: '5px 4px'
             }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>Express Delivery</div>
-              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{fabricData.express ? 'Yes' : 'No'}</div>
+              <div style={{ fontSize: '12px', fontWeight: '600', marginBottom: '2px' }}>Express Delivery</div>
+              <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{fabricData.express ? 'Yes' : 'No'}</div>
             </div>
           </div>
 
           {/* Delivery Date */}
           <div style={{
             textAlign: 'center',
-            padding: '8px 4px',
-            fontSize: '18px',
-            fontWeight: 'bold'
+            padding: '5px 4px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            borderBottom: '2px solid black'
           }}>
             Delivery Date: {formatDate(fabricData.deliveryDate)}
+          </div>
+
+          {/* Barcode */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            padding: '4px'
+          }}>
+            <Barcode
+              value={JSON.stringify({
+                orderId: fabricData.orderId,
+                garmentId: fabricData.garmentId
+              })}
+              width={1.2}
+              height={40}
+              fontSize={10}
+              displayValue={false}
+              margin={0}
+            />
           </div>
         </div>
       </div>

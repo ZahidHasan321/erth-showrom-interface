@@ -9,54 +9,54 @@ export const customerMeasurementsDefaults: CustomerMeasurementsSchema = {
   measurementDate: new Date(), // Default to today for new measurements
   notes: "",
   collar: {
-    width: 0,
-    height: 0,
+    width: undefined,
+    height: undefined,
   },
   lengths: {
-    front: 0,
-    back: 0,
+    front: undefined,
+    back: undefined,
   },
   arm: {
-    shoulder: 0,
-    sleeveLength: 0,
-    sleeveWidth: 0,
-    elbow: 0,
+    shoulder: undefined,
+    sleeveLength: undefined,
+    sleeveWidth: undefined,
+    elbow: undefined,
     armhole: {
-      value: 0,
-      front: 0,
-      provision: 0,
+      value: undefined,
+      front: undefined,
+      provision: undefined,
     },
   },
   body: {
-    upper_chest: 0,
-    back_chest:0,
+    upper_chest: undefined,
+    back_chest: undefined,
     full_chest: {
-      value: 0,
-      front: 0,
-      provision: 0,
+      value: undefined,
+      front: undefined,
+      provision: undefined,
     },
     full_waist: {
-      value: 0,
-      front: 0,
-      back: 0,
-      provision: 0,
+      value: undefined,
+      front: undefined,
+      back: undefined,
+      provision: undefined,
     },
-    bottom: 0,
+    bottom: undefined,
   },
   topPocket: {
-    length: 0,
-    width: 0,
-    distance: 0,
+    length: undefined,
+    width: undefined,
+    distance: undefined,
   },
   sidePocket: {
-    length: 0,
-    width: 0,
-    distance: 0,
-    opening: 0,
+    length: undefined,
+    width: undefined,
+    distance: undefined,
+    opening: undefined,
   },
   jabzoor: {
-    length: 0,
-    width: 0,
+    length: undefined,
+    width: undefined,
   },
 };
 
@@ -70,55 +70,98 @@ export const customerMeasurementsSchema = z.object({
   measurementDate: z.date().optional(),
   notes: z.string().optional(),
   collar: z.object({
-    width: z.number().min(1, "Width is required"),
-    height: z.number().min(1, "Height is required"),
+    width: z.number().optional(),
+    height: z.number().optional(),
   }),
   lengths: z.object({
-    front: z.number().min(1, "Front length is required"),
-    back: z.number().min(1, "Back length is required"),
+    front: z.number().optional(),
+    back: z.number().optional(),
   }),
   arm: z.object({
-    shoulder: z.number().min(1, "Shoulder is required"),
-    sleeveLength: z.number().min(1, "Sleeve length is required"),
-    sleeveWidth: z.number().min(1, "Sleeve width is required"),
-    elbow: z.number().min(1, "Elbow is required"),
+    shoulder: z.number().optional(),
+    sleeveLength: z.number().optional(),
+    sleeveWidth: z.number().optional(),
+    elbow: z.number().optional(),
     armhole: z.object({
-      value: z.number().min(1, "Armhole value is required"),
-      front: z.number().min(1, "Armhole front is required"),
+      value: z.number().optional(),
+      front: z.number().optional(),
       provision: z.number().optional(),
     }),
   }),
   body: z.object({
-    upper_chest: z.number().min(1, "Upper chest is required"),
+    upper_chest: z.number().optional(),
     full_chest: z.object({
-      value: z.number().min(1, "Full chest value is required"),
-      front: z.number().min(1, "Full chest front is required"),
+      value: z.number().optional(),
+      front: z.number().optional(),
       provision: z.number().optional(),
     }),
     full_waist: z.object({
-      value: z.number().min(1, "Full waist value is required"),
-      front: z.number().min(1, "Full waist front is required"),
-      back: z.number().min(1, "Full waist back is required"),
+      value: z.number().optional(),
+      front: z.number().optional(),
+      back: z.number().optional(),
       provision: z.number().optional(),
     }),
-    back_chest: z.number().min(1, "Back chest is required"),
-    bottom: z.number().min(1, "Bottom is required"),
+    back_chest: z.number().optional(),
+    bottom: z.number().optional(),
   }),
   topPocket: z.object({
-    length: z.number().min(1, "Top pocket length is required"),
-    width: z.number().min(1, "Top pocket width is required"),
-    distance: z.number().min(1, "Top pocket distance is required"),
+    length: z.number().optional(),
+    width: z.number().optional(),
+    distance: z.number().optional(),
   }),
   sidePocket: z.object({
-    length: z.number().min(1, "Side pocket length is required"),
-    width: z.number().min(1, "Side pocket width is required"),
-    distance: z.number().min(1, "Side pocket distance is required"),
-    opening: z.number().min(1, "Side pocket opening is required"),
+    length: z.number().optional(),
+    width: z.number().optional(),
+    distance: z.number().optional(),
+    opening: z.number().optional(),
   }),
   jabzoor: z.object({
-    length: z.number().min(1, "Jabzoor length is required"),
-    width: z.number().min(1, "Jabzoor width is required"),
+    length: z.number().optional(),
+    width: z.number().optional(),
   }),
-});
+})
+  .refine(
+    (data) => {
+      // During submission, ensure all required numeric fields are defined
+      const requiredFields = [
+        { value: data.collar.width, name: "Collar width" },
+        { value: data.collar.height, name: "Collar height" },
+        { value: data.lengths.front, name: "Front length" },
+        { value: data.lengths.back, name: "Back length" },
+        { value: data.arm.shoulder, name: "Shoulder" },
+        { value: data.arm.sleeveLength, name: "Sleeve length" },
+        { value: data.arm.sleeveWidth, name: "Sleeve width" },
+        { value: data.arm.elbow, name: "Elbow" },
+        { value: data.arm.armhole.value, name: "Armhole value" },
+        { value: data.arm.armhole.front, name: "Armhole front" },
+        { value: data.body.upper_chest, name: "Upper chest" },
+        { value: data.body.full_chest.value, name: "Full chest value" },
+        { value: data.body.full_chest.front, name: "Full chest front" },
+        { value: data.body.full_waist.value, name: "Full waist value" },
+        { value: data.body.full_waist.front, name: "Full waist front" },
+        { value: data.body.full_waist.back, name: "Full waist back" },
+        { value: data.body.back_chest, name: "Back chest" },
+        { value: data.body.bottom, name: "Bottom" },
+        { value: data.topPocket.length, name: "Top pocket length" },
+        { value: data.topPocket.width, name: "Top pocket width" },
+        { value: data.topPocket.distance, name: "Top pocket distance" },
+        { value: data.sidePocket.length, name: "Side pocket length" },
+        { value: data.sidePocket.width, name: "Side pocket width" },
+        { value: data.sidePocket.distance, name: "Side pocket distance" },
+        { value: data.sidePocket.opening, name: "Side pocket opening" },
+        { value: data.jabzoor.length, name: "Jabzoor length" },
+        { value: data.jabzoor.width, name: "Jabzoor width" },
+      ];
+
+      const missingFields = requiredFields.filter(
+        (field) => field.value === undefined || field.value === null || field.value < 1
+      );
+
+      return missingFields.length === 0;
+    },
+    {
+      message: "All measurement fields must be filled with valid values (greater than 0) before submission",
+    }
+  );
 
 export type CustomerMeasurementsSchema = z.infer<typeof customerMeasurementsSchema>;
