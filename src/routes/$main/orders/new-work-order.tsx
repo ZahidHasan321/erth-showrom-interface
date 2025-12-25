@@ -8,6 +8,7 @@ import type { Order } from "@/types/order";
 import { mapApiGarmentToFormGarment } from "@/lib/garment-mapper";
 import { mapCustomerToFormValues } from "@/lib/customer-mapper";
 import { CustomerDemographicsForm } from "@/components/forms/customer-demographics";
+import { SearchCustomer } from "@/components/forms/customer-demographics/search-customer";
 import {
   customerDemographicsDefaults,
   customerDemographicsSchema,
@@ -52,7 +53,7 @@ import {
 import { createWorkOrderStore } from "@/store/current-work-order";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -77,6 +78,11 @@ const steps = [
 const useCurrentWorkOrderStore = createWorkOrderStore("main");
 
 function NewWorkOrder() {
+  // ============================================================================
+  // NAVIGATION
+  // ============================================================================
+  const navigate = useNavigate();
+
   // ============================================================================
   // DATA FETCHING & STORE
   // ============================================================================
@@ -133,6 +139,8 @@ function NewWorkOrder() {
   // Track if user wants to load an existing order instead of creating new
   const [isLoadingExistingOrder, setIsLoadingExistingOrder] =
     React.useState(false);
+  // Track loading state when fetching order data
+  const [isLoadingOrderData, setIsLoadingOrderData] = React.useState(false);
   // ============================================================================
   // FORMS SETUP
   // ============================================================================
@@ -267,11 +275,12 @@ function NewWorkOrder() {
   // PENDING ORDER LOADING
   // ============================================================================
   const handlePendingOrderSelected = async (order: Order) => {
-    // Clear loading flag when actual order is selected
-    setIsLoadingExistingOrder(false);
+    // Set loading state
+    setIsLoadingOrderData(true);
     try {
       if (!order.fields.OrderID) {
         toast.error("Invalid order ID");
+        setIsLoadingOrderData(false);
         return;
       }
 
@@ -315,14 +324,8 @@ function NewWorkOrder() {
           // Reset form with mapped values
           demographicsForm.reset(customerFormValues);
 
-          // Update store with essential customer info
-          setCustomerDemographics({
-            customerRecordId: customer.id,
-            id: customer.fields.id,
-            name: customer.fields.Name || "",
-            nickName: customer.fields.NickName || "",
-            mobileNumber: customer.fields.Phone || "",
-          });
+          // Update store with full customer data (including address)
+          setCustomerDemographics(customerFormValues);
 
           addSavedStep(0);
         }
@@ -428,12 +431,18 @@ function NewWorkOrder() {
         setCurrentStep(1);
 
         toast.success(`Order #${order.fields.OrderID} loaded successfully`);
+
+        // Clear loading states after successful load
+        setIsLoadingExistingOrder(false);
+        setIsLoadingOrderData(false);
       } else {
         toast.error("Failed to load order details");
+        setIsLoadingOrderData(false);
       }
     } catch (error) {
       console.error("Error loading pending order:", error);
       toast.error("Failed to load order. Please try again.");
+      setIsLoadingOrderData(false);
     }
   };
 
@@ -725,6 +734,14 @@ function NewWorkOrder() {
   // NAVIGATION GUARDS
   // ============================================================================
   const [allowNavigation, setAllowNavigation] = React.useState(false);
+  const [pendingNavigationPath, setPendingNavigationPath] = React.useState<string | null>(null);
+
+  // Clear pending navigation when dialog closes without confirming
+  React.useEffect(() => {
+    if (!dialog.isOpen && pendingNavigationPath) {
+      setPendingNavigationPath(null);
+    }
+  }, [dialog.isOpen, pendingNavigationPath]);
 
   // Prevent browser tab closing/refresh when order is in progress
   React.useEffect(() => {
@@ -778,17 +795,19 @@ function NewWorkOrder() {
           e.preventDefault();
           e.stopPropagation();
 
-          const confirmLeave = window.confirm(
+          // Store the target path and show custom confirmation dialog
+          setPendingNavigationPath(href);
+          openDialog(
+            "Leave Page?",
             "You have an order in progress. Leaving this page will not save your changes. Are you sure you want to leave?",
+            () => {
+              setAllowNavigation(true);
+              resetWorkOrder();
+              navigate({ to: href });
+              setPendingNavigationPath(null);
+              closeDialog();
+            },
           );
-
-          if (confirmLeave) {
-            setAllowNavigation(true);
-            // Allow a moment for state to update, then navigate
-            setTimeout(() => {
-              window.location.href = href;
-            }, 0);
-          }
         }
       }
     };
@@ -878,8 +897,76 @@ function NewWorkOrder() {
     );
   }
 
+  // ============================================================================
+  // RENDER: LOADING ORDER DATA STATE
+  // ============================================================================
+  if (isLoadingOrderData || createOrderMutation.isPending) {
+    return (
+      <div className="mb-12 flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
+          </div>
+          <h2 className="text-2xl font-bold text-foreground">
+            {createOrderMutation.isPending ? "Creating Order..." : "Loading Order..."}
+          </h2>
+          <p className="text-muted-foreground">
+            {createOrderMutation.isPending
+              ? "Please wait while we create a new order"
+              : "Please wait while we fetch the order details"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================================
+  // RENDER: LOADING EXISTING ORDER STATE
+  // ============================================================================
+  if (isLoadingExistingOrder) {
+    return (
+      <div className="mb-12">
+        <ConfirmationDialog
+          isOpen={dialog.isOpen}
+          onClose={closeDialog}
+          onConfirm={dialog.onConfirm}
+          title={dialog.title}
+          description={dialog.description}
+        />
+
+        {/* Only show customer search when loading existing order */}
+        <div className="flex flex-col flex-1 items-center gap-10 md:gap-16 py-10 mx-[5%] md:mx-[10%] 2xl:max-w-screen-2xl 2xl:mx-auto">
+          <div className="w-full flex flex-col items-center max-w-2xl">
+            <div className="w-full space-y-4">
+              <div className="space-y-1 mb-6">
+                <h1 className="text-3xl font-bold text-foreground bg-linear-to-r from-primary to-secondary bg-clip-text">
+                  Load Existing Order
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Search for a customer to view their pending orders
+                </p>
+              </div>
+              <ErrorBoundary fallback={<div>Search Customer crashed</div>}>
+                <SearchCustomer
+                  onCustomerFound={() => {
+                    toast.info("No pending orders found for this customer");
+                  }}
+                  onHandleClear={() => {
+                    demographicsForm.reset(customerDemographicsDefaults);
+                  }}
+                  checkPendingOrders={true}
+                  onPendingOrderSelected={handlePendingOrderSelected}
+                />
+              </ErrorBoundary>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="mb-64">
+    <>
       <ConfirmationDialog
         isOpen={dialog.isOpen}
         onClose={closeDialog}
@@ -889,7 +976,7 @@ function NewWorkOrder() {
       />
 
       {/* Sticky Header with Stepper */}
-      <div className="sticky top-0 z-20">
+      <div className="sticky top-0 z-50 bg-background">
         <HorizontalStepper
           steps={steps}
           completedSteps={savedSteps}
@@ -920,7 +1007,7 @@ function NewWorkOrder() {
       </div>
 
       {/* Step Content */}
-      <div className="flex flex-col flex-1 items-center gap-10 md:gap-16 py-10 mx-[5%] md:mx-[10%] 2xl:grid 2xl:grid-cols-2 2xl:items-stretch 2xl:gap-x-10 2xl:gap-y-12 2xl:max-w-screen-2xl 2xl:mx-auto">
+      <div className="flex flex-col items-center gap-10 md:gap-16 py-10 pb-12 mx-[5%] md:mx-[10%] 2xl:grid 2xl:grid-cols-2 2xl:items-start 2xl:gap-x-10 2xl:gap-y-12 2xl:max-w-screen-2xl 2xl:mx-auto">
         {/* STEP 0: Demographics */}
         <div
           id={steps[0].id}
@@ -1077,6 +1164,6 @@ function NewWorkOrder() {
           </ErrorBoundary>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -113,14 +113,20 @@ function LoginComponent() {
         animate="visible"
         className="w-full max-w-md"
       >
-        <Card className="bg-card border-2 border-border shadow-2xl overflow-hidden">
+        <Card
+          className={`bg-card shadow-2xl overflow-hidden ${
+            userType === BRAND_NAMES.showroom
+              ? "border-2 border-green-500/20"
+              : "border-2 border-slate-600/20"
+          }`}
+        >
           {/* Logo Section */}
           <motion.div
             variants={itemVariants}
             className={`px-8 pt-6 pb-6 ${
               userType === BRAND_NAMES.showroom
                 ? "bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent"
-                : "bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent"
+                : "bg-gradient-to-br from-slate-600/8 via-slate-500/4 to-transparent"
             }`}
           >
             <div className="flex justify-center mb-4">
@@ -145,7 +151,7 @@ function LoginComponent() {
                 />
               </motion.div>
             </div>
-            <h1 className="text-3xl font-bold text-center text-foreground mb-2">
+            <h1 className="text-3xl font-bold text-center text-foreground mb-2 brand-font">
               {userType === BRAND_NAMES.showroom ? "Erth" : "Sakkba"}
             </h1>
             <p className="text-sm text-center text-muted-foreground">
@@ -161,14 +167,14 @@ function LoginComponent() {
                   className={`mb-6 ${
                     userType === BRAND_NAMES.showroom
                       ? "border-green-500/50 bg-green-500/5"
-                      : "border-blue-500/50 bg-blue-500/5"
+                      : "border-slate-500/40 bg-slate-500/5"
                   }`}
                 >
                   <AlertCircle
                     className={`h-4 w-4 ${
                       userType === BRAND_NAMES.showroom
                         ? "text-green-600"
-                        : "text-blue-600"
+                        : "text-slate-600"
                     }`}
                   />
                   <AlertDescription className="text-foreground">
@@ -196,7 +202,7 @@ function LoginComponent() {
                     className={`bg-background ${
                       userType === BRAND_NAMES.showroom
                         ? "!border-green-500/30 focus:!border-green-500 focus:!ring-green-500/20"
-                        : "!border-blue-500/30 focus:!border-blue-500 focus:!ring-blue-500/20"
+                        : "!border-slate-400/30 focus:!border-slate-600 focus:!ring-slate-500/15"
                     }`}
                     required
                   />
@@ -218,7 +224,7 @@ function LoginComponent() {
                     className={`bg-background ${
                       userType === BRAND_NAMES.showroom
                         ? "!border-green-500/30 focus:!border-green-500 focus:!ring-green-500/20"
-                        : "!border-blue-500/30 focus:!border-blue-500 focus:!ring-blue-500/20"
+                        : "!border-slate-400/30 focus:!border-slate-600 focus:!ring-slate-500/15"
                     }`}
                     required
                   />
@@ -258,7 +264,7 @@ function LoginComponent() {
                       </TabsTrigger>
                       <TabsTrigger
                         value={BRAND_NAMES.fromHome}
-                        className="group flex items-center gap-2 py-3 data-[state=active]:bg-blue-950 data-[state=active]:text-white"
+                        className="group flex items-center gap-2 py-3 data-[state=active]:bg-slate-800 data-[state=active]:text-white"
                       >
                         <img
                           src={SakktbaLogo}
@@ -278,7 +284,7 @@ function LoginComponent() {
                     className={`w-full !text-white ${
                       userType === BRAND_NAMES.showroom
                         ? "!bg-green-950 hover:!bg-green-900"
-                        : "!bg-blue-950 hover:!bg-blue-900"
+                        : "!bg-slate-800 hover:!bg-slate-700"
                     }`}
                     size="lg"
                     disabled={isSubmitting}

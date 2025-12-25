@@ -305,16 +305,9 @@ export function CustomerDemographicsForm({
 
         <div className="flex justify-between items-start mb-2">
           <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-foreground bg-linear-to-r from-primary to-secondary bg-clip-text">
-                {header}
-              </h1>
-              {form.watch("id") && (
-                <span className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-sm font-semibold text-primary">
-                  ID: {form.watch("id")}
-                </span>
-              )}
-            </div>
+            <h1 className="text-3xl font-bold text-foreground bg-linear-to-r from-primary to-secondary bg-clip-text">
+              {header}
+            </h1>
             <p className="text-sm text-muted-foreground">{subheader}</p>
           </div>
         </div>
@@ -338,9 +331,16 @@ export function CustomerDemographicsForm({
         )}
 
         <div className="space-y-4 bg-card p-6 rounded-xl border border-border shadow-sm">
-          <h3 className="text-lg font-semibold text-foreground">
-            Basic Information
-          </h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-foreground">
+              Basic Information
+            </h3>
+            {form.watch("id") && (
+              <span className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-sm font-semibold text-primary">
+                ID: {form.watch("id")}
+              </span>
+            )}
+          </div>
           <ErrorBoundary fallback={<div>Name field crashed</div>}>
             <FormField
               control={form.control}

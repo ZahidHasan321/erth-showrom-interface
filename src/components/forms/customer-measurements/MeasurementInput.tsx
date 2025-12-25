@@ -9,6 +9,40 @@ import {
 import { Input } from "@/components/ui/input";
 import type { CustomerMeasurementsSchema } from "./schema";
 
+// Convert decimal to mixed fraction
+function decimalToMixedFraction(decimal: number): string {
+  if (decimal === 0 || isNaN(decimal)) return "";
+
+  const isNegative = decimal < 0;
+  const absDecimal = Math.abs(decimal);
+
+  const whole = Math.floor(absDecimal);
+  const fractionalPart = absDecimal - whole;
+
+  if (fractionalPart < 0.001) {
+    return isNegative ? `-${whole}` : `${whole}`;
+  }
+
+  // Find best fraction approximation
+  const gcd = (a: number, b: number): number =>
+    b < 0.0001 ? a : gcd(b, a % b);
+
+  const precision = 1000000; // Higher precision for better accuracy
+  const numerator = Math.round(fractionalPart * precision);
+  const denominator = precision;
+  const divisor = gcd(numerator, denominator);
+
+  const simplifiedNum = Math.round(numerator / divisor);
+  const simplifiedDen = Math.round(denominator / divisor);
+
+  // Format as mixed fraction
+  if (whole === 0) {
+    return `${isNegative ? "-" : ""}${simplifiedNum}/${simplifiedDen}`;
+  }
+
+  return `${isNegative ? "-" : ""}${whole} ${simplifiedNum}/${simplifiedDen}`;
+}
+
 interface MeasurementInputProps {
   form: UseFormReturn<CustomerMeasurementsSchema>;
   name: Path<CustomerMeasurementsSchema>;
@@ -20,37 +54,40 @@ interface MeasurementInputProps {
   onEnterPress?: () => void; // Callback for Enter key press
 }
 
-export const MeasurementInput = forwardRef<HTMLInputElement, MeasurementInputProps>(
-  function MeasurementInput(
-    {
-      form,
-      name,
-      label,
-      unit,
-      isDisabled,
-      className,
-      labelClassName,
-      onEnterPress,
-    },
-    ref
-  ) {
-    return (
-      <FormField
-        control={form.control}
-        name={name}
-        render={({ field }) => {
-          const { ref: fieldRef, ...fieldProps } = field;
-          return (
-            <FormItem className={className}>
-              <div className="flex items-center gap-4 flex-nowrap">
-                <FormLabel className={labelClassName}>{label}</FormLabel>
-                <FormControl>
+export const MeasurementInput = forwardRef<
+  HTMLInputElement,
+  MeasurementInputProps
+>(function MeasurementInput(
+  {
+    form,
+    name,
+    label,
+    unit,
+    isDisabled,
+    className,
+    labelClassName,
+    onEnterPress,
+  },
+  ref,
+) {
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => {
+        const { ref: fieldRef, ...fieldProps } = field;
+        return (
+          <FormItem className={className}>
+            <div className="flex items-center gap-4 flex-nowrap">
+              <FormLabel className={labelClassName}>{label}</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
                   <div className="relative flex items-center">
                     <Input
                       ref={(element) => {
                         // Call both refs
                         fieldRef(element);
-                        if (typeof ref === 'function') {
+                        if (typeof ref === "function") {
                           ref(element);
                         } else if (ref) {
                           ref.current = element;
@@ -76,7 +113,7 @@ export const MeasurementInput = forwardRef<HTMLInputElement, MeasurementInputPro
                           onEnterPress?.();
                         }
                       }}
-                      className="w-20 bg-white border-black pr-7 focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
+                      className="w-26 bg-white border-black pr-7 focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
                       disabled={isDisabled}
                       placeholder="xx"
                     />
@@ -84,12 +121,19 @@ export const MeasurementInput = forwardRef<HTMLInputElement, MeasurementInputPro
                       {unit}
                     </span>
                   </div>
-                </FormControl>
-              </div>
-            </FormItem>
-          );
-        }}
-      />
-    );
-  }
-);
+                  {field.value &&
+                    typeof field.value === "number" &&
+                    field.value !== 0 && (
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                        ({decimalToMixedFraction(field.value)})
+                      </span>
+                    )}
+                </div>
+              </FormControl>
+            </div>
+          </FormItem>
+        );
+      }}
+    />
+  );
+});

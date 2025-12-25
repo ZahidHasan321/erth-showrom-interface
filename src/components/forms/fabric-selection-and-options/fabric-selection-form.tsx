@@ -52,6 +52,9 @@ import {
   ArrowRight,
   Copy,
   Printer,
+  Loader2,
+  DollarSign,
+  Package,
 } from "lucide-react";
 import { SignaturePad } from "../signature-pad";
 import { cn } from "@/lib/utils";
@@ -566,7 +569,7 @@ export function FabricSelectionForm({
     name: "styleOptions",
   });
 
-  const { data: measurementQuery } = useQuery({
+  const { data: measurementQuery, isLoading: isLoadingMeasurements } = useQuery({
     queryKey: ["measurements", customerId],
     queryFn: () => {
       if (!customerId) {
@@ -600,10 +603,18 @@ export function FabricSelectionForm({
             setQallabi(null);
             setCuffs(null);
           }
+        } else {
+          setFabricMeter(null);
+          setQallabi(null);
+          setCuffs(null);
         }
       }
+    } else {
+      setFabricMeter(null);
+      setQallabi(null);
+      setCuffs(null);
     }
-  }, [selectedMeasurementId, measurements, getFabricValue]);
+  }, [selectedMeasurementId, measurements]);
 
   // Pass array of { id, MeasurementID } for dropdown
   const measurementOptions =
@@ -909,47 +920,32 @@ export function FabricSelectionForm({
 
           <div className="flex flex-wrap justify-between gap-4">
             <div className="flex flex-wrap gap-4">
-              {/* How many pieces? + Dummy Delivery Date */}
-              <div className="flex flex-col gap-4 items-start border border-border w-fit p-5 rounded-xl bg-accent/5 shadow-sm">
-                <div className="flex items-end gap-4">
-                  {/* Left: pieces input */}
-                  <div className="flex flex-col gap-2">
-                    <Label
-                      htmlFor="num-fabrics"
-                      className="text-base font-semibold"
-                    >
-                      How many pieces?
-                    </Label>
-                    <Input
-                      id="num-fabrics"
-                      type="number"
-                      placeholder="e.g., 2"
-                      onChange={(e) =>
-                        setNumRowsToAdd(parseInt(e.target.value, 10))
-                      }
-                      className="w-24 bg-background border-border/60"
-                      disabled={isFormDisabled}
-                    />
-                  </div>
-
-                  {/* Right: dummy delivery-date picker */}
-                  <div className="flex flex-col gap-2">
-                    <Label
-                      htmlFor="dummy-delivery"
-                      className="text-base font-semibold"
-                    >
-                      Delivery Date
-                    </Label>
-                    <DatePicker
-                      id="dummy-delivery"
-                      placeholder="Pick a date"
-                      value={undefined} // dummy – not wired to state
-                      onChange={() => {}} // dummy – no-op
-                      disabled
-                    />
-                  </div>
+              {/* How many pieces? */}
+              <div className="flex flex-col gap-3 border-2 border-accent/50 w-fit p-5 rounded-xl bg-linear-to-br from-accent/10 to-muted/20 shadow-md">
+                <div className="flex items-center gap-2 mb-1">
+                  <Package className="w-5 h-5 text-accent-foreground" />
+                  <Label className="text-lg font-bold text-accent-foreground">
+                    Add Pieces
+                  </Label>
                 </div>
-
+                <div className="flex flex-col gap-2">
+                  <Label
+                    htmlFor="num-fabrics"
+                    className="text-sm font-medium text-muted-foreground"
+                  >
+                    Number of pieces
+                  </Label>
+                  <Input
+                    id="num-fabrics"
+                    type="number"
+                    placeholder="e.g., 2"
+                    onChange={(e) =>
+                      setNumRowsToAdd(parseInt(e.target.value, 10))
+                    }
+                    className="w-32 bg-background border-border/60"
+                    disabled={isFormDisabled}
+                  />
+                </div>
                 <Button
                   type="button"
                   onClick={() => {
@@ -966,11 +962,116 @@ export function FabricSelectionForm({
                   }}
                   disabled={isFormDisabled}
                   size="sm"
+                  className="w-full"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add / Sync
                 </Button>
               </div>
+
+              {/* Stitching Price */}
+              <div className="flex flex-col gap-3 border-2 border-secondary/30 w-fit p-5 rounded-xl bg-linear-to-br from-secondary/5 to-primary/5 shadow-md">
+                <div className="flex items-center gap-2 mb-1">
+                  <DollarSign className="w-5 h-5 text-secondary" />
+                  <Label className="text-lg font-bold text-secondary">
+                    Stitching Price
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <label
+                    htmlFor="price-9"
+                    className={cn(
+                      "flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer",
+                      stichingPrice === 9
+                        ? "border-secondary bg-secondary/10 shadow-sm"
+                        : "border-border/50 bg-background hover:border-secondary/50 hover:bg-accent/20",
+                    )}
+                  >
+                    <Checkbox
+                      id="price-9"
+                      checked={stichingPrice === 9}
+                      onCheckedChange={(checked) =>
+                        checked ? setStichingPrice(9) : null
+                      }
+                      disabled={isFormDisabled}
+                    />
+                    <span
+                      className={cn(
+                        "font-medium text-sm",
+                        stichingPrice === 9
+                          ? "text-secondary"
+                          : "text-foreground",
+                      )}
+                    >
+                      9 KWD
+                    </span>
+                  </label>
+
+                  <label
+                    htmlFor="price-7"
+                    className={cn(
+                      "flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer",
+                      stichingPrice === 7
+                        ? "border-secondary bg-secondary/10 shadow-sm"
+                        : "border-border/50 bg-background hover:border-secondary/50 hover:bg-accent/20",
+                    )}
+                  >
+                    <Checkbox
+                      id="price-7"
+                      checked={stichingPrice === 7}
+                      onCheckedChange={(checked) =>
+                        checked ? setStichingPrice(7) : null
+                      }
+                      disabled={isFormDisabled}
+                    />
+                    <span
+                      className={cn(
+                        "font-medium text-sm",
+                        stichingPrice === 7
+                          ? "text-secondary"
+                          : "text-foreground",
+                      )}
+                    >
+                      7 KWD
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Delivery Date */}
+              <div className="flex flex-col gap-3 border-2 border-muted/50 w-fit min-w-[200px] p-5 rounded-xl bg-linear-to-br from-muted/10 to-accent/10 shadow-md">
+                <div className="flex items-center gap-2 mb-1">
+                  <Label className="text-lg font-bold text-foreground">
+                    Delivery Date
+                  </Label>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-sm font-medium text-muted-foreground">
+                      Actual Delivery
+                    </Label>
+                    <DatePicker
+                      placeholder={new Date().toISOString()}
+                      value={deliveryDate ? new Date(deliveryDate) : new Date()}
+                      onChange={(value) => {
+                        if (value) setDeliveryDate(value.toISOString());
+                      }}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label className="text-sm font-medium text-muted-foreground">
+                      Dummy Delivery
+                    </Label>
+                    <DatePicker
+                      placeholder="Pick a date"
+                      value={undefined}
+                      onChange={() => {}}
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Campaign Offers */}
               <div className="flex flex-col gap-3 border-2 border-primary/30 w-fit p-5 rounded-xl bg-linear-to-br from-primary/5 to-secondary/5 shadow-md">
                 <div className="flex items-center gap-2 mb-1">
@@ -1030,76 +1131,66 @@ export function FabricSelectionForm({
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 border rounded-lg p-2 shadow">
-              <label className="text-lg font-semibold">
-                {" "}
-                Choose Stitching Prices
-              </label>
-              <div className="flex flex-col gap-4 items-baseline pl-4">
-                <div className="flex items-center justify-center gap-2">
-                  <Checkbox
-                    checked={stichingPrice == 9}
-                    onCheckedChange={(checked) =>
-                      checked ? setStichingPrice(9) : null
-                    }
-                  />
-                  <label>9 KWD</label>
-                </div>
-
-                {/* <div className="flex items-center justify-center gap-2"> */}
-                {/*   <Checkbox */}
-                {/*     checked={stichingPrice == 8} */}
-                {/*     onCheckedChange={(checked) => */}
-                {/*       checked ? setStichingPrice(8) : null */}
-                {/*     } */}
-                {/*   /> */}
-                {/*   <label>8 KWD</label> */}
-                {/* </div> */}
-
-                <div className="flex items-center justify-center gap-2">
-                  <Checkbox
-                    checked={stichingPrice == 7}
-                    onCheckedChange={(checked) =>
-                      checked ? setStichingPrice(7) : null
-                    }
-                  />
-                  <label>7 KWD</label>
-                </div>
-              </div>
-            </div>
-
             {/* Measurement Helper */}
-            <div className="flex flex-col gap-3 border border-border w-fit p-5 rounded-xl bg-accent/5 shadow-sm">
-              <Label className="text-base font-semibold">
-                Measurement Helper:
+            <div className="flex flex-col gap-3 border-2 border-primary/30 w-fit p-5 rounded-xl bg-linear-to-br from-primary/5 to-secondary/5 shadow-md">
+              <Label className="text-lg font-bold text-primary">
+                Measurement Helper
               </Label>
-              <Select
-                onValueChange={setSelectedMeasurementId}
-                value={selectedMeasurementId || ""}
-              >
-                <SelectTrigger className="w-[180px] bg-background border-border/60">
-                  <SelectValue placeholder="Select Measurement ID" />
-                </SelectTrigger>
-                <SelectContent>
-                  {measurements.map((m) => (
-                    <SelectItem key={m.id} value={m.id ?? ""}>
-                      {m.fields.MeasurementID}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {fabricMeter !== null && (
-                <div className="mt-4">
-                  <p>
-                    <strong>Fabric Meter:</strong> {fabricMeter}
-                  </p>
-                  <p>
-                    <strong>Qallabi:</strong> {qallabi}
-                  </p>
-                  <p>
-                    <strong>Cuffs:</strong> {cuffs}
-                  </p>
+
+              {isLoadingMeasurements ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Loading measurements...</span>
                 </div>
+              ) : measurements.length === 0 ? (
+                <div className="text-sm text-muted-foreground italic">
+                  No measurements available. Please add measurements first.
+                </div>
+              ) : (
+                <>
+                  <Select
+                    onValueChange={setSelectedMeasurementId}
+                    value={selectedMeasurementId || ""}
+                  >
+                    <SelectTrigger className="w-[200px] bg-background border-border/60">
+                      <SelectValue placeholder="Select Measurement ID" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {measurements.map((m) => (
+                        <SelectItem key={m.id} value={m.id ?? ""}>
+                          {m.fields.MeasurementID}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {selectedMeasurementId ? (
+                    fabricMeter !== null ? (
+                      <div className="mt-2 p-3 bg-primary/10 rounded-lg border border-primary/30 space-y-1">
+                        <p className="text-sm">
+                          <strong className="text-foreground">Fabric Meter:</strong>{" "}
+                          <span className="text-primary font-semibold">{fabricMeter}m</span>
+                        </p>
+                        <p className="text-sm">
+                          <strong className="text-foreground">Qallabi:</strong>{" "}
+                          <span className="text-primary font-semibold">{qallabi}m</span>
+                        </p>
+                        <p className="text-sm">
+                          <strong className="text-foreground">Cuffs:</strong>{" "}
+                          <span className="text-primary font-semibold">{cuffs}m</span>
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground italic mt-2">
+                        Invalid values
+                      </div>
+                    )
+                  ) : (
+                    <div className="text-sm text-muted-foreground italic mt-2">
+                      Select a measurement to see fabric calculations
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -1126,20 +1217,6 @@ export function FabricSelectionForm({
                 <Copy className="w-4 h-4 mr-2" />
                 Copy First Row
               </Button>
-            </div>
-
-            {/* Delivery date row – compact */}
-            <div className="flex items-center gap-2 w-60">
-              <label className="text-sm font-semibold whitespace-nowrap">
-                Delivery Date
-              </label>
-              <DatePicker
-                placeholder={new Date().toISOString()}
-                value={deliveryDate ? new Date(deliveryDate) : new Date()}
-                onChange={(value) => {
-                  if (value) setDeliveryDate(value.toISOString());
-                }}
-              />
             </div>
           </div>
 

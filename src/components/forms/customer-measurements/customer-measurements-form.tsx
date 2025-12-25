@@ -47,7 +47,7 @@ import {
 } from "@/lib/measurement-mapper";
 import { toast } from "sonner";
 import type { Measurement } from "@/types/measurement";
-import { Pencil, X, Save, Plus, ArrowRight } from "lucide-react";
+import { Pencil, X, Save, Plus, ArrowRight, RotateCcw } from "lucide-react";
 
 // ---------------------------------------
 // Type definitions
@@ -57,10 +57,10 @@ interface CustomerMeasurementsFormProps {
   customerId: string | null;
   customerRecordId: string | undefined;
   onProceed?: () => void;
-  isOrderClosed: Boolean;
+  isOrderClosed: boolean;
 }
 
-const unit = "inch";
+const unit = "in";
 
 // ---------------------------------------
 // Custom hook for auto provision updates
@@ -130,7 +130,7 @@ function useAutoProvision(form: UseFormReturn<CustomerMeasurementsSchema>) {
 }
 
 const SmallSpinner = () => (
-  <div className="w-5 h-5 border-2 border-dashed rounded-full animate-spin border-primary" />
+  <div className="w-4 h-4 border-2 border-dashed rounded-full animate-spin border-primary" />
 );
 
 // ---------------------------------------
@@ -165,7 +165,6 @@ export function CustomerMeasurementsForm({
   const [selectedReference, setSelectedReference] = React.useState<
     string | undefined
   >(form.getValues("measurementReference"));
-  // const selectedReference = form.watch("measurementReference");
   useAutoProvision(form);
 
   // Auto-navigation for electric tape
@@ -429,7 +428,6 @@ export function CustomerMeasurementsForm({
           </div>
         </div>
         {/* ---- Top Controls ---- */}
-        {/* ---- Top Controls ---- */}
         <div className="flex flex-wrap justify-between items-start gap-6 bg-card p-6 rounded-xl border border-border shadow-sm">
           {/* Left side: all existing fields wrapped in one flex row */}
           <div className="flex flex-wrap justify-start gap-6">
@@ -622,8 +620,10 @@ export function CustomerMeasurementsForm({
                 <Button type="submit" disabled={isSaving}>
                   {isSaving ? (
                     <>
-                      <SmallSpinner />
-                      <span className="ml-2">Saving...</span>
+                      <div className="mr-2">
+                        <SmallSpinner />
+                      </div>
+                      Saving...
                     </>
                   ) : (
                     <>
@@ -654,6 +654,7 @@ export function CustomerMeasurementsForm({
                 onClick={handleClear}
                 className="border-border/40 text-muted-foreground hover:bg-muted"
               >
+                <RotateCcw className="w-4 h-4 mr-2" />
                 Clear
               </Button>
             )}

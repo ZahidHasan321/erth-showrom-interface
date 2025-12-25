@@ -2,8 +2,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { NotFoundPage } from '@/components/not-found-page';
 import { Button } from "@/components/ui/button";
 import { LogOut, ShieldAlert } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { SidebarInset, SidebarProvider, SidebarTrigger, } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/auth";
 import { BRAND_NAMES } from "@/lib/constants";
 import { router } from "@/router";
@@ -129,27 +128,16 @@ function RouteComponent() {
   )
 
   const mainLayout = (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen>
       <div className="flex h-screen w-screen">
         <AppSidebar
+          collapsible="icon"
           brandLogo={main === BRAND_NAMES.showroom ? ErthLogo : SakhtbaLogo}
           brandName={main === BRAND_NAMES.showroom ? BRAND_NAMES.showroom : BRAND_NAMES.fromHome}
+          onLogout={handleLogout}
         />
-        <SidebarInset  className="flex-1 flex flex-col min-w-0">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 relative">
-            <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-              <Button variant="destructive" size="sm" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </div>
-          </header>
-          <main className="flex-1">
+        <SidebarInset className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden relative">
             <Outlet />
           </main>
         </SidebarInset>

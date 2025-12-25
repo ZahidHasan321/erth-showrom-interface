@@ -3,12 +3,11 @@
 import { searchCustomerByPhone } from "@/api/customers";
 import { getPendingOrdersByCustomer } from "@/api/orders";
 import { Button } from "@/components/ui/button";
-import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import type { Customer } from "@/types/customer";
 import type { Order } from "@/types/order";
 import { useQuery } from "@tanstack/react-query";
-import { SearchIcon } from "lucide-react";
+import { Loader2, SearchIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CustomerSelectionDialog } from "./customer-selection-dialog";
@@ -36,6 +35,7 @@ export function SearchCustomer({
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null,
   );
+  const [isLoadingPendingOrders, setIsLoadingPendingOrders] = useState(false);
 
   const { data, isFetching, isSuccess, isError, error } = useQuery({
     queryKey: ["customerSearch", submittedSearch],
@@ -57,6 +57,7 @@ export function SearchCustomer({
 
       // Check for pending orders if enabled (only for new work orders)
       if (checkPendingOrders && customer.fields.id) {
+        setIsLoadingPendingOrders(true);
         try {
           const response = await getPendingOrdersByCustomer(
             customer.fields.id,
@@ -74,6 +75,8 @@ export function SearchCustomer({
           toast.error("Failed to check for pending orders");
           // Proceed with customer selection anyway
           onCustomerFound(customer);
+        } finally {
+          setIsLoadingPendingOrders(false);
         }
       } else {
         // No need to check pending orders, proceed directly
@@ -146,44 +149,67 @@ export function SearchCustomer({
       <h2 className="text-xl font-semibold">Search Customer</h2>
 
       <div className="flex justify-between gap-4 items-end">
-        <FormItem>
-          <FormLabel>Mobile Number</FormLabel>
-          <FormControl>
-            <Input
-              placeholder="Enter mobile number..."
-              value={searchMobile}
-              onChange={(e) => setSearchMobile(e.target.value)}
-              className="bg-white"
-              name="customerSearchMobile"
-              type="tel"
-              autoCorrect="off"
-              spellCheck={false}
-              autoComplete="on"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSearch();
-                }
-              }}
-            />
-          </FormControl>
-        </FormItem>
+        <div className="flex-1 space-y-2">
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Mobile Number
+          </label>
+          <Input
+            placeholder="Enter mobile number..."
+            value={searchMobile}
+            onChange={(e) => setSearchMobile(e.target.value)}
+            className="bg-white"
+            name="customerSearchMobile"
+            type="tel"
+            autoCorrect="off"
+            spellCheck={false}
+            autoComplete="on"
+            disabled={isFetching || isLoadingPendingOrders}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSearch();
+              }
+            }}
+          />
+        </div>
 
         <div className="flex gap-2 flex-wrap justify-end lg:col-span-2">
           <Button
             type="button"
-            disabled={isFetching}
+            disabled={isFetching || isLoadingPendingOrders}
             className="flex items-center"
             onClick={handleSearch}
           >
-            <SearchIcon className="w-4 h-4 mr-2" />
-            {isFetching ? "Searching..." : "Search Customer"}
+            {isFetching ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Searching...
+              </>
+            ) : (
+              <>
+                <SearchIcon className="w-4 h-4 mr-2" />
+                Search Customer
+              </>
+            )}
           </Button>
-          <Button type="button" variant="outline" onClick={handleClear}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClear}
+            disabled={isFetching || isLoadingPendingOrders}
+          >
             Clear Search
           </Button>
         </div>
       </div>
+
+      {/* Loading indicator for pending orders check */}
+      {isLoadingPendingOrders && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card p-3 rounded-lg border border-border">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span>Checking for pending orders...</span>
+        </div>
+      )}
 
       <CustomerSelectionDialog
         isOpen={showDialog}

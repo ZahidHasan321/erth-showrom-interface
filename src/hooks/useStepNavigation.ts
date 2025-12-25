@@ -9,14 +9,17 @@ type UseStepNavigationOptions = {
   steps: Step[];
   setCurrentStep: (step: number) => void;
   addSavedStep: (step: number) => void;
+  headerOffset?: number;
 };
 
 export function useStepNavigation({
   steps,
   setCurrentStep,
   addSavedStep,
+  headerOffset = 120,
 }: UseStepNavigationOptions) {
   const sectionRefs = React.useRef<(HTMLDivElement | null)[]>([]);
+  const isManualScrolling = React.useRef(false);
 
   React.useEffect(() => {
     sectionRefs.current = steps.map((_, i) => sectionRefs.current[i] ?? null);
@@ -24,19 +27,29 @@ export function useStepNavigation({
 
   const handleStepChange = React.useCallback(
     (i: number) => {
+      // Update the current step immediately
+      setCurrentStep(i);
+
       const el = sectionRefs.current[i];
       if (el) {
         const rect = el.getBoundingClientRect();
-        const headerOffset = 120;
         const offsetPosition = window.scrollY + rect.top - headerOffset;
+
+        // Set flag to prevent scroll tracking from interfering
+        isManualScrolling.current = true;
 
         window.scrollTo({
           top: offsetPosition,
           behavior: "smooth",
         });
+
+        // Reset flag after scroll completes (smooth scroll takes ~500-800ms)
+        setTimeout(() => {
+          isManualScrolling.current = false;
+        }, 1000);
       }
     },
-    []
+    [setCurrentStep, headerOffset]
   );
 
   const handleProceed = React.useCallback(
@@ -52,6 +65,12 @@ export function useStepNavigation({
     let ticking = false;
 
     const updateActive = () => {
+      // Don't update if user is manually scrolling via step click
+      if (isManualScrolling.current) {
+        ticking = false;
+        return;
+      }
+
       const centers = steps.map((_, i) => {
         const el = sectionRefs.current[i];
         if (!el) return Number.POSITIVE_INFINITY;

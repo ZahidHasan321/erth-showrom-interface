@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, type Transition } from "framer-motion";
-import { CheckIcon, AlertCircle } from "lucide-react";
+import { CheckIcon, AlertCircle, ArrowRight } from "lucide-react";
 import React from "react";
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
@@ -45,6 +45,7 @@ interface OrderTypeAndPaymentFormProps {
     block?: string;
     street?: string;
     houseNumber?: string;
+    addressNote?: string;
   };
   fabricSelections?: FabricSelectionSchema[];
 }
@@ -139,9 +140,25 @@ export function OrderTypeAndPaymentForm({
     0
   );
 
-  // Auto calculate discount
+  // Cleanup discount values when discount type changes or is cleared
+  const previousDiscountType = React.useRef(discountType);
   React.useEffect(() => {
-    if (discountType === "flat" && discountPercentage) {
+    // Only reset if discount type actually changed (not on initial mount)
+    if (previousDiscountType.current !== discountType) {
+      form.setValue("discountValue", 0);
+      form.setValue("discountPercentage", undefined);
+      form.setValue("discountInKwd", undefined);
+      form.setValue("referralCode", undefined);
+      previousDiscountType.current = discountType;
+    }
+  }, [discountType, form]);
+
+  // Auto calculate discount for percentage-based types (flat, referral, loyalty)
+  React.useEffect(() => {
+    if (
+      (discountType === "flat" || discountType === "referral" || discountType === "loyalty") &&
+      discountPercentage
+    ) {
       const discount = parseFloat(
         (totalDue * (discountPercentage / 100)).toFixed(2)
       );
@@ -150,18 +167,33 @@ export function OrderTypeAndPaymentForm({
     }
   }, [discountPercentage, totalDue, discountType, form]);
 
+  // Sync discountInKwd when using byValue discount type
+  React.useEffect(() => {
+    if (discountType === "byValue" && discountValue !== undefined) {
+      form.setValue("discountInKwd", discountValue.toFixed(2));
+    }
+  }, [discountValue, discountType, form]);
+
   const finalAmount = totalDue - discountValue;
   const balance = finalAmount - paid;
 
-  // Check if address is provided
+  // Auto update balance in form
+  React.useEffect(() => {
+    form.setValue("balance", balance < 0 ? 0 : balance);
+  }, [balance, form]);
+
+  // Check if address is provided (any core field with non-empty value)
   const hasAddress = React.useMemo(() => {
     if (!customerAddress) return false;
-    return !!(
-      customerAddress.city ||
-      customerAddress.area ||
-      customerAddress.block ||
-      customerAddress.street ||
-      customerAddress.houseNumber
+    // Check if any address field has actual content (not just empty string)
+    // Note: addressNote is optional and doesn't count as a valid address
+    const hasContent = (value: string | undefined) => value && value.trim().length > 0;
+    return (
+      hasContent(customerAddress.city) ||
+      hasContent(customerAddress.area) ||
+      hasContent(customerAddress.block) ||
+      hasContent(customerAddress.street) ||
+      hasContent(customerAddress.houseNumber)
     );
   }, [customerAddress]);
 
@@ -170,12 +202,14 @@ export function OrderTypeAndPaymentForm({
   const proceedToNextStep = () => {
     const values = form.getValues();
     onSubmit({
+      homeDelivery: values.homeDelivery,
       advance: values.advance,
       balance: values.balance,
       discountValue: values.discountValue,
       discountInKwd: values.discountInKwd,
       discountPercentage: values.discountPercentage,
       discountType: values.discountType,
+      referralCode: values.referralCode,
       charges: values.charges,
       paid: values.paid,
     });
@@ -344,10 +378,10 @@ export function OrderTypeAndPaymentForm({
           <motion.section
             layout
             transition={smoothTransition}
-            className="bg-card rounded-xl border border-border shadow-sm overflow-hidden opacity-50"
+            className="bg-card rounded-xl border border-border shadow-sm overflow-hidden"
           >
             <header className="bg-primary text-primary-foreground px-6 py-4">
-              <h3 className="text-lg font-semibold">Select Discount (Disabled)</h3>
+              <h3 className="text-lg font-semibold">Select Discount</h3>
             </header>
 
             <div className="p-6 space-y-4">
@@ -372,13 +406,13 @@ export function OrderTypeAndPaymentForm({
                               field.onChange(active ? undefined : opt.value)
                             }
                             aria-pressed={active}
-                            disabled={true}
+                            disabled={isOrderClosed}
                             className={cn(
                               "flex items-center justify-between rounded-lg border p-4 transition-all w-full",
                               active
                                 ? "border-primary bg-background ring-2 ring-primary/20"
                                 : "border-border bg-background hover:border-primary/50 hover:shadow-sm",
-                              "opacity-50 cursor-not-allowed"
+                              isOrderClosed && "opacity-50 cursor-not-allowed"
                             )}
                           >
                             <div className="flex items-center gap-3">
@@ -493,9 +527,12 @@ export function OrderTypeAndPaymentForm({
                                             <Input
                                               type="number"
                                               placeholder="Discount %"
+                                              min="0"
+                                              max="100"
+                                              step="0.01"
                                               className="w-32 bg-background border-border/60"
                                               {...pField}
-                                              disabled={true}
+                                              disabled={isOrderClosed}
                                               onChange={(e) =>
                                                 pField.onChange(
                                                   e.target.value === ""
@@ -514,7 +551,7 @@ export function OrderTypeAndPaymentForm({
                                               type="text"
                                               placeholder="Discount (KWD)"
                                               readOnly
-                                              disabled={true}
+                                              disabled={isOrderClosed}
                                               className="w-40 bg-muted border-border/60"
                                               {...kField}
                                             />
@@ -532,9 +569,11 @@ export function OrderTypeAndPaymentForm({
                                             <Input
                                               type="number"
                                               placeholder="Discount (KWD)"
+                                              min="0"
+                                              step="0.01"
                                               className="w-40 bg-background border-border/60"
                                               value={cashField.value || ""}
-                                              disabled={true}
+                                              disabled={isOrderClosed}
                                               onChange={(e) =>
                                                 cashField.onChange(
                                                   e.target.value === ""
@@ -557,21 +596,47 @@ export function OrderTypeAndPaymentForm({
                                             <Input
                                               placeholder="Reference Code"
                                               {...rField}
-                                              disabled={true}
+                                              disabled={isOrderClosed}
                                               className="w-full bg-background border-border/60"
                                             />
                                           )}
                                         />
                                         <div className="flex flex-wrap gap-3">
-                                          <Input
-                                            placeholder="Discount %"
-                                            disabled={true}
-                                            className="w-32 md:w-40 bg-background border-border/60"
+                                          <FormField
+                                            control={form.control}
+                                            name="discountPercentage"
+                                            render={({ field: pField }) => (
+                                              <Input
+                                                type="number"
+                                                placeholder="Discount %"
+                                                min="0"
+                                                max="100"
+                                                step="0.01"
+                                                disabled={isOrderClosed}
+                                                className="w-32 md:w-40 bg-background border-border/60"
+                                                {...pField}
+                                                onChange={(e) =>
+                                                  pField.onChange(
+                                                    e.target.value === ""
+                                                      ? undefined
+                                                      : e.target.valueAsNumber
+                                                  )
+                                                }
+                                              />
+                                            )}
                                           />
-                                          <Input
-                                            placeholder="Discount (KWD)"
-                                            disabled={true}
-                                            className="w-40 md:w-48 bg-background border-border/60"
+                                          <FormField
+                                            control={form.control}
+                                            name="discountInKwd"
+                                            render={({ field: kField }) => (
+                                              <Input
+                                                placeholder="Discount (KWD)"
+                                                readOnly
+                                                disabled={isOrderClosed}
+                                                className="w-40 md:w-48 bg-muted border-border/60"
+                                                {...kField}
+                                              />
+                                            )}
                                           />
                                         </div>
                                       </div>
@@ -582,19 +647,45 @@ export function OrderTypeAndPaymentForm({
                                         <Button
                                           type="button"
                                           variant="outline"
-                                          disabled={true}
+                                          disabled={isOrderClosed}
                                         >
                                           Check Loyalty
                                         </Button>
-                                        <Input
-                                          placeholder="Discount %"
-                                          disabled={true}
-                                          className="w-32 md:w-40 bg-background border-border/60"
+                                        <FormField
+                                          control={form.control}
+                                          name="discountPercentage"
+                                          render={({ field: pField }) => (
+                                            <Input
+                                              type="number"
+                                              placeholder="Discount %"
+                                              min="0"
+                                              max="100"
+                                              step="0.01"
+                                              disabled={isOrderClosed}
+                                              className="w-32 md:w-40 bg-background border-border/60"
+                                              {...pField}
+                                              onChange={(e) =>
+                                                pField.onChange(
+                                                  e.target.value === ""
+                                                    ? undefined
+                                                    : e.target.valueAsNumber
+                                                )
+                                              }
+                                            />
+                                          )}
                                         />
-                                        <Input
-                                          placeholder="Discount (KWD)"
-                                          disabled={true}
-                                          className="w-40 md:w-48 bg-background border-border/60"
+                                        <FormField
+                                          control={form.control}
+                                          name="discountInKwd"
+                                          render={({ field: kField }) => (
+                                            <Input
+                                              placeholder="Discount (KWD)"
+                                              readOnly
+                                              disabled={isOrderClosed}
+                                              className="w-40 md:w-48 bg-muted border-border/60"
+                                              {...kField}
+                                            />
+                                          )}
                                         />
                                       </div>
                                     )}
@@ -609,10 +700,6 @@ export function OrderTypeAndPaymentForm({
                   </div>
                 )}
               />
-
-              <p className="text-muted-foreground italic text-sm text-center bg-muted/10 rounded-lg py-3 px-4 mt-4 border border-border">
-                Discounts are currently disabled.
-              </p>
             </div>
           </motion.section>
 
@@ -659,6 +746,8 @@ export function OrderTypeAndPaymentForm({
                       <Input
                         type="number"
                         placeholder="0.00"
+                        min="0"
+                        step="0.01"
                         className="w-32 text-left bg-background border-border/60 pr-10"
                         {...field}
                         value={field.value || ""}
@@ -698,7 +787,8 @@ export function OrderTypeAndPaymentForm({
               onClick={handleProceed}
               disabled={showAddressWarning}
             >
-              Continue to Confirmation →
+              Continue to Confirmation
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         )}

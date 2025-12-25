@@ -1,5 +1,17 @@
+/* Import fonts - MUST be first before Tailwind imports */
+@import url('https://fonts.googleapis.com/css2?family=Marcellus&family=Montserrat:wght@400;500;600;700&display=swap');
+
 @import "tailwindcss";
 @import "tw-animate-css";
+
+/* Custom Arabic-style font for brand names */
+@font-face {
+  font-family: 'Hidayatullah';
+  src: url('/fonts/hidayatullah DEMO.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -50,8 +62,8 @@
   --foreground: oklch(0.15 0.03 100);
   /* deep neutral text */
 
-  --card: oklch(0.98 0.005 95);
-  /* very light warm white, subtle warmth */
+  --card: oklch(1 0 0);
+  /* pure white for modern look */
   --card-foreground: oklch(0.18 0.03 100);
 
   --popover: oklch(1 0 0);
@@ -74,18 +86,18 @@
   /* darker text for better contrast */
 
   /* Supporting colors - more defined */
-  --muted: oklch(0.95 0.015 90);
-  /* light warm gray with subtle color */
-  --muted-foreground: oklch(0.45 0.04 100);
-  /* medium gray with slight warmth */
+  --muted: oklch(0.96 0 0);
+  /* pure neutral gray, no tint */
+  --muted-foreground: oklch(0.45 0 0);
+  /* pure neutral gray text */
 
   /* Utility colors */
   --destructive: oklch(0.58 0.22 25);
   /* muted red with better saturation */
-  --border: oklch(0.90 0.015 90);
-  /* light warm border, more defined */
-  --input: oklch(0.96 0.01 90);
-  /* light input background */
+  --border: oklch(0.90 0 0);
+  /* pure neutral border */
+  --input: oklch(0.96 0 0);
+  /* pure neutral input background */
   --ring: oklch(0.60 0.08 165);
   /* primary-based ring color */
 
@@ -102,14 +114,15 @@
   /* coral-red */
 
   /* Sidebar */
-  --sidebar: oklch(0.97 0.01 90);
-  /* very light warm background */
+  --sidebar: oklch(1 0 0);
+  /* pure white for modern look */
   --sidebar-foreground: oklch(0.18 0.03 100);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-accent: var(--accent);
   --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: oklch(0.90 0.015 90);
+  --sidebar-border: oklch(0.90 0 0);
+  /* pure neutral sidebar border */
   --sidebar-ring: oklch(0.60 0.08 165);
 }
 
@@ -118,19 +131,45 @@
   --primary: oklch(0.25 0.12 155);
   /* deep forest green ~950 */
   --primary-foreground: oklch(0.98 0.01 155);
+  --secondary: oklch(0.45 0.15 165);
+  /* vibrant emerald green */
+  --secondary-foreground: oklch(0.99 0.01 165);
+  --accent: oklch(0.88 0.08 140);
+  /* soft sage green */
+  --accent-foreground: oklch(0.25 0.06 155);
+  --muted: oklch(0.95 0.02 150);
+  /* very light green-tinted gray */
+  --muted-foreground: oklch(0.45 0.05 155);
+  --border: oklch(0.88 0.03 150);
+  /* light green-tinted border */
   --ring: oklch(0.35 0.10 155);
   --sidebar-primary: oklch(0.30 0.12 155);
+  --sidebar-accent: oklch(0.88 0.08 140);
+  --sidebar-border: oklch(0.88 0.03 150);
   --sidebar-ring: oklch(0.35 0.10 155);
 }
 
-/* Sakkba Brand Theme - Deep Blue */
+/* Sakkba Brand Theme - Muted Navy Blue */
 .sakkba {
-  --primary: oklch(0.25 0.12 240);
-  /* deep blue ~950 */
-  --primary-foreground: oklch(0.98 0.01 240);
-  --ring: oklch(0.35 0.10 240);
-  --sidebar-primary: oklch(0.30 0.12 240);
-  --sidebar-ring: oklch(0.35 0.10 240);
+  --primary: oklch(0.25 0.06 250);
+  /* muted navy blue ~950 */
+  --primary-foreground: oklch(0.98 0.01 250);
+  --secondary: oklch(0.48 0.08 255);
+  /* soft muted blue */
+  --secondary-foreground: oklch(0.99 0.01 255);
+  --accent: oklch(0.88 0.03 245);
+  /* very subtle slate blue */
+  --accent-foreground: oklch(0.28 0.04 250);
+  --muted: oklch(0.95 0.008 245);
+  /* barely tinted cool gray */
+  --muted-foreground: oklch(0.48 0.025 250);
+  --border: oklch(0.88 0.015 245);
+  /* subtle cool border */
+  --ring: oklch(0.35 0.06 250);
+  --sidebar-primary: oklch(0.30 0.06 250);
+  --sidebar-accent: oklch(0.88 0.03 245);
+  --sidebar-border: oklch(0.88 0.015 245);
+  --sidebar-ring: oklch(0.35 0.06 250);
 }
 
 .dark {
@@ -174,6 +213,21 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Marcellus', serif;
+  }
+
+  button {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+  }
+
+  label {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
   }
 }
 
@@ -186,4 +240,11 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+/* Brand font styling - Arabic-style font for brand names */
+.brand-font {
+  font-family: 'Hidayatullah', cursive;
+  font-weight: 400;
+  letter-spacing: 0.05em;
 }

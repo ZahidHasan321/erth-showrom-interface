@@ -320,7 +320,7 @@ function NewSalesOrder() {
   // RENDER: MAIN ORDER FLOW
   // ============================================================================
   return (
-    <div className="mb-64">
+    <>
       <ConfirmationDialog
         isOpen={dialog.isOpen}
         onClose={closeDialog}
@@ -330,7 +330,7 @@ function NewSalesOrder() {
       />
 
       {/* Sticky Header with Stepper */}
-      <div className="sticky w-full top-0 z-10 bg-white dark:bg-gray-950 shadow-md">
+      <div className="sticky top-0 z-50 bg-background">
         <HorizontalStepper
           steps={steps}
           completedSteps={savedSteps}
@@ -340,7 +340,7 @@ function NewSalesOrder() {
       </div>
 
       {/* Step Content */}
-      <div className="flex flex-col flex-1 items-center gap-40 py-10 mx-[10%]">
+      <div className="flex flex-col items-center gap-10 md:gap-16 py-10 pb-12 mx-[5%] md:mx-[10%]">
         {/* STEP 0: Demographics */}
         <div
           id={steps[0].id}
@@ -420,6 +420,6 @@ function NewSalesOrder() {
           />
         </div>
       </div>
-    </div>
+    </>
   );
 }

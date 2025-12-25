@@ -9,7 +9,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"IBM Plex Sans Arabic"', ...fontFamily.sans],
+        sans: ['Montserrat', ...fontFamily.sans],
+        heading: ['Marcellus', 'serif'],
+        brand: ['Hidayatullah', 'cursive'],
       },
     },
   },
