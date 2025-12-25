@@ -66,26 +66,31 @@ function SelectionPage() {
 
               <div className="relative z-10 flex flex-col items-center w-full space-y-6">
                 {/* Logo */}
-                <div className="bg-background rounded-full p-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <div className="bg-background rounded-full p-6 shadow-lg group-hover:scale-110 transition-transform duration-300 w-36 h-36 flex items-center justify-center">
                   <img src={ErthLogo} alt="Erth Logo" className="w-24 h-24 object-contain" />
                 </div>
 
                 {/* Title */}
-                <h2 className="text-3xl font-bold text-foreground brand-font capitalize">
+                <h2 className="text-3xl font-bold text-foreground brand-font capitalize min-h-[2.5rem] flex items-center">
                   {BRAND_NAMES.showroom}
                 </h2>
 
                 {/* Description */}
-                <p className="text-base text-muted-foreground text-center px-4 min-h-[3rem] flex items-center">
+                <p className="text-base text-muted-foreground text-center px-4 min-h-[4.5rem] flex items-center leading-relaxed">
                   Showroom management and comprehensive tools
                 </p>
 
                 {/* Button */}
                 <Button
                   size="lg"
-                  className="w-full py-6 text-lg bg-green-950 hover:bg-green-900 text-white rounded-xl shadow-lg transition-all duration-200 font-semibold"
+                  className="w-full py-6 text-lg bg-green-950 hover:bg-green-900 text-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 font-semibold border border-green-800/50 hover:border-green-700 hover:-translate-y-1 group"
                 >
-                  Enter Erth
+                  <span className="flex items-center justify-center gap-3">
+                    Enter Erth
+                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </span>
                 </Button>
               </div>
             </Card>
@@ -101,26 +106,31 @@ function SelectionPage() {
 
               <div className="relative z-10 flex flex-col items-center w-full space-y-6">
                 {/* Logo */}
-                <div className="bg-background rounded-full p-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <div className="bg-background rounded-full p-6 shadow-lg group-hover:scale-110 transition-transform duration-300 w-36 h-36 flex items-center justify-center">
                   <img src={SakhtbaLogo} alt="Sakkba Logo" className="w-20 h-20 object-contain" />
                 </div>
 
                 {/* Title */}
-                <h2 className="text-3xl font-bold text-foreground brand-font capitalize">
+                <h2 className="text-3xl font-bold text-foreground brand-font capitalize min-h-[2.5rem] flex items-center">
                   {BRAND_NAMES.fromHome}
                 </h2>
 
                 {/* Description */}
-                <p className="text-base text-muted-foreground text-center px-4 min-h-[3rem] flex items-center">
+                <p className="text-base text-muted-foreground text-center px-4 min-h-[4.5rem] flex items-center leading-relaxed">
                   Home-based order management system
                 </p>
 
                 {/* Button */}
                 <Button
                   size="lg"
-                  className="w-full py-6 text-lg bg-blue-950 hover:bg-blue-900 text-white rounded-xl shadow-lg transition-all duration-200 font-semibold"
+                  className="w-full py-6 text-lg bg-blue-950 hover:bg-blue-900 text-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 font-semibold border border-blue-800/50 hover:border-blue-700 hover:-translate-y-1 group"
                 >
-                  Enter Sakkba
+                  <span className="flex items-center justify-center gap-3">
+                    Enter Sakkba
+                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </span>
                 </Button>
               </div>
             </Card>

@@ -43,9 +43,9 @@ function LandingPage() {
         <Link to="/home">
           <Button
             size="lg"
-            className="text-2xl px-16 py-8 rounded-full shadow-2xl hover:scale-105 transition-all duration-300"
+            className="text-lg px-12 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
           >
-            Enter
+            Press Enter to Continue
           </Button>
         </Link>
       </div>

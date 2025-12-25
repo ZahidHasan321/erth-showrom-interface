@@ -9,7 +9,8 @@ import { router } from "@/router";
 import { createFileRoute, notFound, Outlet, redirect, rootRouteId, Link } from '@tanstack/react-router';
 import ErthLogo from "../../assets/erth-light.svg";
 import SakhtbaLogo from "../../assets/Sakkba.png";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 type MainParam = typeof BRAND_NAMES[keyof typeof BRAND_NAMES]
 
@@ -62,6 +63,7 @@ function RouteComponent() {
 
   const auth = useAuth()
   const navigate = Route.useNavigate()
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
   // Apply brand-specific theme
   useEffect(() => {
@@ -78,13 +80,16 @@ function RouteComponent() {
   }, [main])
 
   const handleLogout = () => {
-    if (window.confirm('Are you sure you want to logout?')) {
-      auth.logout().then(() => {
-        router.invalidate().finally(() => {
-          navigate({ to: '/' })
-        })
+    setShowLogoutDialog(true)
+  }
+
+  const confirmLogout = () => {
+    auth.logout().then(() => {
+      router.invalidate().finally(() => {
+        navigate({ to: '/' })
       })
-    }
+    })
+    setShowLogoutDialog(false)
   }
 
   const attemptedBrandName = loaderData.attemptedBrand === BRAND_NAMES.showroom ? 'Erth' : 'Sakkba'
@@ -145,5 +150,18 @@ function RouteComponent() {
     </SidebarProvider>
   )
 
-  return loaderData.hasBrandMismatch ? errorPage : mainLayout
+  return (
+    <>
+      {loaderData.hasBrandMismatch ? errorPage : mainLayout}
+      <ConfirmationDialog
+        isOpen={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        onConfirm={confirmLogout}
+        title="Confirm Logout"
+        description="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+      />
+    </>
+  )
 }
