@@ -374,6 +374,7 @@ function NewWorkOrder() {
             orderStatus: orderFields.OrderStatus,
             homeDelivery: orderFields.HomeDelivery,
             campaigns: orderFields.Campaigns,
+            deliveryDate: orderFields.DeliveryDate,
             charges: {
               fabric: orderFields.FabricCharge ?? 0,
               stitching: orderFields.StitchingCharge ?? 0,
@@ -734,7 +735,9 @@ function NewWorkOrder() {
   // NAVIGATION GUARDS
   // ============================================================================
   const [allowNavigation, setAllowNavigation] = React.useState(false);
-  const [pendingNavigationPath, setPendingNavigationPath] = React.useState<string | null>(null);
+  const [pendingNavigationPath, setPendingNavigationPath] = React.useState<
+    string | null
+  >(null);
 
   // Clear pending navigation when dialog closes without confirming
   React.useEffect(() => {
@@ -908,7 +911,9 @@ function NewWorkOrder() {
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
           </div>
           <h2 className="text-2xl font-bold text-foreground">
-            {createOrderMutation.isPending ? "Creating Order..." : "Loading Order..."}
+            {createOrderMutation.isPending
+              ? "Creating Order..."
+              : "Loading Order..."}
           </h2>
           <p className="text-muted-foreground">
             {createOrderMutation.isPending

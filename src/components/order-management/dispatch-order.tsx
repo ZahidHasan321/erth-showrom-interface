@@ -3,6 +3,15 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+import {
+  Package,
+  Send,
+  RefreshCw,
+  CheckCircle2,
+  PackageCheck,
+  Inbox,
+} from "lucide-react";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -10,6 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorBoundary } from "@/components/global/error-boundary";
 
 // API and Types
 import { searchOrders, updateOrder } from "@/api/orders";
@@ -50,37 +60,57 @@ function OrderCard({ order, onDispatch, isUpdating }: OrderCardProps) {
   };
 
   return (
-    <Card className="w-full h-full flex flex-col transition-all hover:shadow-md">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg font-semibold">
-              Order #{orderId}
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Fatoura: <span className="font-medium">{fatoura}</span>
-            </p>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card className="w-full h-full flex flex-col transition-all hover:shadow-lg hover:border-primary/30">
+        <CardHeader className="pb-3 bg-card border-b border-border">
+          <div className="flex justify-between items-start gap-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Package className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <CardTitle className="text-lg font-semibold text-foreground">
+                  Order #{orderId}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Fatoura: <span className="font-medium">{fatoura}</span>
+                </p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="text-xs">
+              {order.fields.FatouraStages}
+            </Badge>
           </div>
-          <Badge variant="secondary" className="text-xs">
-            {order.fields.FatouraStages}
-          </Badge>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
       {/* uniform body: grows and scrolls if needed */}
       <CardContent className="flex-1 flex flex-col space-y-4">
         <div className="flex-1 flex flex-col space-y-3 min-h-0">
-          <p className="text-sm font-medium text-muted-foreground shrink-0">
-            Piece Check ({numFabrics} {numFabrics === 1 ? "piece" : "pieces"})
-          </p>
+          <div className="flex items-center gap-2 shrink-0">
+            <PackageCheck className="w-4 h-4 text-muted-foreground" />
+            <p className="text-sm font-medium text-muted-foreground">
+              Piece Check ({numFabrics} {numFabrics === 1 ? "piece" : "pieces"})
+            </p>
+          </div>
 
           {numFabrics > 0 ? (
             <div className="flex-1 overflow-y-auto pr-1">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {Array.from({ length: numFabrics }).map((_, index) => (
-                  <div
+                  <motion.div
                     key={index}
-                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${
+                      checkedStates[index]
+                        ? "bg-primary/10 border-primary/30"
+                        : "bg-muted/20 border-border hover:bg-muted/40"
+                    }`}
                   >
                     <Checkbox
                       id={`${order.id}-piece-${index}`}
@@ -92,16 +122,24 @@ function OrderCard({ order, onDispatch, isUpdating }: OrderCardProps) {
                     />
                     <label
                       htmlFor={`${order.id}-piece-${index}`}
-                      className="text-sm font-medium cursor-pointer select-none"
+                      className="text-sm font-medium cursor-pointer select-none flex items-center gap-1.5"
                     >
+                      {checkedStates[index] && (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                      )}
                       Piece {index + 1}
                     </label>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No pieces to check (0 fabrics)</p>
+            <div className="flex items-center gap-2 p-4 bg-muted/20 rounded-lg border border-border">
+              <Inbox className="w-4 h-4 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                No pieces to check (0 fabrics)
+              </p>
+            </div>
           )}
         </div>
 
@@ -111,10 +149,12 @@ function OrderCard({ order, onDispatch, isUpdating }: OrderCardProps) {
           disabled={!allChecked || isUpdating}
           variant={allChecked ? "default" : "secondary"}
         >
+          <Send className="w-4 h-4 mr-2" />
           {isUpdating ? "Dispatching..." : "Dispatch"}
         </Button>
       </CardContent>
     </Card>
+    </motion.div>
   );
 }
 
@@ -164,16 +204,32 @@ export default function DispatchOrderPage() {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+  };
+
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-24" />
+      <div className="container mx-auto p-6 md:p-10 max-w-7xl">
+        <div className="flex justify-between items-center mb-8">
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-5 w-48" />
+          </div>
+          <Skeleton className="h-10 w-28" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-48 w-full" />
+            <Skeleton key={i} className="h-64 w-full rounded-xl" />
           ))}
         </div>
       </div>
@@ -182,69 +238,119 @@ export default function DispatchOrderPage() {
 
   if (isError) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="bg-destructive/10 text-destructive p-4 rounded-md">
-          <p className="font-medium">Error loading orders</p>
-          <p className="text-sm mt-1">{error?.message}</p>
-          <Button
-            variant="outline"
-            className="mt-3"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </Button>
-        </div>
+      <div className="container mx-auto p-6 md:p-10 max-w-7xl">
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="p-8">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-destructive/10 rounded-lg">
+                <Package className="w-6 h-6 text-destructive" />
+              </div>
+              <div className="flex-1 space-y-3">
+                <div>
+                  <p className="font-semibold text-destructive text-lg">
+                    Error loading orders
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {error?.message}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Retry
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Dispatch Orders</h1>
-          <p className="text-muted-foreground mt-1">
-            Ready to send {orders.length} order{orders.length !== 1 ? "s" : ""}{" "}
-            to production
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={() =>
-            queryClient.invalidateQueries({ queryKey: ["dispatchOrders"] })
-          }
+    <ErrorBoundary showDetails={true}>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="container mx-auto p-6 md:p-10 space-y-8 max-w-7xl"
+      >
+        <motion.div
+          variants={itemVariants}
+          className="flex flex-col md:flex-row md:justify-between md:items-center gap-4"
         >
-          Refresh
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {orders.length === 0 ? (
-          <div className="col-span-full">
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center py-8">
-                  <div className="text-muted-foreground mb-2">
-                    All caught up!
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    No orders with "Fatoura Received" and "Completed" status
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Dispatch Orders
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Ready to send {orders.length} order{orders.length !== 1 ? "s" : ""}{" "}
+              to production
+            </p>
           </div>
-        ) : (
-          orders.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              onDispatch={handleDispatch}
-              isUpdating={updatingOrderIds.has(order.id)}
-            />
-          ))
-        )}
-      </div>
-    </div>
+          <Button
+            variant="outline"
+            onClick={() =>
+              queryClient.invalidateQueries({ queryKey: ["dispatchOrders"] })
+            }
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </motion.div>
+
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          {orders.length === 0 ? (
+            <div className="col-span-full">
+              <Card className="border-primary/30 bg-primary/5">
+                <CardContent className="p-12">
+                  <div className="text-center space-y-4">
+                    <div className="flex justify-center">
+                      <div className="p-4 bg-primary/10 rounded-full">
+                        <CheckCircle2 className="w-12 h-12 text-primary" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xl font-semibold text-foreground mb-2">
+                        All caught up!
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        No orders with "Fatoura Received" and "Completed" status
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            orders.map((order) => (
+              <ErrorBoundary
+                key={order.id}
+                fallback={
+                  <Card className="border-destructive/30 bg-destructive/5">
+                    <CardContent className="p-6 text-center">
+                      <p className="text-destructive font-semibold text-sm">
+                        Failed to load order
+                      </p>
+                    </CardContent>
+                  </Card>
+                }
+              >
+                <OrderCard
+                  order={order}
+                  onDispatch={handleDispatch}
+                  isUpdating={updatingOrderIds.has(order.id)}
+                />
+              </ErrorBoundary>
+            ))
+          )}
+        </motion.div>
+      </motion.div>
+    </ErrorBoundary>
   );
 }

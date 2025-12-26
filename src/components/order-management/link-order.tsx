@@ -7,11 +7,11 @@ import { searchCustomerByPhone, getCustomerByRecordId } from "@/api/customers";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Check, Link as LinkIcon, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 // UI Components
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +25,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { OrderSearchForm } from "./order-search-form";
+import { ErrorBoundary } from "../global/error-boundary";
 
 import type { Order } from "@/types/order";
 import type { Customer } from "@/types/customer";
@@ -333,282 +335,457 @@ export default function LinkOrder() {
   const canSubmit =
     hasOrders && !!reviseDate && !!primaryOrderId && !isSubmitting;
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+  };
+
+  function handleClearSearch() {
+    setOrderId(undefined);
+    setFatoura(undefined);
+    setCustomerMobile(undefined);
+  }
+
   return (
-    <section className="space-y-6 p-10">
-      <h1 className="text-xl font-semibold">Link Orders</h1>
+    <motion.section
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8 p-6 md:p-10 max-w-7xl mx-auto"
+    >
+      {/* --- Page Header --- */}
+      <motion.div variants={itemVariants} className="space-y-1">
+        <h1 className="text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Link Orders
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Link multiple orders together and set a common revise date
+        </p>
+      </motion.div>
 
       {/* --- Search Form --- */}
-      <form
-        onSubmit={onSubmit}
-        className="flex flex-col gap-4 md:flex-row md:items-end"
+      <ErrorBoundary
+        fallback={
+          <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-6 text-center">
+            <p className="text-destructive font-semibold">
+              Failed to load search form
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Please refresh the page to try again
+            </p>
+          </div>
+        }
       >
-        <div className="flex gap-2">
-          <Input
-            type="number"
-            placeholder="Order ID"
-            value={orderId ?? ""}
-            disabled={!!fatoura || !!customerMobile}
-            onChange={(e) => setOrderId(e.target.valueAsNumber || undefined)}
-            className="w-32"
-          />
-          <Input
-            type="number"
-            placeholder="Fatoura"
-            value={fatoura ?? ""}
-            disabled={!!orderId || !!customerMobile}
-            onChange={(e) => setFatoura(e.target.valueAsNumber || undefined)}
-            className="w-32"
-          />
-          <Input
-            type="number"
-            placeholder="Cust. Mobile"
-            value={customerMobile ?? ""}
-            disabled={!!orderId || !!fatoura}
-            onChange={(e) =>
-              setCustomerMobile(e.target.valueAsNumber || undefined)
-            }
-            className="w-40"
-          />
-        </div>
-        <Button
-          type="submit"
-          disabled={isFetching || (!orderId && !fatoura && !customerMobile)}
-        >
-          {isFetching ? "Searching..." : "Search & Add"}
-        </Button>
-      </form>
+        <OrderSearchForm
+          orderId={orderId}
+          fatoura={fatoura}
+          customerMobile={customerMobile}
+          onOrderIdChange={setOrderId}
+          onFatouraChange={setFatoura}
+          onCustomerMobileChange={setCustomerMobile}
+          onSubmit={onSubmit}
+          onClear={handleClearSearch}
+          isLoading={isFetching}
+        />
+      </ErrorBoundary>
 
       {/* --- Revise Date Picker --- */}
-      <div
-        className={cn(
-          "flex items-center gap-2 p-4 rounded-lg border border-dashed transition-colors",
-          hasOrders
-            ? "bg-muted/20 border-muted-foreground/30"
-            : "bg-muted/5 border-muted/20 opacity-60",
-        )}
+      <ErrorBoundary
+        fallback={
+          <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-6 text-center">
+            <p className="text-destructive font-semibold">
+              Failed to load date picker
+            </p>
+          </div>
+        }
       >
-        <label className="text-sm font-medium whitespace-nowrap">
-          Set Revise Date:
-        </label>
+        <motion.div
+          variants={itemVariants}
+          className={cn(
+            "bg-card p-6 rounded-xl border shadow-sm transition-all",
+            hasOrders
+              ? "border-primary/30 bg-primary/5"
+              : "border-border opacity-60",
+          )}
+        >
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex-1 space-y-1">
+              <label className="text-sm font-semibold text-foreground">
+                Set Revise Date <span className="text-destructive">*</span>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                This date will be applied to all selected orders
+              </p>
+            </div>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              disabled={!hasOrders}
-              className={cn(
-                "w-[240px] justify-start text-left font-normal",
-                !reviseDate && "text-muted-foreground",
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {reviseDate ? (
-                format(reviseDate, "PPP")
-              ) : (
-                <span>Pick a date</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={reviseDate}
-              onSelect={setReviseDate}
-              autoFocus
-            />
-          </PopoverContent>
-        </Popover>
-
-        <span className="text-xs text-muted-foreground ml-2 hidden md:inline">
-          (Applies to all selected orders)
-        </span>
-      </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={!hasOrders}
+                  className={cn(
+                    "w-full md:w-[280px] justify-start text-left font-normal",
+                    !reviseDate && "text-muted-foreground",
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {reviseDate ? (
+                    format(reviseDate, "PPP")
+                  ) : (
+                    <span>Pick a revise date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={reviseDate}
+                  onSelect={setReviseDate}
+                  autoFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </motion.div>
+      </ErrorBoundary>
 
       {/* --- Orders Table --- */}
-      <div className="border rounded-md overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted">
-            <tr>
-              <th className="p-3 text-left w-10">Primary</th>
-              <th className="p-3 text-left">Order ID</th>
-              <th className="p-3 text-left">Fatoura</th>
-              <th className="p-3 text-left">Fatoura Stage</th>
-              <th className="p-3 text-left">Customer</th>
-              <th className="p-3 text-left">Delivery Date</th>
-              <th className="p-3 text-left">Revise Date</th>
-              <th className="p-3 text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {!hasOrders ? (
+      <ErrorBoundary
+        fallback={
+          <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-6 text-center">
+            <p className="text-destructive font-semibold">
+              Failed to load orders table
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Please try searching again
+            </p>
+          </div>
+        }
+      >
+        <motion.div
+          variants={itemVariants}
+          className="bg-card rounded-xl border border-border shadow-sm overflow-hidden"
+        >
+        <div className="bg-primary text-primary-foreground px-6 py-4">
+          <h3 className="text-lg font-semibold">Selected Orders</h3>
+          <p className="text-sm opacity-90">
+            {hasOrders
+              ? `${selectedOrders.length} order${selectedOrders.length > 1 ? "s" : ""} selected`
+              : "No orders selected yet"}
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 border-b border-border">
               <tr>
-                <td
-                  colSpan={8}
-                  className="p-8 text-center text-muted-foreground"
-                >
-                  No orders selected. Search to add orders.
-                </td>
+                <th className="p-4 text-left w-10">Primary</th>
+                <th className="p-4 text-left">Order ID</th>
+                <th className="p-4 text-left">Fatoura</th>
+                <th className="p-4 text-left">Stage</th>
+                <th className="p-4 text-left">Customer</th>
+                <th className="p-4 text-left">Delivery Date</th>
+                <th className="p-4 text-left">Revise Date</th>
+                <th className="p-4 text-right">Action</th>
               </tr>
-            ) : (
-              selectedOrders.map((order) => {
-                const isPrimary = order.id === primaryOrderId;
-                // const customerInfo = customerInfoMap[order.id];
-
-                return (
-                  <tr
-                    key={order.id}
-                    className={cn(
-                      "border-t hover:bg-muted/10 transition-colors",
-                      isPrimary && "bg-blue-50/50 border-blue-200",
-                    )}
+            </thead>
+            <tbody>
+              {!hasOrders ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="p-12 text-center text-muted-foreground"
                   >
-                    <td className="p-3">
-                      <input
-                        type="radio"
-                        name="primaryOrder"
-                        checked={isPrimary}
-                        onChange={() => setPrimaryOrderId(order.id)}
-                        className="h-4 w-4"
-                      />
-                    </td>
-                    <td className="p-3 font-medium">{order.orderId ?? "-"}</td>
-                    <td className="p-3">{order.fatoura ?? "-"}</td>
-                    <td className="p-3">{order.fatouraStage ?? "-"}</td>
-                    <td className="p-3">
-                      {order.customerId ? (
-                        customerInfoMap[order.id] ? (
-                          <div>
-                            <div className="font-medium text-sm">
-                              {customerInfoMap[order.id]?.fields.Name ?? "-"}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {customerInfoMap[order.id]?.fields.Phone ?? "-"}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            Loading...
-                          </span>
-                        )
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="p-3">
-                      {order.orderDate
-                        ? new Date(order.orderDate).toLocaleDateString()
-                        : "-"}
-                    </td>
-                    <td className="p-3 text-blue-600 font-medium">
-                      {order.reviseDate ? (
-                        format(new Date(order.reviseDate), "PPP")
-                      ) : (
-                        <span className="text-muted-foreground text-xs">
-                          Not set
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-3 text-right">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => removeOrder(order.id)}
-                      >
-                        Remove
-                      </Button>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <LinkIcon className="w-12 h-12 opacity-20" />
+                      <p className="font-medium">No orders selected</p>
+                      <p className="text-xs">
+                        Search and add orders to link them together
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                selectedOrders.map((order) => {
+                  const isPrimary = order.id === primaryOrderId;
 
-      {/* --- Final Submit Button --- */}
-      <div className="flex justify-end pt-2">
+                  return (
+                    <tr
+                      key={order.id}
+                      className={cn(
+                        "border-t border-border hover:bg-muted/20 transition-colors",
+                        isPrimary &&
+                          "bg-primary/10 border-primary/30 hover:bg-primary/15",
+                      )}
+                    >
+                      <td className="p-4">
+                        <input
+                          type="radio"
+                          name="primaryOrder"
+                          checked={isPrimary}
+                          onChange={() => setPrimaryOrderId(order.id)}
+                          className="h-4 w-4 cursor-pointer"
+                        />
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">
+                            {order.orderId ?? "-"}
+                          </span>
+                          {isPrimary && (
+                            <Badge variant="default" className="text-xs">
+                              Primary
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4 font-medium">
+                        {order.fatoura ?? "-"}
+                      </td>
+                      <td className="p-4">
+                        <Badge variant="outline">
+                          {order.fatouraStage ?? "-"}
+                        </Badge>
+                      </td>
+                      <td className="p-4">
+                        {order.customerId ? (
+                          customerInfoMap[order.id] ? (
+                            <div>
+                              <div className="font-medium text-sm">
+                                {customerInfoMap[order.id]?.fields.Name ?? "-"}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {customerInfoMap[order.id]?.fields.Phone ?? "-"}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              Loading...
+                            </span>
+                          )
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td className="p-4 text-muted-foreground">
+                        {order.orderDate
+                          ? format(new Date(order.orderDate), "PP")
+                          : "-"}
+                      </td>
+                      <td className="p-4">
+                        {order.reviseDate ? (
+                          <span className="font-medium text-primary">
+                            {format(new Date(order.reviseDate), "PP")}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs italic">
+                            Not set
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeOrder(order.id)}
+                          className="hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
+      </ErrorBoundary>
+
+      {/* --- Action Buttons --- */}
+      <motion.div
+        variants={itemVariants}
+        className="flex gap-4 justify-end pt-2"
+      >
         <Button onClick={handleLinkOrders} size="lg" disabled={!canSubmit}>
+          <Check className="w-4 h-4 mr-2" />
           {isSubmitting ? "Linking Orders..." : "Link Orders"}
         </Button>
-      </div>
+      </motion.div>
 
       {/* --- Customer Selection Dialog --- */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Select Customer Orders</DialogTitle>
-          </DialogHeader>
-
-          <div className="max-h-[300px] overflow-y-auto border rounded-md">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-muted z-10">
-                <tr>
-                  <th className="p-2 w-10 bg-muted">
-                    <Checkbox
-                      checked={
-                        customerOrders.length > 0 &&
-                        selectedDialogIds.length === customerOrders.length
-                      }
-                      onCheckedChange={(checked) => {
-                        if (checked)
-                          setSelectedDialogIds(customerOrders.map((o) => o.id));
-                        else setSelectedDialogIds([]);
-                      }}
-                    />
-                  </th>
-                  <th className="p-2 text-left bg-muted">Order ID</th>
-                  <th className="p-2 text-left bg-muted">Fatoura</th>
-                  <th className="p-2 text-left bg-muted">Date</th>
-                  <th className="p-2 text-left bg-muted">Status</th>
-                  <th className="p-2 text-left bg-muted">Linked</th>
-                </tr>
-              </thead>
-              <tbody>
-                {customerOrders.map((order) => (
-                  <tr key={order.id} className="border-t">
-                    <td className="p-2">
-                      <Checkbox
-                        checked={selectedDialogIds.includes(order.id)}
-                        onCheckedChange={() => toggleDialogSelection(order.id)}
-                        disabled={order.fields.LinkedOrder}
-                      />
-                    </td>
-                    <td className="p-2">{order.fields.OrderID}</td>
-                    <td className="p-2">{order.fields.Fatoura ?? "-"}</td>
-                    <td className="p-2">
-                      {order.fields.DeliveryDate
-                        ? new Date(
-                            order.fields.DeliveryDate,
-                          ).toLocaleDateString()
-                        : "-"}
-                    </td>
-                    <td className="p-2">{order.fields.OrderStatus}</td>
-                    <td className="p-2">
-                      {order.fields.LinkedOrder ? (
-                        <Badge variant="secondary">Linked</Badge>
-                      ) : (
-                        <Badge variant="outline">Available</Badge>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <ErrorBoundary
+        fallback={
+          <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-6 text-center">
+            <p className="text-destructive font-semibold">
+              Failed to load customer dialog
+            </p>
           </div>
+        }
+      >
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="!w-[95vw] sm:!w-[90vw] md:!w-[85vw] lg:!w-[80vw] !max-w-7xl max-h-[85vh]">
+            <DialogHeader className="border-b border-border pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <LinkIcon className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl">
+                    Select Customer Orders to Link
+                  </DialogTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Select multiple completed orders from the same customer
+                  </p>
+                </div>
+              </div>
+            </DialogHeader>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDialogConfirm}
-              disabled={selectedDialogIds.length === 0}
-            >
-              Add Selected ({selectedDialogIds.length})
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </section>
+            <div className="overflow-auto max-h-[calc(85vh-240px)] border rounded-lg">
+              <table className="w-full text-sm min-w-[600px]">
+                <thead className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10 border-b border-border">
+                  <tr>
+                    <th className="p-4 text-left w-12">
+                      <Checkbox
+                        checked={
+                          customerOrders.length > 0 &&
+                          selectedDialogIds.length === customerOrders.length &&
+                          customerOrders.every((o) => !o.fields.LinkedOrder)
+                        }
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            const availableIds = customerOrders
+                              .filter((o) => !o.fields.LinkedOrder)
+                              .map((o) => o.id);
+                            setSelectedDialogIds(availableIds);
+                          } else {
+                            setSelectedDialogIds([]);
+                          }
+                        }}
+                      />
+                    </th>
+                    <th className="p-4 text-left font-semibold">Order Info</th>
+                    <th className="p-4 text-left font-semibold">Delivery Date</th>
+                    <th className="p-4 text-left font-semibold">Stage</th>
+                    <th className="p-4 text-left font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customerOrders.map((order) => {
+                    const isLinked = order.fields.LinkedOrder;
+                    const isSelected = selectedDialogIds.includes(order.id);
+
+                    return (
+                      <tr
+                        key={order.id}
+                        className={cn(
+                          "border-t border-border transition-colors",
+                          isLinked
+                            ? "bg-muted/30 opacity-60"
+                            : isSelected
+                              ? "bg-primary/10 hover:bg-primary/15"
+                              : "hover:bg-muted/20",
+                        )}
+                      >
+                        <td className="p-4">
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleDialogSelection(order.id)}
+                            disabled={isLinked}
+                          />
+                        </td>
+                        <td className="p-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground">
+                                #{order.fields.OrderID}
+                              </span>
+                              {isLinked && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Already Linked
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Fatoura: {order.fields.Fatoura ?? "N/A"}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="text-sm">
+                            {order.fields.DeliveryDate ? (
+                              <div className="space-y-1">
+                                <p className="font-medium">
+                                  {format(new Date(order.fields.DeliveryDate), "PPP")}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {format(new Date(order.fields.DeliveryDate), "p")}
+                                </p>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">Not set</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <Badge variant="outline" className="font-normal">
+                            {order.fields.FatouraStages ?? "N/A"}
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <Badge
+                            variant={
+                              order.fields.OrderStatus === "Completed"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {order.fields.OrderStatus}
+                          </Badge>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <DialogFooter className="border-t border-border pt-4">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 w-full">
+                <p className="text-sm text-muted-foreground">
+                  {selectedDialogIds.length > 0
+                    ? `${selectedDialogIds.length} order${selectedDialogIds.length > 1 ? "s" : ""} selected`
+                    : "No orders selected"}
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleDialogConfirm}
+                    disabled={selectedDialogIds.length === 0}
+                  >
+                    <Check className="w-4 h-4 mr-2" />
+                    Add Selected ({selectedDialogIds.length})
+                  </Button>
+                </div>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </ErrorBoundary>
+    </motion.section>
   );
 }
