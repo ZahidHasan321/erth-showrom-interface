@@ -57,6 +57,7 @@ export function SearchCustomer({
 
       // Check for pending orders if enabled (only for new work orders)
       if (checkPendingOrders && customer.fields.id) {
+        setShowPendingOrders(true); // Open dialog immediately
         setIsLoadingPendingOrders(true);
         try {
           const response = await getPendingOrdersByCustomer(
@@ -119,15 +120,6 @@ export function SearchCustomer({
   const handlePendingOrderSelect = (order: Order) => {
     if (onPendingOrderSelected) {
       onPendingOrderSelected(order);
-    }
-    setShowPendingOrders(false);
-    setPendingOrders([]);
-    setSelectedCustomer(null);
-  };
-
-  const handleCreateNewOrder = () => {
-    if (selectedCustomer) {
-      onCustomerFound(selectedCustomer);
     }
     setShowPendingOrders(false);
     setPendingOrders([]);
@@ -203,14 +195,6 @@ export function SearchCustomer({
         </div>
       </div>
 
-      {/* Loading indicator for pending orders check */}
-      {isLoadingPendingOrders && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-card p-3 rounded-lg border border-border">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Checking for pending orders...</span>
-        </div>
-      )}
-
       <CustomerSelectionDialog
         isOpen={showDialog}
         onOpenChange={setShowDialog}
@@ -223,8 +207,8 @@ export function SearchCustomer({
         onOpenChange={setShowPendingOrders}
         orders={pendingOrders}
         onSelectOrder={handlePendingOrderSelect}
-        onCreateNewOrder={handleCreateNewOrder}
         customerName={selectedCustomer?.fields.Name}
+        isLoading={isLoadingPendingOrders}
       />
     </div>
   );

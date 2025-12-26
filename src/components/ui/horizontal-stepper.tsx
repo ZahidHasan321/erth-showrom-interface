@@ -26,17 +26,17 @@ const Step: React.FC<StepProps> = ({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center cursor-pointer px-2 sm:px-3 md:px-4 py-2 sm:py-3 rounded-xl transition-all group relative",
+        "flex flex-col items-center cursor-pointer px-2 sm:px-3 md:px-4 py-1 rounded-lg transition-all group relative",
         "hover:bg-accent/30 hover:shadow-sm",
         "focus:outline-none",
-        isActive && "bg-accent/20 shadow-md"
+        isActive && "bg-accent/20 shadow-sm"
       )}
     >
       <div className="relative flex flex-col items-center">
         <motion.div
           layout
           className={cn(
-            "w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-full border-2 sm:border-[3px] flex items-center justify-center transition-all font-semibold shadow-sm relative overflow-hidden",
+            "w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center transition-all font-semibold shadow-sm relative overflow-hidden",
             isCompleted
               ? "border-primary bg-linear-to-br from-primary to-primary/90 text-primary-foreground shadow-primary/25"
               : isActive
@@ -44,7 +44,7 @@ const Step: React.FC<StepProps> = ({
                 : "border-border bg-background text-muted-foreground"
           )}
           animate={{
-            scale: isActive ? 1.08 : 1,
+            scale: isActive ? 1.05 : 1,
             rotate: isCompleted ? [0, -10, 10, -10, 0] : 0
           }}
           transition={{
@@ -69,17 +69,17 @@ const Step: React.FC<StepProps> = ({
             />
           )}
           {isCompleted ? (
-            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 relative z-10" />
+            <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 relative z-10" />
           ) : (
-            <span className="text-xs sm:text-sm md:text-base relative z-10">{index + 1}</span>
+            <span className="text-xs relative z-10">{index + 1}</span>
           )}
         </motion.div>
       </div>
 
-      <div className="mt-1.5 sm:mt-2 md:mt-2.5 text-center">
+      <div className="mt-0.5 text-center">
         <motion.p
           className={cn(
-            "text-[10px] sm:text-xs md:text-sm font-medium transition-all max-w-[60px] sm:max-w-[80px] md:max-w-none line-clamp-2 md:line-clamp-1",
+            "text-[11px] sm:text-xs font-medium transition-all max-w-[60px] sm:max-w-[80px] md:max-w-none line-clamp-2 md:line-clamp-1",
             isActive
               ? "text-secondary font-semibold"
               : isCompleted
@@ -106,7 +106,7 @@ interface StepperProps {
 }
 
 /**
- * Visual stepper — receives currentStep from parent/store and notifies onStepChange on click.
+ * Compact visual stepper — reduced vertical size while preserving original horizontal spacing.
  */
 export const HorizontalStepper: React.FC<StepperProps> = ({
   steps,
@@ -116,7 +116,7 @@ export const HorizontalStepper: React.FC<StepperProps> = ({
 }) => {
   return (
     <div className="w-full bg-linear-to-b from-background to-accent/10 border-b border-border/60 sticky top-0 z-40 shadow-sm backdrop-blur-sm">
-      <div className="flex flex-row items-center justify-start sm:justify-center px-2 sm:px-4 py-3 sm:py-4 md:py-5 overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent gap-0.5 sm:gap-1 md:gap-2 lg:gap-3 2xl:gap-6">
+      <div className="flex flex-row items-center justify-start sm:justify-center px-2 sm:px-4 py-1.5 sm:py-2 md:py-2 overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent gap-0.5 sm:gap-1 md:gap-2 lg:gap-3 2xl:gap-6">
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
             <Step

@@ -87,73 +87,74 @@ function OrderCard({ order, onDispatch, isUpdating }: OrderCardProps) {
           </div>
         </CardHeader>
 
-      {/* uniform body: grows and scrolls if needed */}
-      <CardContent className="flex-1 flex flex-col space-y-4">
-        <div className="flex-1 flex flex-col space-y-3 min-h-0">
-          <div className="flex items-center gap-2 shrink-0">
-            <PackageCheck className="w-4 h-4 text-muted-foreground" />
-            <p className="text-sm font-medium text-muted-foreground">
-              Piece Check ({numFabrics} {numFabrics === 1 ? "piece" : "pieces"})
-            </p>
-          </div>
-
-          {numFabrics > 0 ? (
-            <div className="flex-1 overflow-y-auto pr-1">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {Array.from({ length: numFabrics }).map((_, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                    className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${
-                      checkedStates[index]
-                        ? "bg-primary/10 border-primary/30"
-                        : "bg-muted/20 border-border hover:bg-muted/40"
-                    }`}
-                  >
-                    <Checkbox
-                      id={`${order.id}-piece-${index}`}
-                      checked={checkedStates[index]}
-                      onCheckedChange={(checked) =>
-                        handleCheckboxChange(index, checked as boolean)
-                      }
-                      disabled={isUpdating}
-                    />
-                    <label
-                      htmlFor={`${order.id}-piece-${index}`}
-                      className="text-sm font-medium cursor-pointer select-none flex items-center gap-1.5"
-                    >
-                      {checkedStates[index] && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                      )}
-                      Piece {index + 1}
-                    </label>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 p-4 bg-muted/20 rounded-lg border border-border">
-              <Inbox className="w-4 h-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                No pieces to check (0 fabrics)
+        {/* uniform body: grows and scrolls if needed */}
+        <CardContent className="flex-1 flex flex-col space-y-4">
+          <div className="flex-1 flex flex-col space-y-3 min-h-0">
+            <div className="flex items-center gap-2 shrink-0">
+              <PackageCheck className="w-4 h-4 text-muted-foreground" />
+              <p className="text-sm font-medium text-muted-foreground">
+                Piece Check ({numFabrics}{" "}
+                {numFabrics === 1 ? "piece" : "pieces"})
               </p>
             </div>
-          )}
-        </div>
 
-        <Button
-          className="self-end"
-          onClick={handleDispatch}
-          disabled={!allChecked || isUpdating}
-          variant={allChecked ? "default" : "secondary"}
-        >
-          <Send className="w-4 h-4 mr-2" />
-          {isUpdating ? "Dispatching..." : "Dispatch"}
-        </Button>
-      </CardContent>
-    </Card>
+            {numFabrics > 0 ? (
+              <div className="flex-1 overflow-y-auto pr-1">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {Array.from({ length: numFabrics }).map((_, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.05 }}
+                      className={`flex items-center space-x-2 p-3 rounded-lg border transition-all ${
+                        checkedStates[index]
+                          ? "bg-primary/10 border-primary/30"
+                          : "bg-muted/20 border-border hover:bg-muted/40"
+                      }`}
+                    >
+                      <Checkbox
+                        id={`${order.id}-piece-${index}`}
+                        checked={checkedStates[index]}
+                        onCheckedChange={(checked) =>
+                          handleCheckboxChange(index, checked as boolean)
+                        }
+                        disabled={isUpdating}
+                      />
+                      <label
+                        htmlFor={`${order.id}-piece-${index}`}
+                        className="text-sm font-medium cursor-pointer select-none flex items-center gap-1.5"
+                      >
+                        {checkedStates[index] && (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                        )}
+                        Piece {index + 1}
+                      </label>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 p-4 bg-muted/20 rounded-lg border border-border">
+                <Inbox className="w-4 h-4 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  No pieces to check (0 fabrics)
+                </p>
+              </div>
+            )}
+          </div>
+
+          <Button
+            className="self-end"
+            onClick={handleDispatch}
+            disabled={!allChecked || isUpdating}
+            variant={allChecked ? "default" : "secondary"}
+          >
+            <Send className="w-4 h-4 mr-2" />
+            {isUpdating ? "Dispatching..." : "Dispatch"}
+          </Button>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 }
@@ -282,12 +283,12 @@ export default function DispatchOrderPage() {
           className="flex flex-col md:flex-row md:justify-between md:items-center gap-4"
         >
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Dispatch Orders
             </h1>
             <p className="text-sm text-muted-foreground">
-              Ready to send {orders.length} order{orders.length !== 1 ? "s" : ""}{" "}
-              to production
+              Ready to send {orders.length} order
+              {orders.length !== 1 ? "s" : ""} to production
             </p>
           </div>
           <Button

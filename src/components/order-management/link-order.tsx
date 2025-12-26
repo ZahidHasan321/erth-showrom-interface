@@ -363,7 +363,7 @@ export default function LinkOrder() {
     >
       {/* --- Page Header --- */}
       <motion.div variants={itemVariants} className="space-y-1">
-        <h1 className="text-3xl font-bold text-foreground bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           Link Orders
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -474,141 +474,143 @@ export default function LinkOrder() {
           variants={itemVariants}
           className="bg-card rounded-xl border border-border shadow-sm overflow-hidden"
         >
-        <div className="bg-primary text-primary-foreground px-6 py-4">
-          <h3 className="text-lg font-semibold">Selected Orders</h3>
-          <p className="text-sm opacity-90">
-            {hasOrders
-              ? `${selectedOrders.length} order${selectedOrders.length > 1 ? "s" : ""} selected`
-              : "No orders selected yet"}
-          </p>
-        </div>
+          <div className="bg-primary text-primary-foreground px-6 py-4">
+            <h3 className="text-lg font-semibold">Selected Orders</h3>
+            <p className="text-sm opacity-90">
+              {hasOrders
+                ? `${selectedOrders.length} order${selectedOrders.length > 1 ? "s" : ""} selected`
+                : "No orders selected yet"}
+            </p>
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="p-4 text-left w-10">Primary</th>
-                <th className="p-4 text-left">Order ID</th>
-                <th className="p-4 text-left">Fatoura</th>
-                <th className="p-4 text-left">Stage</th>
-                <th className="p-4 text-left">Customer</th>
-                <th className="p-4 text-left">Delivery Date</th>
-                <th className="p-4 text-left">Revise Date</th>
-                <th className="p-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {!hasOrders ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="p-12 text-center text-muted-foreground"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <LinkIcon className="w-12 h-12 opacity-20" />
-                      <p className="font-medium">No orders selected</p>
-                      <p className="text-xs">
-                        Search and add orders to link them together
-                      </p>
-                    </div>
-                  </td>
+                  <th className="p-4 text-left w-10">Primary</th>
+                  <th className="p-4 text-left">Order ID</th>
+                  <th className="p-4 text-left">Fatoura</th>
+                  <th className="p-4 text-left">Stage</th>
+                  <th className="p-4 text-left">Customer</th>
+                  <th className="p-4 text-left">Delivery Date</th>
+                  <th className="p-4 text-left">Revise Date</th>
+                  <th className="p-4 text-right">Action</th>
                 </tr>
-              ) : (
-                selectedOrders.map((order) => {
-                  const isPrimary = order.id === primaryOrderId;
-
-                  return (
-                    <tr
-                      key={order.id}
-                      className={cn(
-                        "border-t border-border hover:bg-muted/20 transition-colors",
-                        isPrimary &&
-                          "bg-primary/10 border-primary/30 hover:bg-primary/15",
-                      )}
+              </thead>
+              <tbody>
+                {!hasOrders ? (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="p-12 text-center text-muted-foreground"
                     >
-                      <td className="p-4">
-                        <input
-                          type="radio"
-                          name="primaryOrder"
-                          checked={isPrimary}
-                          onChange={() => setPrimaryOrderId(order.id)}
-                          className="h-4 w-4 cursor-pointer"
-                        />
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">
-                            {order.orderId ?? "-"}
-                          </span>
-                          {isPrimary && (
-                            <Badge variant="default" className="text-xs">
-                              Primary
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4 font-medium">
-                        {order.fatoura ?? "-"}
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="outline">
-                          {order.fatouraStage ?? "-"}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        {order.customerId ? (
-                          customerInfoMap[order.id] ? (
-                            <div>
-                              <div className="font-medium text-sm">
-                                {customerInfoMap[order.id]?.fields.Name ?? "-"}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {customerInfoMap[order.id]?.fields.Phone ?? "-"}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              Loading...
+                      <div className="flex flex-col items-center gap-2">
+                        <LinkIcon className="w-12 h-12 opacity-20" />
+                        <p className="font-medium">No orders selected</p>
+                        <p className="text-xs">
+                          Search and add orders to link them together
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  selectedOrders.map((order) => {
+                    const isPrimary = order.id === primaryOrderId;
+
+                    return (
+                      <tr
+                        key={order.id}
+                        className={cn(
+                          "border-t border-border hover:bg-muted/20 transition-colors",
+                          isPrimary &&
+                            "bg-primary/10 border-primary/30 hover:bg-primary/15",
+                        )}
+                      >
+                        <td className="p-4">
+                          <input
+                            type="radio"
+                            name="primaryOrder"
+                            checked={isPrimary}
+                            onChange={() => setPrimaryOrderId(order.id)}
+                            className="h-4 w-4 cursor-pointer"
+                          />
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">
+                              {order.orderId ?? "-"}
                             </span>
-                          )
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                      <td className="p-4 text-muted-foreground">
-                        {order.orderDate
-                          ? format(new Date(order.orderDate), "PP")
-                          : "-"}
-                      </td>
-                      <td className="p-4">
-                        {order.reviseDate ? (
-                          <span className="font-medium text-primary">
-                            {format(new Date(order.reviseDate), "PP")}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-xs italic">
-                            Not set
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-4 text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeOrder(order.id)}
-                          className="hover:bg-destructive hover:text-destructive-foreground"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </motion.div>
+                            {isPrimary && (
+                              <Badge variant="default" className="text-xs">
+                                Primary
+                              </Badge>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4 font-medium">
+                          {order.fatoura ?? "-"}
+                        </td>
+                        <td className="p-4">
+                          <Badge variant="outline">
+                            {order.fatouraStage ?? "-"}
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          {order.customerId ? (
+                            customerInfoMap[order.id] ? (
+                              <div>
+                                <div className="font-medium text-sm">
+                                  {customerInfoMap[order.id]?.fields.Name ??
+                                    "-"}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {customerInfoMap[order.id]?.fields.Phone ??
+                                    "-"}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">
+                                Loading...
+                              </span>
+                            )
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td className="p-4 text-muted-foreground">
+                          {order.orderDate
+                            ? format(new Date(order.orderDate), "PP")
+                            : "-"}
+                        </td>
+                        <td className="p-4">
+                          {order.reviseDate ? (
+                            <span className="font-medium text-primary">
+                              {format(new Date(order.reviseDate), "PP")}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs italic">
+                              Not set
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removeOrder(order.id)}
+                            className="hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
       </ErrorBoundary>
 
       {/* --- Action Buttons --- */}
@@ -674,7 +676,9 @@ export default function LinkOrder() {
                       />
                     </th>
                     <th className="p-4 text-left font-semibold">Order Info</th>
-                    <th className="p-4 text-left font-semibold">Delivery Date</th>
+                    <th className="p-4 text-left font-semibold">
+                      Delivery Date
+                    </th>
                     <th className="p-4 text-left font-semibold">Stage</th>
                     <th className="p-4 text-left font-semibold">Status</th>
                   </tr>
@@ -699,7 +703,9 @@ export default function LinkOrder() {
                         <td className="p-4">
                           <Checkbox
                             checked={isSelected}
-                            onCheckedChange={() => toggleDialogSelection(order.id)}
+                            onCheckedChange={() =>
+                              toggleDialogSelection(order.id)
+                            }
                             disabled={isLinked}
                           />
                         </td>
@@ -725,14 +731,22 @@ export default function LinkOrder() {
                             {order.fields.DeliveryDate ? (
                               <div className="space-y-1">
                                 <p className="font-medium">
-                                  {format(new Date(order.fields.DeliveryDate), "PPP")}
+                                  {format(
+                                    new Date(order.fields.DeliveryDate),
+                                    "PPP",
+                                  )}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  {format(new Date(order.fields.DeliveryDate), "p")}
+                                  {format(
+                                    new Date(order.fields.DeliveryDate),
+                                    "p",
+                                  )}
                                 </p>
                               </div>
                             ) : (
-                              <span className="text-muted-foreground">Not set</span>
+                              <span className="text-muted-foreground">
+                                Not set
+                              </span>
                             )}
                           </div>
                         </td>
