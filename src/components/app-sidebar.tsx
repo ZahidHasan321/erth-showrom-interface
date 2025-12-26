@@ -413,7 +413,7 @@ export function AppSidebar({
               <span>Logout</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
+          <SidebarMenuItem className="hidden md:block">
             <SidebarMenuButton asChild tooltip="Toggle Sidebar">
               <SidebarTrigger>
                 <Menu className="h-4 w-4" />
