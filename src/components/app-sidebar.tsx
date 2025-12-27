@@ -207,26 +207,26 @@ export function AppSidebar({
 
     return (
       <SidebarMenuItem>
-        <Link
-          to={to}
-          tabIndex={disabled ? -1 : 0}
-          aria-disabled={disabled}
-          style={disabled ? { pointerEvents: "none", opacity: 0.5 } : {}}
-          className="block w-full"
-          // When on new-order page, open in a new tab:
-          {...(isNewOrderPage
-            ? { target: "_blank", rel: "noopener noreferrer" }
-            : {})}
+        <SidebarMenuButton
+          asChild
+          isActive={!!match}
+          disabled={disabled}
+          tooltip={title}
         >
-          <SidebarMenuButton
-            isActive={!!match}
-            disabled={disabled}
-            tooltip={title}
+          <Link
+            to={to}
+            tabIndex={disabled ? -1 : 0}
+            aria-disabled={disabled}
+            style={disabled ? { pointerEvents: "none", opacity: 0.5 } : {}}
+            // When on new-order page, open in a new tab:
+            {...(isNewOrderPage
+              ? { target: "_blank", rel: "noopener noreferrer" }
+              : {})}
           >
             {Icon && <Icon className="h-4 w-4" />}
             <span>{title}</span>
-          </SidebarMenuButton>
-        </Link>
+          </Link>
+        </SidebarMenuButton>
       </SidebarMenuItem>
     );
   };
@@ -291,18 +291,17 @@ export function AppSidebar({
 
               return (
                 <SidebarMenuSubItem key={subItem.title}>
-                  <Link
-                    to={`${mainSegment}/${subItem.url}`}
-                    className="block w-full"
-                    {...(isNewOrderPage
-                      ? { target: "_blank", rel: "noopener noreferrer" }
-                      : {})}
-                  >
-                    <SidebarMenuSubButton isActive={!!match}>
+                  <SidebarMenuSubButton asChild isActive={!!match}>
+                    <Link
+                      to={`${mainSegment}/${subItem.url}`}
+                      {...(isNewOrderPage
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
+                    >
                       {subItem.icon && <subItem.icon className="h-4 w-4" />}
                       <span>{subItem.title}</span>
-                    </SidebarMenuSubButton>
-                  </Link>
+                    </Link>
+                  </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
               );
             })}
