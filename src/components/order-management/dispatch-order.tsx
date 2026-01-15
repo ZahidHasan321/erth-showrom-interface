@@ -218,58 +218,6 @@ export default function DispatchOrderPage() {
     visible: { y: 0, opacity: 1 },
   };
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-6 md:p-10 max-w-7xl">
-        <div className="flex justify-between items-center mb-8">
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-64" />
-            <Skeleton className="h-5 w-48" />
-          </div>
-          <Skeleton className="h-10 w-28" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-64 w-full rounded-xl" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="container mx-auto p-6 md:p-10 max-w-7xl">
-        <Card className="border-destructive/30 bg-destructive/5">
-          <CardContent className="p-8">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-destructive/10 rounded-lg">
-                <Package className="w-6 h-6 text-destructive" />
-              </div>
-              <div className="flex-1 space-y-3">
-                <div>
-                  <p className="font-semibold text-destructive text-lg">
-                    Error loading orders
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {error?.message}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.reload()}
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Retry
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <ErrorBoundary showDetails={true}>
       <motion.div
@@ -286,71 +234,113 @@ export default function DispatchOrderPage() {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Dispatch Orders
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Ready to send {orders.length} order
-              {orders.length !== 1 ? "s" : ""} to production
-            </p>
+            {isLoading ? (
+              <Skeleton className="h-5 w-48" />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Ready to send {orders.length} order
+                {orders.length !== 1 ? "s" : ""} to production
+              </p>
+            )}
           </div>
           <Button
             variant="outline"
             onClick={() =>
               queryClient.invalidateQueries({ queryKey: ["dispatchOrders"] })
             }
+            disabled={isLoading}
           >
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
         </motion.div>
 
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {orders.length === 0 ? (
-            <div className="col-span-full">
-              <Card className="border-primary/30 bg-primary/5">
-                <CardContent className="p-12">
-                  <div className="text-center space-y-4">
-                    <div className="flex justify-center">
-                      <div className="p-4 bg-primary/10 rounded-full">
-                        <CheckCircle2 className="w-12 h-12 text-primary" />
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-64 w-full rounded-xl" />
+            ))}
+          </div>
+        ) : isError ? (
+          <Card className="border-destructive/30 bg-destructive/5">
+            <CardContent className="p-8">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-destructive/10 rounded-lg">
+                  <Package className="w-6 h-6 text-destructive" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="font-semibold text-destructive text-lg">
+                      Error loading orders
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {error?.message}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ["dispatchOrders"] })}
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <motion.div
+            variants={itemVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {orders.length === 0 ? (
+              <div className="col-span-full">
+                <Card className="border-primary/30 bg-primary/5">
+                  <CardContent className="p-12">
+                    <div className="text-center space-y-4">
+                      <div className="flex justify-center">
+                        <div className="p-4 bg-primary/10 rounded-full">
+                          <CheckCircle2 className="w-12 h-12 text-primary" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xl font-semibold text-foreground mb-2">
+                          All caught up!
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          No orders with "Fatoura Received" and "Completed" status
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      <p className="text-xl font-semibold text-foreground mb-2">
-                        All caught up!
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        No orders with "Fatoura Received" and "Completed" status
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            orders.map((order) => (
-              <ErrorBoundary
-                key={order.id}
-                fallback={
-                  <Card className="border-destructive/30 bg-destructive/5">
-                    <CardContent className="p-6 text-center">
-                      <p className="text-destructive font-semibold text-sm">
-                        Failed to load order
-                      </p>
-                    </CardContent>
-                  </Card>
-                }
-              >
-                <OrderCard
-                  order={order}
-                  onDispatch={handleDispatch}
-                  isUpdating={updatingOrderIds.has(order.id)}
-                />
-              </ErrorBoundary>
-            ))
-          )}
-        </motion.div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              orders.map((order) => (
+                <ErrorBoundary
+                  key={order.id}
+                  fallback={
+                    <Card className="border-destructive/30 bg-destructive/5">
+                      <CardContent className="p-6 text-center">
+                        <p className="text-destructive font-semibold text-sm">
+                          Failed to load order
+                        </p>
+                      </CardContent>
+                    </Card>
+                  }
+                >
+                  <OrderCard
+                    order={order}
+                    onDispatch={handleDispatch}
+                    isUpdating={updatingOrderIds.has(order.id)}
+                  />
+                </ErrorBoundary>
+              ))
+            )}
+          </motion.div>
+        )}
       </motion.div>
     </ErrorBoundary>
   );

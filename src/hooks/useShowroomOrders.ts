@@ -117,15 +117,22 @@ export function useShowroomOrders() {
   return useQuery({
     queryKey: ["showroom-orders"],
     queryFn: async () => {
-      // Fetch orders with specific FatouraStages - starting with 2 stages
+      // Fetch orders with specific FatouraStages - Brova, Final, Alterations
       const targetStages = [
         "BrovaAtShop",
         "FinalAtShop",
+        "BrovaAccepted",
+        "BrovaAlteration",
+        "BrovaRepairAndProduction",
+        "BrovaAlterationAndProduction",
+        "BrovaAndFinalAtShop"
       ];
 
       const allOrders: OrderDetails[] = [];
 
       // Fetch orders for each stage separately
+      // Note: This might be heavy if many stages. Ideally backend supports list.
+      // Keeping loop as per current API structure.
       for (const stage of targetStages) {
         const response = await getOrdersList({
           FatouraStages: stage,
@@ -136,8 +143,12 @@ export function useShowroomOrders() {
         }
       }
 
+      // Remove duplicates just in case (though stages are usually mutually exclusive, safety first)
+      const uniqueOrders = new Map<string, OrderDetails>();
+      allOrders.forEach(o => uniqueOrders.set(o.order.id, o));
+      
       // Transform to order rows
-      return transformToOrderRows(allOrders);
+      return transformToOrderRows(Array.from(uniqueOrders.values()));
     },
     staleTime: Infinity,
     gcTime: Infinity,

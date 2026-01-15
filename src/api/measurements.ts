@@ -1,6 +1,6 @@
 import type { ApiResponse } from '../types/api';
 import type { Measurement } from '../types/measurement';
-import { createRecord, getRecords, searchAllRecords, updateRecord } from './baseApi';
+import { createRecord, getRecords, searchAllRecords, updateRecord, getRecordById } from './baseApi';
 
 const TABLE_NAME = 'MEASUREMENTS'; // New table name for measurements
 
@@ -8,6 +8,10 @@ export const getMeasurements = () => getRecords<Measurement>(TABLE_NAME);
 
 export const getMeasurementsByCustomerId = async (customerId: string): Promise<ApiResponse<Measurement[]>> => {
   return await searchAllRecords<Measurement[]>(TABLE_NAME, { CustomerID: Number(customerId) });
+};
+
+export const getMeasurementById = (id: string): Promise<ApiResponse<Measurement>> => {
+  return getRecordById<Measurement>(TABLE_NAME, id);
 };
 
 export const createMeasurement = (

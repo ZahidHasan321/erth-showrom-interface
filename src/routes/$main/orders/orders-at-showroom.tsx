@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import type { RowSelectionState } from "@tanstack/react-table";
-import { Loader2 } from "lucide-react";
 
 import { orderColumns } from "@/components/orders-at-showroom/order-columns";
 import { GarmentTableErrorBoundary } from "@/components/orders-at-showroom/GarmentTableErrorBoundary";
 import { useShowroomOrders } from "@/hooks/useShowroomOrders";
 import { OrderDataTable } from "@/components/orders-at-showroom/order-data-tables";
 import { OrderFilters, type FilterState } from "@/components/orders-at-showroom/order-filters";
+import { TableSkeleton } from "@/components/orders-at-showroom/table-skeleton";
 
 export const Route = createFileRoute("/$main/orders/orders-at-showroom")({
   component: RouteComponent,
@@ -26,9 +26,10 @@ function RouteComponent() {
   // Initial Filter State
   const [filters, setFilters] = useState<FilterState>({
     orderId: "",
+    fatoura: "",
     mobile: "",
     customer: "",
-    status: "all",
+    stage: "all",
     reminderStatuses: [],
     deliveryDateStart: "",
     deliveryDateEnd: "",
@@ -48,9 +49,10 @@ function RouteComponent() {
   const clearFilters = () => {
     setFilters({
       orderId: "",
+      fatoura: "",
       mobile: "",
       customer: "",
-      status: "all",
+      stage: "all",
       reminderStatuses: [],
       deliveryDateStart: "",
       deliveryDateEnd: "",
@@ -83,14 +85,7 @@ function RouteComponent() {
         </div>
 
         {/* Loading State */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="ml-3 text-muted-foreground">
-              Loading orders...
-            </span>
-          </div>
-        )}
+        {isLoading && <TableSkeleton />}
 
         {/* Error State */}
         {isError && (

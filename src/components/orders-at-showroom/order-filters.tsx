@@ -16,16 +16,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { FatouraStage } from "@/types/stages";
 
 
 export type FilterState = {
   // Search
   orderId: string;
+  fatoura?: string; // Added fatoura
   mobile: string;
   customer: string;
   
   // Status & Workflow
-  status: string;
+  stage: string;
   reminderStatuses: string[]; // Changed to array for multi-select
   
   // Dates
@@ -53,6 +55,8 @@ const REMINDER_OPTIONS = [
   { value: "r1_done", label: "R1 Completed" },
   { value: "r2_pending", label: "R2 Pending" },
   { value: "r2_done", label: "R2 Completed" },
+  { value: "r3_pending", label: "R3 Pending" },
+  { value: "r3_done", label: "R3 Completed" },
   { value: "call_done", label: "Call Made" },
   { value: "escalated", label: "Escalated" },
 ];
@@ -68,9 +72,10 @@ export function OrderFilters({
   
   const hasActiveFilters =
     filters.orderId || 
+    filters.fatoura ||
     filters.mobile || 
     filters.customer || 
-    filters.status !== "all" ||
+    filters.stage !== "all" ||
     filters.reminderStatuses.length > 0 ||
     filters.deliveryDateStart ||
     filters.deliveryDateEnd ||
@@ -116,7 +121,7 @@ export function OrderFilters({
           <Label className="text-xs font-bold uppercase tracking-wider">Search</Label>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {/* Order ID */}
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Order ID</Label>
@@ -126,6 +131,20 @@ export function OrderFilters({
                 placeholder="Ex: A-1001"
                 value={filters.orderId}
                 onChange={(e) => onFilterChange("orderId", e.target.value)}
+                className="pl-9 h-9 text-sm"
+              />
+            </div>
+          </div>
+          
+           {/* Fatoura Search */}
+           <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Fatoura</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Ex: 12345"
+                value={filters.fatoura || ""}
+                onChange={(e) => onFilterChange("fatoura", e.target.value)}
                 className="pl-9 h-9 text-sm"
               />
             </div>
@@ -193,19 +212,26 @@ export function OrderFilters({
              </Label>
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                   <Label className="text-xs text-muted-foreground">Order Status</Label>
+                   <Label className="text-xs text-muted-foreground">Order Stage</Label>
                    <Select 
-                      value={filters.status} 
-                      onValueChange={(value) => onFilterChange("status", value)}
+                      value={filters.stage} 
+                      onValueChange={(value) => onFilterChange("stage", value)}
                     >
                       <SelectTrigger className="h-9 text-sm">
-                        <SelectValue placeholder="All" />
+                        <SelectValue placeholder="All Stages" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                        <SelectItem value="all">All Stages</SelectItem>
+                        {Object.values(FatouraStage)
+                          .filter(stage => 
+                            stage.toLowerCase().includes("brova") || 
+                            stage.toLowerCase().includes("alteration")
+                          )
+                          .map((stage) => (
+                          <SelectItem key={stage} value={stage}>
+                            {stage}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                 </div>
@@ -244,11 +270,11 @@ export function OrderFilters({
                             <Checkbox 
                               id={`reminder-${option.value}`}
                               checked={filters.reminderStatuses.includes(option.value)}
-                              onCheckedChange={() => toggleReminder(option.value)}
+                              className="pointer-events-none"
                             />
                             <Label 
                               htmlFor={`reminder-${option.value}`} 
-                              className="text-sm cursor-pointer flex-1"
+                              className="text-sm cursor-pointer flex-1 pointer-events-none"
                             >
                               {option.label}
                             </Label>

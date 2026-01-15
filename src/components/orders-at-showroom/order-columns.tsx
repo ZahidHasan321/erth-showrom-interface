@@ -118,6 +118,15 @@ export const orderColumns: ColumnDef<OrderRow>[] = [
     },
   },
   {
+    accessorKey: "fatouraStage",
+    header: "Order Stage",
+    cell: ({ row }) => (
+      <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-inset ring-gray-500/10 whitespace-nowrap">
+        {row.original.order.fields.FatouraStages || "—"}
+      </span>
+    ),
+  },
+  {
     accessorKey: "fatoura",
     header: "Fatoura",
     cell: ({ row }) => (

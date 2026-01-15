@@ -80,6 +80,12 @@ export function OrderDataTable({
           if (!(row.orderId || "").toLowerCase().includes(filters.orderId.toLowerCase())) return false;
         }
 
+        // Fatoura Search
+        if (filters.fatoura) {
+          const fatouraStr = String(row.fatoura || "");
+          if (!fatouraStr.includes(filters.fatoura)) return false;
+        }
+
         // Customer / Mobile Search
         if (filters.customer) {
           const searchLower = filters.customer.toLowerCase();
@@ -89,8 +95,8 @@ export function OrderDataTable({
           if (!nameMatch && !nickMatch && !mobileMatch) return false;
         }
 
-        // Status
-        if (filters.status !== "all" && row.orderStatus !== filters.status) return false;
+        // Stage (FatouraStage)
+        if (filters.stage && filters.stage !== "all" && row.fatouraStage !== filters.stage) return false;
 
         // Financial: Has Balance (Balance > 0)
         if (filters.hasBalance) {
@@ -113,35 +119,46 @@ export function OrderDataTable({
           }
         }
 
-        // Reminder Status Logic (Multi-select OR logic)
+        // Reminder Status Logic (Multi-select AND logic)
         if (filters.reminderStatuses && filters.reminderStatuses.length > 0) {
-          let matchesAnyReminder = false;
-          
           for (const status of filters.reminderStatuses) {
+            let matchesCurrentStatus = false;
+
             switch (status) {
               case "r1_done":
-                if (fields.R1Date) matchesAnyReminder = true;
+                if (fields.R1Date) matchesCurrentStatus = true;
                 break;
               case "r1_pending":
-                if (!fields.R1Date) matchesAnyReminder = true;
+                if (!fields.R1Date) matchesCurrentStatus = true;
                 break;
+              
               case "r2_done":
-                if (fields.R2Date) matchesAnyReminder = true;
+                if (fields.R2Date) matchesCurrentStatus = true;
                 break;
               case "r2_pending":
-                if (!fields.R2Date) matchesAnyReminder = true;
+                if (!fields.R2Date) matchesCurrentStatus = true;
                 break;
+
+              // --- Added R3 Logic ---
+              case "r3_done":
+                if (fields.R3Date) matchesCurrentStatus = true;
+                break;
+              case "r3_pending":
+                if (!fields.R3Date) matchesCurrentStatus = true;
+                break;
+              // ----------------------
+
               case "call_done":
-                if (fields.CallStatus || fields.CallReminderDate) matchesAnyReminder = true;
+                if (fields.CallStatus || fields.CallReminderDate) matchesCurrentStatus = true;
                 break;
               case "escalated":
-                if (fields.EscalationDate) matchesAnyReminder = true;
+                if (fields.EscalationDate) matchesCurrentStatus = true;
                 break;
             }
-            if (matchesAnyReminder) break; // Optimization: if one matches, we keep the row
+
+            // AND Logic: If this specific filter fails, the whole row is excluded.
+            if (!matchesCurrentStatus) return false;
           }
-          
-          if (!matchesAnyReminder) return false;
         }
 
         return true;
