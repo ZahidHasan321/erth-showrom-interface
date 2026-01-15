@@ -362,7 +362,7 @@ function NewWorkOrder() {
 
           OrderForm.setValue("advance", orderFields.Advance ?? 0);
           OrderForm.setValue("paid", orderFields.Paid ?? 0);
-          OrderForm.setValue("balance", orderFields.Balance ?? 0);
+          OrderForm.setValue("orderTotal", orderFields.OrderTotal ?? 0);
           OrderForm.setValue("numOfFabrics", orderFields.NumOfFabrics ?? 0);
           OrderForm.setValue("discountType", orderFields.DiscountType as any);
           OrderForm.setValue("discountValue", orderFields.DiscountValue ?? 0);
@@ -384,7 +384,7 @@ function NewWorkOrder() {
             },
             advance: orderFields.Advance,
             paid: orderFields.Paid,
-            balance: orderFields.Balance,
+            orderTotal: orderFields.OrderTotal,
             numOfFabrics: orderFields.NumOfFabrics,
             paymentType: orderFields.PaymentType,
             discountType: orderFields.DiscountType,
@@ -1007,7 +1007,7 @@ function NewWorkOrder() {
               : 0
           }
           advance={order.advance}
-          balance={order.balance}
+          balance={(order.orderTotal ?? 0) - (order.paid ?? 0)}
         />
       </div>
 

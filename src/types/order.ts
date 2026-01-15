@@ -29,12 +29,23 @@ export interface Order {
     ShelfCharge?: number;
     Advance?: number;
     Paid?: number;
-    Balance?: number;
+    OrderTotal?: number;
     NumOfFabrics?: number;
     LinkedOrder?: boolean;
     UnlinkedOrder?: boolean;
     LinkedDate?: string;
     UnlinkedDate?: string;
     LinkedTo?: string[];
+    R1Date?: string;
+    R1Notes?: string;
+    R2Date?: string;
+    R2Notes?: string;
+    R3Date?: string;
+    R3Notes?: string;
+    CallReminderDate?: string;
+    CallStatus?: "Connected" | "Busy" | "No Answer" | "Switched off";
+    CallNotes?: string;
+    EscalationDate?: string;
+    EscalationNotes?: string;
   };
 }

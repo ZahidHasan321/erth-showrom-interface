@@ -175,7 +175,7 @@ export default function DispatchOrderPage() {
     queryKey: ["dispatchOrders"],
     queryFn: async () => {
       const response = await searchOrders({
-        FatouraStages: FatouraStage.FATOURA_RECEIVED as string,
+        FatouraStages: FatouraStage.OrderAtShop as string,
         OrderStatus: "Completed",
       });
       return response;
@@ -188,7 +188,7 @@ export default function DispatchOrderPage() {
     setUpdatingOrderIds((prev) => new Set(prev).add(orderId));
     try {
       await updateOrder(
-        { FatouraStages: FatouraStage.SENT_TO_PRODUCTION },
+        { FatouraStages: FatouraStage.SentToWorkshop },
         orderId,
       );
       toast.success(`Order dispatched successfully!`);

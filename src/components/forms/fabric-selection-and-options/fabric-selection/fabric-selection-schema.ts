@@ -2,25 +2,14 @@ import { z } from "zod";
 import { fabricSourceValues } from "../constants";
 import { PieceStage } from "@/types/stages";
 
+const PIECE_STAGE_VALUES = Object.values(PieceStage) as [string, ...string[]];
+
 export const fabricSelectionSchema = z.object({
   id: z.string(),
   orderId: z.array(z.string()),
   fatoura: z.number().optional(),
   garmentId: z.string(),
-  pieceStage: z.enum([
-    PieceStage.WAITING_CUT,
-    PieceStage.CUTT,
-    PieceStage.POST_CUT,
-    PieceStage.TASK1_PREP,
-    PieceStage.TASK2_JABZOUR_FRONT_POCKET,
-    PieceStage.TASK3_COLLAR,
-    PieceStage.TASK4_SLEEVES_SIDES_HEMMING,
-    PieceStage.TASK5_INTERMEDIATE_OUT_MEASURE,
-    PieceStage.TASK6_SIDE_POCKET_HEMMING,
-    PieceStage.FINISHING,
-    PieceStage.IRONING,
-    PieceStage.QC_OK,
-  ]),
+  pieceStage: z.enum(PIECE_STAGE_VALUES).optional(),
   brova: z.boolean(),
   fabricSource: z.enum(fabricSourceValues),
   fabricId: z.string().optional(),
@@ -37,8 +26,8 @@ export const fabricSelectionSchema = z.object({
   color: z.string().min(1, "Color is required"),
   measurementId: z.string().min(1, "Measurement ID is required"),
   express: z.boolean(),
-  deliveryDate: z.date().nullable().refine((date) => date !== null, {
-    message: "Delivery date is required",
+  deliveryDate: z.date({
+    error: "Delivery date is required",
   }),
   note: z.string(),
   fabricAmount: z.number(),
@@ -77,7 +66,7 @@ export const fabricSelectionDefaults: FabricSelectionSchema = {
   id: "",
   orderId: [],
   garmentId: "",
-  pieceStage: PieceStage.WAITING_CUT,
+  pieceStage: PieceStage.GarmentAtShop,
   brova: false,
   fabricSource: "",
   fabricId: "",
@@ -87,7 +76,7 @@ export const fabricSelectionDefaults: FabricSelectionSchema = {
   color: "",
   measurementId: "",
   express: false,
-  deliveryDate: null,
+  deliveryDate: new Date(),
   note: "",
   fabricAmount: 0,
   homeDelivery: false,

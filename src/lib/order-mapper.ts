@@ -9,7 +9,7 @@ export function mapApiOrderToFormOrder(apiOrder: Order): OrderSchema {
     fatoura: apiOrder.fields.Fatoura,
     fatouraStages:
       (apiOrder.fields.FatouraStages as FatouraStage) ||
-      FatouraStage.FATOURA_RECEIVED,
+      FatouraStage.OrderAtShop,
     customerID: apiOrder.fields.CustomerID,
     orderDate: apiOrder.fields.OrderDate,
     orderStatus: apiOrder.fields.OrderStatus,
@@ -35,7 +35,7 @@ export function mapApiOrderToFormOrder(apiOrder: Order): OrderSchema {
     },
     advance: apiOrder.fields.Advance ?? undefined,
     paid: apiOrder.fields.Paid ?? 0,
-    balance: apiOrder.fields.Balance ?? 0,
+    orderTotal: apiOrder.fields.OrderTotal ?? 0,
     numOfFabrics: apiOrder.fields.NumOfFabrics ?? 0,
   };
 }
@@ -56,7 +56,7 @@ export function mapFormOrderToApiOrder(
   if (formOrder.orderStatus !== undefined)
     fields.OrderStatus = formOrder.orderStatus;
   if (formOrder.orderType === "WORK" && formOrder.fatouraStages !== undefined) {
-    fields.FatouraStages = formOrder.fatouraStages;
+    fields.FatouraStages = formOrder.fatouraStages as FatouraStage;
   }
   if (formOrder.homeDelivery !== undefined)
     fields.HomeDelivery = formOrder.homeDelivery;
@@ -92,7 +92,7 @@ export function mapFormOrderToApiOrder(
 
   if (formOrder.advance !== undefined) fields.Advance = formOrder.advance;
   if (formOrder.paid !== undefined) fields.Paid = formOrder.paid;
-  if (formOrder.balance !== undefined) fields.Balance = formOrder.balance;
+  if (formOrder.orderTotal !== undefined) fields.OrderTotal = formOrder.orderTotal;
   if (formOrder.numOfFabrics !== undefined)
     fields.NumOfFabrics = formOrder.numOfFabrics;
 

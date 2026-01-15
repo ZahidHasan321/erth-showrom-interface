@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { FatouraStage } from "../types/stages";
 
+const FATOURA_STAGE_VALUES = Object.values(FatouraStage) as [string, ...string[]];
+
 export const orderSchema = z.object({
   // Fields from Order['fields']
   orderID: z
@@ -8,21 +10,7 @@ export const orderSchema = z.object({
     .optional()
     .transform((val) => val?.toString()),
   fatoura: z.coerce.number().optional(),
-  fatouraStages: z
-    .enum([
-      FatouraStage.FATOURA_RECEIVED,
-      FatouraStage.SENT_TO_PRODUCTION,
-      FatouraStage.WATER,
-      FatouraStage.BROVA_ON_PRODUCTION,
-      FatouraStage.BROVA_AT_SHOP_WAITING_APPROVAL,
-      FatouraStage.BROVA_OK,
-      FatouraStage.BROVA_OK_ALT,
-      FatouraStage.FINAL_ON_PRODUCTION,
-      FatouraStage.FINAL_BROVA_AT_SHOP,
-      FatouraStage.ALTERATION,
-      FatouraStage.CANCELLED,
-    ])
-    .optional(),
+  fatouraStages: z.enum(FATOURA_STAGE_VALUES).optional(),
   customerID: z.array(z.string()).optional(),
   orderDate: z.string().optional(),
   orderStatus: z.enum(["Pending", "Completed", "Cancelled"]),
@@ -52,7 +40,7 @@ export const orderSchema = z.object({
   }),
   advance: z.number().optional(),
   paid: z.number(),
-  balance: z.number(),
+  orderTotal: z.number(),
   numOfFabrics: z.number(),
 });
 
@@ -61,7 +49,7 @@ export const orderDefaults: OrderSchema = {
   orderStatus: "Pending",
   orderDate: new Date().toISOString(),
   deliveryDate: new Date().toISOString(),
-  fatouraStages: FatouraStage.FATOURA_RECEIVED,
+  fatouraStages: FatouraStage.OrderAtShop, 
   // orderTotal: 0,
   paymentType: "cash",
   orderType: "WORK",
@@ -77,7 +65,7 @@ export const orderDefaults: OrderSchema = {
   },
   advance: 0,
   paid: 0,
-  balance: 0,
+  orderTotal: 0,
   numOfFabrics: 0,
 };
 

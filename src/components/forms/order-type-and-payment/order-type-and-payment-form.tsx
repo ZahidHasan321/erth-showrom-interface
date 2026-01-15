@@ -108,13 +108,19 @@ export function OrderTypeAndPaymentForm({
 
   // Calculate and set advance
   React.useEffect(() => {
-    const advance = charges.fabric + charges.shelf + ((charges.stitching + charges.style) * 0.5);
-    form.setValue("advance", advance);
+    // Ensure numbers for calculations
+    const fabCharge = Number(charges?.fabric) || 0;
+    const shelfCharge = Number(charges?.shelf) || 0;
+    const stitchCharge = Number(charges?.stitching) || 0;
+    const styleCharge = Number(charges?.style) || 0;
+    
+    const calculatedAdvance = fabCharge + shelfCharge + ((stitchCharge + styleCharge) * 0.5);
+    form.setValue("advance", calculatedAdvance);
   }, [
-    charges.fabric,
-    charges.shelf,
-    charges.stitching,
-    charges.style,
+    charges?.fabric,
+    charges?.shelf,
+    charges?.stitching,
+    charges?.style,
     form,
   ]);
 
@@ -135,8 +141,9 @@ export function OrderTypeAndPaymentForm({
     form.setValue("charges.delivery", deliveryCharge);
   }, [homeDelivery, hasAnyHomeDelivery, hasAnyExpressDelivery, form]);
 
+  // --- FIXED: Safe Total Calculation ---
   const totalDue = Object.values(charges || {}).reduce(
-    (acc, val) => acc + (val || 0),
+    (acc, val) => acc + (Number(val) || 0),
     0
   );
 
@@ -170,23 +177,31 @@ export function OrderTypeAndPaymentForm({
   // Sync discountInKwd when using byValue discount type
   React.useEffect(() => {
     if (discountType === "byValue" && discountValue !== undefined) {
-      form.setValue("discountInKwd", discountValue.toFixed(2));
+      form.setValue("discountInKwd", Number(discountValue).toFixed(2));
     }
   }, [discountValue, discountType, form]);
 
-  const finalAmount = totalDue - discountValue;
-  const balance = finalAmount - paid;
+  // --- FIXED: Safe Balance Calculation ---
+  const safeDiscountValue = Number(discountValue) || 0;
+  // Ensure paid is treated as 0 if undefined/empty
+  const safePaid = Number(paid) || 0;
 
-  // Auto update balance in form
+  const finalAmount = totalDue - safeDiscountValue;
+  // Use safePaid to ensure balance is calculated correctly against Total
+  const balance = finalAmount - safePaid;
+
+  // Auto update orderTotal in form
   React.useEffect(() => {
-    form.setValue("balance", balance < 0 ? 0 : balance);
-  }, [balance, form]);
+    const validTotal = finalAmount < 0 ? 0 : finalAmount;
+    // Only update if value is different to prevent cycles
+    if (form.getValues("orderTotal") !== validTotal) {
+      form.setValue("orderTotal", validTotal);
+    }
+  }, [finalAmount, form]);
 
   // Check if address is provided (any core field with non-empty value)
   const hasAddress = React.useMemo(() => {
     if (!customerAddress) return false;
-    // Check if any address field has actual content (not just empty string)
-    // Note: addressNote is optional and doesn't count as a valid address
     const hasContent = (value: string | undefined) => value && value.trim().length > 0;
     return (
       hasContent(customerAddress.city) ||
@@ -204,7 +219,7 @@ export function OrderTypeAndPaymentForm({
     onSubmit({
       homeDelivery: values.homeDelivery,
       advance: values.advance,
-      balance: values.balance,
+      orderTotal: values.orderTotal,
       discountValue: values.discountValue,
       discountInKwd: values.discountInKwd,
       discountPercentage: values.discountPercentage,
@@ -218,7 +233,6 @@ export function OrderTypeAndPaymentForm({
 
   const handleProceed = () => {
     if (showAddressWarning) {
-      // Don't proceed if home delivery is selected but address is missing
       return;
     }
 
@@ -467,7 +481,7 @@ export function OrderTypeAndPaymentForm({
                             </div>
                           </button>
 
-                          {/* Animated expanded area — smooth like paymentType */}
+                          {/* Animated expanded area */}
                           <motion.div layout transition={smoothTransition}>
                             <AnimatePresence mode="wait">
                               {active && (
@@ -722,7 +736,7 @@ export function OrderTypeAndPaymentForm({
                 ].map(([label, val]) => (
                   <div key={label} className="flex justify-between">
                     <span>{label}</span>
-                    <span className="font-medium">{val} KWD</span>
+                    <span className="font-medium">{Number(val || 0)} KWD</span>
                   </div>
                 ))}
               </div>
@@ -733,7 +747,7 @@ export function OrderTypeAndPaymentForm({
             </div>
             <div className="flex justify-between font-semibold text-base">
               <span>Discount</span>
-              <span className="text-secondary">{discountValue.toFixed(2)} KWD</span>
+              <span className="text-secondary">{safeDiscountValue.toFixed(2)} KWD</span>
             </div>
             <FormField
               control={form.control}
@@ -750,10 +764,11 @@ export function OrderTypeAndPaymentForm({
                         step="0.01"
                         className="w-32 text-left bg-background border-border/60 pr-10"
                         {...field}
-                        value={field.value || ""}
+                        // FIXED: Display empty string if value is 0 or null/undefined so the field appears empty
+                        value={field.value === 0 ? "" : field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === "" ? undefined : e.target.valueAsNumber
+                            e.target.value === "" ? undefined : parseFloat(e.target.value)
                           )
                         }
                         onKeyDown={(e) => {
@@ -773,7 +788,7 @@ export function OrderTypeAndPaymentForm({
               )}
             />
             <div className="flex justify-between font-bold text-lg pt-2 border-t border-border">
-              <span>Balance</span>
+              <span>Payment Remaining</span>
               <span className="text-primary">{(balance < 0 ? 0 : balance).toFixed(2)} KWD</span>
             </div>
           </motion.section>

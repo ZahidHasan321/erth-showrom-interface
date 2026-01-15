@@ -3,10 +3,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { RowSelectionState } from "@tanstack/react-table";
 import { Loader2 } from "lucide-react";
 
-import { GarmentDataTable } from "@/components/orders-at-showroom/garment-data-table";
-import { garmentColumns } from "@/components/orders-at-showroom/garment-columns";
+import { orderColumns } from "@/components/orders-at-showroom/order-columns";
 import { GarmentTableErrorBoundary } from "@/components/orders-at-showroom/GarmentTableErrorBoundary";
 import { useShowroomOrders } from "@/hooks/useShowroomOrders";
+import { OrderDataTable } from "@/components/orders-at-showroom/order-data-tables";
+import { OrderFilters, type FilterState } from "@/components/orders-at-showroom/order-filters";
 
 export const Route = createFileRoute("/$main/orders/orders-at-showroom")({
   component: RouteComponent,
@@ -21,51 +22,102 @@ export const Route = createFileRoute("/$main/orders/orders-at-showroom")({
 
 function RouteComponent() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  
+  // Initial Filter State
+  const [filters, setFilters] = useState<FilterState>({
+    orderId: "",
+    mobile: "",
+    customer: "",
+    status: "all",
+    reminderStatuses: [],
+    deliveryDateStart: "",
+    deliveryDateEnd: "",
+    hasBalance: false,
+    sortBy: "created_desc", 
+  });
+  
+  const [filteredCount, setFilteredCount] = useState(0);
 
   // Fetch orders at showroom
-  const { data: garments = [], isLoading, isError, error } = useShowroomOrders();
+  const { data: orders = [], isLoading, isError, error } = useShowroomOrders();
+
+  const handleFilterChange = (key: keyof FilterState, value: any) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      orderId: "",
+      mobile: "",
+      customer: "",
+      status: "all",
+      reminderStatuses: [],
+      deliveryDateStart: "",
+      deliveryDateEnd: "",
+      hasBalance: false,
+      sortBy: "created_desc",
+    });
+  };
 
   return (
-    <div className="space-y-6 mx-20">
+    <div className="space-y-6 mx-4 lg:mx-10 my-6">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">
           Orders at Showroom
         </h1>
         <p className="text-sm text-muted-foreground">
-          Garments awaiting approval, final pieces, alterations, and cancelled orders
+          Orders awaiting approval, final pieces, alterations, and cancelled orders
         </p>
       </div>
 
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-3 text-muted-foreground">
-            Loading garments...
-          </span>
-        </div>
-      )}
-
-      {isError && (
-        <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-6 text-center">
-          <p className="text-destructive font-medium">
-            Failed to load orders at showroom
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            {error instanceof Error ? error.message : "Unknown error occurred"}
-          </p>
-        </div>
-      )}
-
-      {!isLoading && !isError && (
-        <GarmentTableErrorBoundary>
-          <GarmentDataTable
-            columns={garmentColumns}
-            data={garments}
-            rowSelection={rowSelection}
-            onRowSelectionChange={setRowSelection}
+      <div className="flex flex-col gap-6">
+        {/* Filters Section */}
+        <div className="w-full">
+          <OrderFilters 
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={clearFilters}
+            totalOrders={orders.length}
+            filteredCount={filteredCount}
           />
-        </GarmentTableErrorBoundary>
-      )}
+        </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-3 text-muted-foreground">
+              Loading orders...
+            </span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {isError && (
+          <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-6 text-center">
+            <p className="text-destructive font-medium">
+              Failed to load orders at showroom
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              {error instanceof Error ? error.message : "Unknown error occurred"}
+            </p>
+          </div>
+        )}
+
+        {/* Data Table */}
+        {!isLoading && !isError && (
+          <GarmentTableErrorBoundary>
+            <OrderDataTable
+              columns={orderColumns}
+              data={orders}
+              rowSelection={rowSelection}
+              onRowSelectionChange={setRowSelection}
+              filters={filters}
+              onFilteredDataChange={setFilteredCount}
+            />
+          </GarmentTableErrorBoundary>
+        )}
+      </div>
     </div>
   );
 }

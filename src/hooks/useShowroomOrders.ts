@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { getOrdersList } from "@/api/ordersApi";
 import type { OrderDetails } from "@/api/ordersApi";
-import type { GarmentRow } from "@/components/orders-at-showroom/types";
-import { FatouraStage, PieceStageLabels, FatouraStageLabels } from "@/types/stages";
+import type { OrderRow, GarmentRowData } from "@/components/orders-at-showroom/types";
+import { PieceStageLabels, FatouraStageLabels } from "@/types/stages";
 
 /**
  * Calculate delay in days between promised delivery date and today
@@ -10,7 +10,7 @@ import { FatouraStage, PieceStageLabels, FatouraStageLabels } from "@/types/stag
 function calculateDelay(promisedDeliveryDate: string): number {
   const promised = new Date(promisedDeliveryDate);
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Reset time to start of day
+  today.setHours(0, 0, 0, 0);
   promised.setHours(0, 0, 0, 0);
 
   const diffTime = today.getTime() - promised.getTime();
@@ -20,86 +20,107 @@ function calculateDelay(promisedDeliveryDate: string): number {
 }
 
 /**
- * Transform OrderDetails array into GarmentRow array for the showroom table.
- * Each garment becomes its own row with associated order and customer info.
+ * Calculate total order amount from charges
  */
-function transformToGarmentRows(ordersData: OrderDetails[]): GarmentRow[] {
-  const garmentRows: GarmentRow[] = [];
+function calculateTotal(order: OrderDetails['order']): number {
+  const fields = order.fields;
+  return (
+    (fields.FabricCharge || 0) +
+    (fields.StitchingCharge || 0) +
+    (fields.StyleCharge || 0) +
+    (fields.DeliveryCharge || 0) +
+    (fields.ShelfCharge || 0)
+  );
+}
+
+/**
+ * Transform OrderDetails array into OrderRow array for the showroom table.
+ */
+function transformToOrderRows(ordersData: OrderDetails[]): OrderRow[] {
+  const orderRows: OrderRow[] = [];
 
   for (const orderDetail of ordersData) {
     const { order, customer, garments } = orderDetail;
 
-    // Skip if no garments
-    if (!garments || garments.length === 0) continue;
+    // Transform garments for this order
+    const garmentRowsData: GarmentRowData[] = garments.map((garment) => ({
+      garmentId: String(garment.fields.GarmentId || garment.id),
+      garmentRecordId: garment.id,
+      pieceStage: garment.fields.PieceStages
+        ? PieceStageLabels[garment.fields.PieceStages] || "Unknown"
+        : "Unknown",
+      isBrova: garment.fields.Brova || false,
+      deliveryDate: garment.fields.DeliveryDate || "",
+      delayInDays: calculateDelay(garment.fields.DeliveryDate || new Date().toISOString()),
+      fabricSource: garment.fields.FabricSource || undefined,
+      style: garment.fields.Style || undefined,
+      garment,
+    }));
 
-    for (const garment of garments) {
-      // Determine order type based on Brova field
-      const orderType = garment.fields.Brova ? "Brova" : "Final";
+    // Get customer info
+    const customerName = customer?.fields.Name || "Unknown";
+    const customerNickName = customer?.fields.NickName;
+    const mobileNumber = customer
+      ? `${customer.fields.CountryCode} ${customer.fields.Phone}`
+      : "N/A";
 
-      // Get customer info
-      const customerName = customer?.fields.Name || "Unknown";
-      const customerNickName = customer?.fields.NickName;
-      const mobileNumber = customer
-        ? `${customer.fields.CountryCode} ${customer.fields.Phone}`
-        : "N/A";
+    // Calculate total
+    const totalAmount = order.fields.OrderTotal ?? (calculateTotal(order) - (order.fields.DiscountValue || 0));
 
-      // Calculate delay
-      const delayInDays = calculateDelay(garment.fields.DeliveryDate);
+    const orderRow: OrderRow = {
+      // Order info
+      orderId: String(order.fields.OrderID || order.id),
+      orderRecordId: order.id,
+      fatoura: order.fields.Fatoura,
+      fatouraStage: order.fields.FatouraStages
+        ? FatouraStageLabels[order.fields.FatouraStages] || "Unknown"
+        : "Unknown",
+      orderStatus: order.fields.OrderStatus,
+      orderDate: order.fields.OrderDate,
+      deliveryDate: order.fields.DeliveryDate,
 
-      const garmentRow: GarmentRow = {
-        // Garment info
-        garmentId: String(garment.fields.GarmentId || garment.id),
-        garmentRecordId: garment.id,
-        pieceStage: garment.fields.PieceStages ? (PieceStageLabels[garment.fields.PieceStages] || "Unknown") : "Unknown",
+      // Customer info
+      customerId: customer?.id || "N/A",
+      customerName,
+      customerNickName,
+      mobileNumber,
 
-        // Order info
-        orderId: String(order.fields.OrderID || order.id),
-        orderRecordId: order.id,
-        fatouraStage: order.fields.FatouraStages ? (FatouraStageLabels[order.fields.FatouraStages] || "Unknown") : "Unknown",
+      // Order type and delivery
+      orderType: order.fields.OrderType,
+      homeDelivery: order.fields.HomeDelivery,
 
-        // Customer info
-        customerId: customer?.id || "N/A",
-        customerName: customerName || "Unknown",
-        customerNickName: customerNickName || undefined,
-        mobileNumber: mobileNumber || "N/A",
+      // Financial info
+      totalAmount,
+      advance: order.fields.Advance,
+      balance: totalAmount - (order.fields.Paid || 0),
 
-        // Garment type
-        orderType,
+      // Garments
+      garmentsCount: garments.length,
+      garments: garmentRowsData,
 
-        // Delivery info
-        promisedDeliveryDate: garment.fields.DeliveryDate || new Date().toISOString(),
-        receivedAtShowroom: undefined, // TODO: Add this field to Garment type when available
-        delayInDays,
+      // Full records
+      order,
+      customer,
+    };
 
-        // Full records
-        garment,
-        order,
-        customer,
-      };
-
-      garmentRows.push(garmentRow);
-    }
+    orderRows.push(orderRow);
   }
 
-  return garmentRows;
+  return orderRows;
 }
 
 /**
  * Hook to fetch orders at showroom with specific fatoura stages.
- * Fetches orders with stages: BROVA_AT_SHOP_WAITING_APPROVAL, FINAL_BROVA_AT_SHOP, ALTERATION, CANCELLED
- * Returns garment-centric data where each row represents a garment.
+ * Returns order-centric data where each row represents an order with expandable garments.
  */
 export function useShowroomOrders() {
   return useQuery({
     queryKey: ["showroom-orders"],
     queryFn: async () => {
-      // Fetch orders with specific FatouraStages
-      // We need to fetch separately for each stage since Airtable filters use exact match
+      // Fetch orders with specific FatouraStages - starting with 2 stages
       const targetStages = [
-        FatouraStage.BROVA_AT_SHOP_WAITING_APPROVAL,
-        FatouraStage.FINAL_BROVA_AT_SHOP,
-        FatouraStage.ALTERATION,
-        FatouraStage.CANCELLED,
+        "BrovaAtShop",
+        "FinalAtShop",
       ];
 
       const allOrders: OrderDetails[] = [];
@@ -107,7 +128,7 @@ export function useShowroomOrders() {
       // Fetch orders for each stage separately
       for (const stage of targetStages) {
         const response = await getOrdersList({
-          FatouraStages: stage  // Use the exact Airtable field name (plural)
+          FatouraStages: stage,
         });
 
         if (response.status === "success" && response.data) {
@@ -115,8 +136,8 @@ export function useShowroomOrders() {
         }
       }
 
-      // Transform to garment rows
-      return transformToGarmentRows(allOrders);
+      // Transform to order rows
+      return transformToOrderRows(allOrders);
     },
     staleTime: Infinity,
     gcTime: Infinity,
